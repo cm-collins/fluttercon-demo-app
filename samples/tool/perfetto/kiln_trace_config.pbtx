@@ -1,0 +1,49 @@
+# Perfetto config for profiling Kiln on Android 12+.
+# Record with: record_android_trace -c kiln_trace_config.pbtx -o kiln.perfetto-trace
+# Replace dev.fluttercon.kiln with the app's application ID.
+
+buffers {
+  size_kb: 131072
+  fill_policy: RING_BUFFER
+}
+
+data_sources {
+  config {
+    name: "linux.ftrace"
+    ftrace_config {
+      ftrace_events: "sched/sched_switch"
+      ftrace_events: "sched/sched_wakeup"
+      ftrace_events: "power/cpu_frequency"
+      ftrace_events: "power/suspend_resume"
+      atrace_categories: "gfx"
+      atrace_categories: "view"
+      atrace_categories: "input"
+      atrace_apps: "dev.fluttercon.kiln"
+    }
+  }
+}
+
+# Expected vs Actual frame timeline (Android 12+).
+data_sources {
+  config {
+    name: "android.surfaceflinger.frametimeline"
+  }
+}
+
+data_sources {
+  config {
+    name: "linux.process_stats"
+    process_stats_config {
+      scan_all_processes_on_start: true
+    }
+  }
+}
+
+# GPU render stages, where the device's GPU driver supports it.
+data_sources {
+  config {
+    name: "gpu.renderstages"
+  }
+}
+
+duration_ms: 10000

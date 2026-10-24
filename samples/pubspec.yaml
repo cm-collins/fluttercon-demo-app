@@ -1,0 +1,21 @@
+name: kiln_samples
+description: Broken and fixed rendering samples referenced by the Kiln talk notes.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  shaders:
+    - shaders/speed_ramp.frag
