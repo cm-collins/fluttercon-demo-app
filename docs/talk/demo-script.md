@@ -76,14 +76,15 @@ Source: [History overview](../history/README.md) and [Rendering engine history](
 
 | # | Screen | Do | Say |
 |---|---|---|---|
-| 11 | Slide 4 (timeline) | — | "The title says 'Beyond Skia', so: what are we beyond?" |
-| 12 | Slide 4 | Point at 2018. | "Flutter 1.0 shipped in December 2018 on Skia, the same 2D engine behind Chrome and Android's own UI." |
-| 13 | Slide 4 | — | "Skia compiled shaders just in time. The first time a new effect appeared, Skia generated a shader and the GPU driver compiled it on the raster thread, in the middle of a frame. That frame was late." |
-| 14 | Slide 5 (Skia clip) | Play the 30-second first-run clip. | "Watch the first transition. That stutter happens once per shader, per install. You never saw it in development." |
-| 15 | Slide 4 | Point at 2020. | "In 2020 we got SkSL warm-up: record the shaders on one device, bundle them, and hope they match your user's GPU driver. It helped. It never scaled." |
-| 16 | Slide 4 | Point at 2023 to 2025. | "So the team built a renderer that compiles ahead of time. Impeller became the default on iOS in May 2023, and on Android Vulkan devices in December 2024." |
-| 17 | Slide 4 | — | "Since Flutter 3.29, in February 2025, Skia is gone from iOS. On Android, phones without a working Vulkan driver fall back to Impeller's own OpenGL ES backend, not to Skia." |
-| 18 | Slide 4 | — | "Skia wasn't slow. It was unpredictable. And at 120 hertz, unpredictable is worse than slow." |
+| 11 | Slide 4 (concept video) | Play [`skia-to-impeller-concept.mp4`](../media/skia-to-impeller-concept.mp4), full screen, ~15 s. Optional: dim lights. | *(Mostly silence; let the metaphor land.)* Then: "That's not Flutter yet. That's the idea. Skia forged parts mid-race. Impeller fires them in the kiln first." |
+| 12 | Slide 5 (timeline) | — | "The title says 'Beyond Skia', so: what are we beyond?" |
+| 13 | Slide 5 | Point at 2018. | "Flutter 1.0 shipped in December 2018 on Skia, the same 2D engine behind Chrome and Android's own UI." |
+| 14 | Slide 5 | — | "Skia compiled shaders just in time. The first time a new effect appeared, Skia generated a shader and the GPU driver compiled it on the raster thread, in the middle of a frame. That frame was late." |
+| 15 | Slide 6 (device Skia clip) | Play the ~30-second first-run recording. | "Now the real app. Watch the first transition. That stutter happens once per shader, per install. You never saw it in development." |
+| 16 | Slide 5 | Point at 2020. | "In 2020 we got SkSL warm-up: record the shaders on one device, bundle them, and hope they match your user's GPU driver. It helped. It never scaled." |
+| 17 | Slide 5 | Point at 2023 to 2025. | "So the team built a renderer that compiles ahead of time. Impeller became the default on iOS in May 2023, and on Android Vulkan devices in December 2024." |
+| 18 | Slide 5 | — | "Since Flutter 3.29, in February 2025, Skia is gone from iOS. On Android, phones without a working Vulkan driver fall back to Impeller's own OpenGL ES backend, not to Skia." |
+| 19 | Slide 5 | — | "Skia wasn't slow. It was unpredictable. And at 120 hertz, unpredictable is worse than slow." |
 
 ## 05:30 — One frame on Vulkan (2:30)
 
@@ -91,13 +92,13 @@ Source: [Impeller internals](../notes/03-impeller-internals.md) and [Vulkan prim
 
 | # | Screen | Do | Say |
 |---|---|---|---|
-| 19 | Slide 6 (pipeline) | — | "Here's what Impeller does with one frame on Vulkan." |
-| 20 | Slide 6 | Point at shaders. | "Every shader is compiled when the engine is built. A pipeline is a shader plus fixed GPU state. Impeller builds its pipelines from those precompiled shaders, mostly at startup, and Vulkan's pipeline cache keeps them. During a frame it only picks one. That's ahead-of-time." |
-| 21 | Slide 6 | Point at DisplayList. | "Your `paint()` method doesn't touch the GPU. It records a DisplayList." |
-| 22 | Slide 6 | Point at tessellation. | "On the raster thread, Impeller tessellates: every path is flattened and broken into triangles on the CPU. Simple convex shapes take a fast path." |
-| 23 | Slide 7 (command buffers) | Point at the record, submit, execute lanes. | "Then it records explicit command buffers: begin render pass, bind pipeline, bind buffers, draw, end. It submits them to the Vulkan queue with a fence and moves on. The GPU executes while the raster thread starts the next frame." |
-| 24 | Slide 7 | — | "That's GPU scheduling: the CPU records, the GPU executes, fences keep them in step. Under stress, the risk is no longer compilation. It's the volume of what we record, and every extra render pass we ask for." |
-| 25 | Slide 7 | — | "And Impeller doesn't keep a raster cache like Skia did. If we ask for work, we pay for it, every frame." |
+| 20 | Slide 7 (pipeline) | — | "Here's what Impeller does with one frame on Vulkan." |
+| 21 | Slide 7 | Point at shaders. | "Every shader is compiled when the engine is built. A pipeline is a shader plus fixed GPU state. Impeller builds its pipelines from those precompiled shaders, mostly at startup, and Vulkan's pipeline cache keeps them. During a frame it only picks one. That's ahead-of-time." |
+| 22 | Slide 7 | Point at DisplayList. | "Your `paint()` method doesn't touch the GPU. It records a DisplayList." |
+| 23 | Slide 7 | Point at tessellation. | "On the raster thread, Impeller tessellates: every path is flattened and broken into triangles on the CPU. Simple convex shapes take a fast path." |
+| 24 | Slide 8 (command buffers) | Point at the record, submit, execute lanes. | "Then it records explicit command buffers: begin render pass, bind pipeline, bind buffers, draw, end. It submits them to the Vulkan queue with a fence and moves on. The GPU executes while the raster thread starts the next frame." |
+| 25 | Slide 8 | — | "That's GPU scheduling: the CPU records, the GPU executes, fences keep them in step. Under stress, the risk is no longer compilation. It's the volume of what we record, and every extra render pass we ask for." |
+| 26 | Slide 8 | — | "And Impeller doesn't keep a raster cache like Skia did. If we ask for work, we pay for it, every frame." |
 
 ## 08:00 — Threads and tools in 2026 (2:00)
 
@@ -105,12 +106,12 @@ Source: [Profiling tools history](../history/03-profiling-tools.md) and [Graphic
 
 | # | Screen | Do | Say |
 |---|---|---|---|
-| 26 | Slide 8 (threads) | — | "Since 3.29, your Dart code runs on the platform main thread. DevTools still calls it 'UI'. Impeller runs on the raster thread. Those are our two four-millisecond budgets." |
-| 27 | Slide 8 | — | "Vulkan isn't just Flutter's choice. Since March 2025 it's Android's official graphics API, and Impeller speaks it directly." |
-| 28 | Slide 9 (tools) | — | "The tools grew up too. Systrace became Perfetto in Android 10; Perfetto still opens Systrace files, and `flutter run --trace-systrace` still sends our events there. Observatory became DevTools, and since 2023 the DevTools timeline *is* Perfetto." |
-| 29 | Slide 10 (method) | — | "One method for every lap: which thread is over budget, which event, which code. Then one surgical fix, and measure again." |
+| 27 | Slide 9 (threads) | — | "Since 3.29, your Dart code runs on the platform main thread. DevTools still calls it 'UI'. Impeller runs on the raster thread. Those are our two four-millisecond budgets." |
+| 28 | Slide 9 | — | "Vulkan isn't just Flutter's choice. Since March 2025 it's Android's official graphics API, and Impeller speaks it directly." |
+| 29 | Slide 10 (tools) | — | "The tools grew up too. Systrace became Perfetto in Android 10; Perfetto still opens Systrace files, and `flutter run --trace-systrace` still sends our events there. Observatory became DevTools, and since 2023 the DevTools timeline *is* Perfetto." |
+| 30 | Slide 11 (method) | — | "One method for every lap: which thread is over budget, which event, which code. Then one surgical fix, and measure again." |
 
-⏱ **10:00.** If late, shorten the Rosetta segment to lines 30 and 32.
+⏱ **10:00.** If late, shorten the Rosetta segment to lines 31 and 33.
 
 ## 10:00 — Rosetta (2:00)
 

@@ -79,18 +79,19 @@ If time runs short, cut Lap 4 first, then shorten the Rosetta segment.
 | 1 | Title | Name, handle, event |
 | 2 | (Live) Kiln on the phone | No slide content; let the app run |
 | 3 | The budget | 3.7 Hz vs 120 Hz; 8.33 ms split as ~4 ms UI and ~4 ms raster |
-| 4 | How we got here, 2018 to 2025 | Timeline from [History overview](../history/README.md): Flutter 1.0 on Skia, SkSL warm-up 2020, Impeller iOS 2023, Android 2024, 3.29 in 2025 |
-| 5 | 30-second Skia clip | Recorded first-run shader stutter (see the note at the end of the [Demo script](demo-script.md)) |
-| 6 | Shaders to pipelines to triangles | Build-time shaders, pipelines built mostly at startup, DisplayList, CPU tessellation |
-| 7 | Explicit command buffers | Three lanes: raster thread records, Vulkan queue submits with a fence, GPU executes while the next frame records; no raster cache |
-| 8 | Threads in 2026 | Dart on the main thread since 3.29; raster thread for Impeller; the two 4 ms budgets; Vulkan official on Android since 2025 |
-| 9 | Tools then and now | Systrace to Perfetto, Observatory to DevTools, DevTools timeline is Perfetto since 2023 ([Profiling tools history](../history/03-profiling-tools.md)) |
-| 10 | Diagnosis method | Flowchart from [Profiling toolchain](../research/02-profiling-toolchain.md) |
-| 11–13 | Lap title cards | Laps 1 to 3: symptom, thread, fix (Lap 4 runs without a card) |
-| 14 | Before / after | Side-by-side Perfetto screenshots |
-| 15 | Honest limits (Q&A backup) | No raster cache, Vulkan trace gaps, blur caveats, OpenGL ES devices |
-| 16 | Takeaways | The three registered takeaways |
-| 17 | Closing and credits | Core message, OpenF1 credit, repo link, sources |
+| 4 | Skia → Impeller concept video | Full-screen [`skia-to-impeller-concept.mp4`](media/skia-to-impeller-concept.mp4); metaphor hook ([media README](media/README.md)) |
+| 5 | How we got here, 2018 to 2025 | Timeline from [History overview](../history/README.md): Flutter 1.0 on Skia, SkSL warm-up 2020, Impeller iOS 2023, Android 2024, 3.29 in 2025 |
+| 6 | Device Skia clip | ~30 s first-run shader stutter recording (see [Demo script](demo-script.md)) |
+| 7 | Shaders to pipelines to triangles | Build-time shaders, pipelines built mostly at startup, DisplayList, CPU tessellation |
+| 8 | Explicit command buffers | Three lanes: raster thread records, Vulkan queue submits with a fence, GPU executes while the next frame records; no raster cache |
+| 9 | Threads in 2026 | Dart on the main thread since 3.29; raster thread for Impeller; the two 4 ms budgets; Vulkan official on Android since 2025 |
+| 10 | Tools then and now | Systrace to Perfetto, Observatory to DevTools, DevTools timeline is Perfetto since 2023 ([Profiling tools history](../history/03-profiling-tools.md)) |
+| 11 | Diagnosis method | Flowchart from [Profiling toolchain](../research/02-profiling-toolchain.md) |
+| 12–14 | Lap title cards | Laps 1 to 3: symptom, thread, fix (Lap 4 runs without a card) |
+| 15 | Before / after | Side-by-side Perfetto screenshots |
+| 16 | Honest limits (Q&A backup) | No raster cache, Vulkan trace gaps, blur caveats, OpenGL ES devices |
+| 17 | Takeaways | The three registered takeaways |
+| 18 | Closing and credits | Core message, OpenF1 credit, repo link, sources |
 | A1–A3 | Appendix | AGI frame capture, engine flame graph, extra data |
 
 ## Questions to expect

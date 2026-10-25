@@ -41,7 +41,7 @@ Line numbers refer to the [Demo script](demo-script.md).
 
 | # | Promise in the abstract | Delivered at | Evidence the audience sees | Background doc |
 |---|---|---|---|---|
-| P1 | Definitive transition to Impeller, AOT shader compilation | 03:00, lines 11–18 | Timeline slide, Skia first-run clip | [Rendering engine history](../history/01-rendering-engine.md) |
+| P1 | Definitive transition to Impeller, AOT shader compilation | 03:00, lines 11–19 | Concept video, timeline slide, device Skia clip | [Rendering engine history](../history/01-rendering-engine.md), [Media README](media/README.md) |
 | P2 | Rock-solid 120 fps on high-refresh Android | 01:30 lines 5–10; 33:00 lines 66–67 | Engine Room at 120 Hz, renderer badge, finale inside budget | [Frame scheduling](../notes/05-frame-scheduling.md) |
 | P3 | Diagnose, isolate, fix | Every lap, method slide line 29 | Same three-question method in each lap | [Profiling toolchain](../research/02-profiling-toolchain.md) |
 | P4 | How Impeller interacts with Vulkan on Android 10+ | 05:30 lines 19–25; line 6 | Pipeline and command-buffer slides, badge "Impeller · Vulkan" | [Vulkan primer](../notes/04-vulkan-primer.md), [Graphics APIs history](../history/02-graphics-apis.md) |

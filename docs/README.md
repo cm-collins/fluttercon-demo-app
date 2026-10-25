@@ -50,6 +50,7 @@ flowchart LR
 | `design/` | [Screens](design/screens.md) | Every screen, its hidden anti-pattern and its fix |
 | `talk/` | [Abstract alignment](talk/abstract-alignment.md) | Every promise in the registered abstract mapped to a demo moment |
 | `talk/` | [Talk outline](talk/talk-outline.md) | The 40-minute narrative and key messages |
+| `talk/` | [Media](talk/media/README.md) | Concept video and embed notes for slides |
 | `talk/` | [Demo script](talk/demo-script.md) | Exactly what to click and say, minute by minute |
 | `talk/` | [Stage runbook](talk/stage-runbook.md) | Setup, rehearsal checklist and failure recovery |
 | `reference/` | [Rosetta](reference/rosetta.md) | Flutter concepts mapped to Android and iOS equivalents |

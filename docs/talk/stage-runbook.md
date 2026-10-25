@@ -20,7 +20,7 @@ flowchart LR
 - [ ] Two USB data cables (tested), USB-C adapter for the laptop
 - [ ] Laptop charger, HDMI / USB-C display adapter
 - [ ] Document camera or phone stand (mirroring fallback)
-- [ ] Offline copies: slides, exported DevTools snapshots, Perfetto traces, Skia comparison video
+- [ ] Offline copies: slides, exported DevTools snapshots, Perfetto traces, concept video (`docs/talk/media/skia-to-impeller-concept.mp4`), device Skia comparison recording
 
 ## Phone preparation
 
