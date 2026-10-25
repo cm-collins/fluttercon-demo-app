@@ -1,18 +1,32 @@
 # 08 · Glossary
 
+Short definitions for lookup. For **aligned talk wording** (what to say on stage, what not
+to confuse), use [Talk vocabulary](../talk/vocabulary.md).
+
 | Term | Meaning |
 |---|---|
 | **AGI** | Android GPU Inspector: Google's GPU profiler for Android, including a Vulkan frame profiler. |
 | **AHardwareBuffer (AHB)** | Android's shareable GPU/CPU buffer type; basis of the optional SurfaceControl swapchain. |
 | **AOT** | Ahead-of-time compilation. Dart in profile/release builds; Impeller shaders at engine build time. |
 | **Backdrop filter** | A filter (usually blur) applied to what is already drawn behind a widget. |
+| **`BackdropGroup`** | Widget that lets several `BackdropFilter.grouped` children share one backdrop pass (identical filter, non-overlapping layout). |
+| **Build (frame phase)** | Dart widget rebuild and layout; part of `buildDuration` in `FrameTiming`. |
+| **Composite (frame phase)** | Building the layer tree after paint; layers are sent toward the engine. |
+| **Compilation jank (shader)** | Frame stutter when a new GPU shader is compiled during rasterization (Skia era); distinct from general "jank". |
+| **Decimation (paths)** | Reducing path point count (e.g. min/max per pixel column) before tessellation. |
+| **Draw (overload)** | Either recording ops in `paint()`, issuing GPU draw commands on the raster thread, or colloquial "drawing the UI". Prefer the specific term. |
+| **Paint (frame phase)** | Recording draw operations into a `DisplayList` on the main thread; does not execute on the GPU yet. |
+| **Path** | Vector geometry (`Path` class); Impeller tessellates paths to triangles on the CPU when rasterized. |
+| **Pit stop** | Kiln toggle that swaps broken vs fixed code for one anti-pattern. |
+| **Rasterize** | Raster-thread replay of DisplayLists through Impeller into GPU command buffers; `rasterDuration` in `FrameTiming`. |
 | **Command buffer** | A recorded list of GPU commands submitted to a queue. |
 | **Descriptor set** | Vulkan bindings of uniforms and textures used by a draw. |
 | **DisplayList** | Flutter's recorded list of drawing operations, produced by `paint()` and replayed by the engine. |
 | **Draw call** | One instruction to the GPU to draw geometry with the current pipeline and bindings. |
 | **Embedder** | Platform code that hosts the Flutter engine (on Android: `FlutterActivity`, `FlutterView`, JNI). |
 | **Entity** | Impeller's unit of drawing: transform + blend mode + contents + geometry. |
-| **Frame budget** | Time available per frame: 8.33 ms at 120 Hz. |
+| **Frame budget** | Time available per frame: 8.33 ms at 120 Hz; talk also uses ~4 ms UI + ~4 ms raster as a single-frame latency target. |
+| **Thrash** | Kiln demo control that multiplies Speed Ribbon (and related) workload to stress the raster path (1×–8×). |
 | **FrameTiming** | Per-frame timings from the engine: build, raster, total span. |
 | **impellerc** | Impeller's shader compiler: GLSL → SPIR-V → backend formats, at build time. |
 | **Jank** | A frame that misses its display deadline, visible as a stutter. |
@@ -30,6 +44,7 @@
 | **Render target cache** | Impeller's reuse of offscreen textures across frames. |
 | **`RepaintBoundary`** | Widget that gives its subtree its own layer so repaints don't spread. Not a cache on Impeller. |
 | **`saveLayer`** | Canvas call that draws a group into an offscreen texture, then composites it. Triggers a render-pass switch. |
+| **Shader Lab** | Kiln screen built twice (Skia on pinned Flutter 3.24, Impeller on current Flutter) to compare first-use shader compilation live. |
 | **SkSL** | Skia's shading language; source of runtime shader compilation in the Skia era. |
 | **SnapshotWidget** | Widget that replaces its child with a cached image while snapshotting is enabled. |
 | **SPIR-V** | Vulkan's intermediate shader format. |

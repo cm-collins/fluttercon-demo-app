@@ -1,7 +1,8 @@
 # Rosetta — Flutter, Android and iOS
 
 A translation table for Kotlin and iOS engineers. This content also appears in the
-Engine Room's Rosetta tab.
+Engine Room's Rosetta tab. Shared definitions for Flutter terms (paint vs raster,
+`saveLayer`, shaders) live in [Talk vocabulary](../talk/vocabulary.md).
 
 ## Threads and pipeline
 

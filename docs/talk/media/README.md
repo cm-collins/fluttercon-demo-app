@@ -50,7 +50,7 @@ concept clip only.
 |---|---|---|
 | 1 | `skia-to-impeller-concept.mp4` (this file) | Attention, concept |
 | 2 | Timeline slide 4 | Dates and names |
-| 3 | Device recording (~30 s, `--no-enable-impeller` or older Flutter) | Real Flutter stutter |
+| 3 | **Live Shader Lab** (Kiln Skia on Flutter 3.24 vs Kiln on Impeller) | Real Flutter stutter, measured live |
+| Backup | Shader Lab side-by-side recording (Slide 6, hidden) | Used only if the live run fails |
 
-Record the device clip before the event; see [Demo script](../demo-script.md) ("Note on the
-Skia clip").
+See [Demo script](../demo-script.md#note-on-shader-lab) ("Note on Shader Lab").

@@ -48,6 +48,7 @@ flowchart LR
 | `research/` | [OpenF1 data](research/03-openf1-data.md) | The telemetry source, its limits and licence |
 | `design/` | [Design system](design/design-system.md) | Colours, typography, motion and stage readability rules |
 | `design/` | [Screens](design/screens.md) | Every screen, its hidden anti-pattern and its fix |
+| `talk/` | [Talk vocabulary](talk/vocabulary.md) | Aligned definitions: draw, path, shaders, jank, layers, profiling words |
 | `talk/` | [Abstract alignment](talk/abstract-alignment.md) | Every promise in the registered abstract mapped to a demo moment |
 | `talk/` | [Talk outline](talk/talk-outline.md) | The 40-minute narrative and key messages |
 | `talk/` | [Media](talk/media/README.md) | Concept video and embed notes for slides |
@@ -89,7 +90,7 @@ are not pasted into the notes; they link to the maintained sample package in
 ## Reading order
 
 1. New to the project: **PRD**, then **Screens**, then **Talk outline**.
-2. Learning the material: the **history** overview, then **notes 01 → 08** in order.
+2. Learning the material: **Talk vocabulary**, then the **history** overview, then **notes 01 → 08** in order.
 3. Building the app: **TRD**, **Design system**, then **note 07** with the `samples/` code.
 4. Rehearsing: **Demo script**, then **Stage runbook**.
 

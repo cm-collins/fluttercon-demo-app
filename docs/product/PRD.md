@@ -108,6 +108,7 @@ flowchart LR
 | FR-11 | A "Box all" control applies every fix at once for the finale. | Should |
 | FR-12 | Lights Out start sequence creates a clean "frame zero" marker in the trace. | Could |
 | FR-13 | A **Thrash** control (1×, 2×, 4×, 8×) multiplies Speed Ribbon work live, and is also settable with `kiln://thrash/<n>`, so the audience watches the canvas being stressed. | Must |
+| FR-14 | A **Shader Lab** screen exists in two builds (Skia on a pinned older Flutter, Impeller on current Flutter) so the first-use shader compilation cost can be compared live, with the worst frame shown in large type. | Must |
 
 ## 7. Non-functional requirements
 
@@ -177,6 +178,7 @@ Adjust dates to the confirmed talk date.
 |---|---|---|
 | Venue Wi-Fi or USB fails | Live profiling impossible | Pre-exported DevTools and Perfetto traces for every lap |
 | Device falls back to OpenGL ES | Vulkan story breaks | Renderer badge checked in rehearsal; spare device |
+| Skia first-use spike too small on a fast phone | Shader Lab comparison unconvincing | Measure in rehearsal; use the pre-recorded side-by-side if the gap isn't readable from the stage |
 | Fixed state still janks on the device | Finale fails | Tune workloads during measurement week; keep fixes conservative |
 | Screen mirroring adds load | Numbers shift on stage | Rehearse with the exact mirroring setup; camera as fallback |
 | F1 trademark concerns | Legal / organiser objection | No F1, FIA or team logos; credit OpenF1; non-commercial use |

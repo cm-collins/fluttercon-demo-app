@@ -3,7 +3,8 @@
 Line by line: what is on screen, what you do, and what you say. Quoted lines are the
 intended wording; say them in your own voice, but keep the facts exactly as written (see
 [Say it precisely](#say-it-precisely)). Every promise in the registered abstract is mapped
-to a line here in [Abstract alignment](abstract-alignment.md).
+to a line here in [Abstract alignment](abstract-alignment.md). Term definitions:
+[Talk vocabulary](vocabulary.md).
 
 **Before the session:** follow the [Stage runbook](stage-runbook.md) setup checklist.
 All pit stops start **off** (broken), Thrash is at **1×**. Deep-link commands are pasted in
@@ -22,10 +23,10 @@ a terminal tab.
 |---|---|---|---|
 | 00:00 | Lights Out | 1:30 | Real-time graphics canvas |
 | 01:30 | The budget | 1:30 | ~4 ms UI / ~4 ms raster |
-| 03:00 | How we got here | 2:30 | Skia JIT vs Impeller AOT |
-| 05:30 | One frame on Vulkan | 2:30 | Pipelines, tessellation, explicit command buffers |
-| 08:00 | Threads and tools in 2026 | 2:00 | DevTools, Systrace and Perfetto |
-| 10:00 | Rosetta | 2:00 | Kotlin and iOS audience |
+| 03:00 | How we got here, with live Shader Lab | 3:30 | Skia JIT vs Impeller AOT, shown live |
+| 06:30 | One frame on Vulkan | 2:30 | Pipelines, tessellation, explicit command buffers |
+| 09:00 | Threads and tools in 2026 | 2:00 | DevTools, Systrace and Perfetto |
+| 11:00 | Rosetta | 1:00 | Kotlin and iOS audience |
 | 12:00 | Lap 1: Telemetry Duel | 5:00 | Tessellation, DevTools Timeline, custom painters |
 | 17:00 | Lap 2: Speed Ribbon, thrashed | 7:00 | Thrash the canvas, Perfetto, command volume, precompiled shaders |
 | 24:00 | Lap 3: Pit Wall | 6:00 | `saveLayer`, layer complexity, repaint boundary isolation |
@@ -70,7 +71,7 @@ a terminal tab.
 | 9 | Phone | Point at the 4 ms tick on each bar. | "That's the tick on each bar. Strictly, the threads overlap, so each one can stretch to 8.33 and still hit 120 frames per second. But then you add a frame of latency and you have no headroom left. Four and four is the budget I design for." |
 | 10 | Phone | — | "By the end of this talk, both bars will be inside their budget. First, how we got here." |
 
-## 03:00 — How we got here (2:30)
+## 03:00 — How we got here, with live Shader Lab (3:30)
 
 Source: [History overview](../history/README.md) and [Rendering engine history](../history/01-rendering-engine.md).
 
@@ -80,13 +81,17 @@ Source: [History overview](../history/README.md) and [Rendering engine history](
 | 12 | Slide 5 (timeline) | — | "The title says 'Beyond Skia', so: what are we beyond?" |
 | 13 | Slide 5 | Point at 2018. | "Flutter 1.0 shipped in December 2018 on Skia, the same 2D engine behind Chrome and Android's own UI." |
 | 14 | Slide 5 | — | "Skia compiled shaders just in time. The first time a new effect appeared, Skia generated a shader and the GPU driver compiled it on the raster thread, in the middle of a frame. That frame was late." |
-| 15 | Slide 6 (device Skia clip) | Play the ~30-second first-run recording. | "Now the real app. Watch the first transition. That stutter happens once per shader, per install. You never saw it in development." |
+| 15a | Phone (Kiln Skia) | `adb shell pm clear dev.fluttercon.kiln.skia`, then launch **Kiln Skia**. Point at the badge "Skia · OpenGL ES". | "Now the real thing, live. Skia can't be switched on in today's Flutter any more, so this is the same screen built with Flutter 3.24. I've just wiped its shader cache, so this is a fresh install." |
+| 15b | Phone (Kiln Skia) | Tap **Lights on**. Point at the worst-frame number. | "Gradients, blur, masks, a custom shader: all appearing for the first time. Look at the worst frame. That's Skia generating shaders and the driver compiling them, inside the frame." |
+| 15c | Phone (Kiln Skia) | Back, then **Lights on** again. | "Second time: smooth. Same effects, same phone. The shaders are now cached. That's why you never saw this in development: your phone had already paid." |
+| 15d | Phone (Kiln) | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"`. Badge "Impeller · Vulkan". Tap **Lights on**. | "Now Impeller, first entry. The same effects. Those shaders were compiled before the app was ever installed." |
+| 15e | Phone (Kiln) | Point at the worst-frame number. | "That's the difference: Skia paid for compilation on your user's first frame. Impeller paid on our build machine." |
 | 16 | Slide 5 | Point at 2020. | "In 2020 we got SkSL warm-up: record the shaders on one device, bundle them, and hope they match your user's GPU driver. It helped. It never scaled." |
 | 17 | Slide 5 | Point at 2023 to 2025. | "So the team built a renderer that compiles ahead of time. Impeller became the default on iOS in May 2023, and on Android Vulkan devices in December 2024." |
 | 18 | Slide 5 | — | "Since Flutter 3.29, in February 2025, Skia is gone from iOS. On Android, phones without a working Vulkan driver fall back to Impeller's own OpenGL ES backend, not to Skia." |
 | 19 | Slide 5 | — | "Skia wasn't slow. It was unpredictable. And at 120 hertz, unpredictable is worse than slow." |
 
-## 05:30 — One frame on Vulkan (2:30)
+## 06:30 — One frame on Vulkan (2:30)
 
 Source: [Impeller internals](../notes/03-impeller-internals.md) and [Vulkan primer](../notes/04-vulkan-primer.md).
 
@@ -100,7 +105,7 @@ Source: [Impeller internals](../notes/03-impeller-internals.md) and [Vulkan prim
 | 25 | Slide 8 | — | "That's GPU scheduling: the CPU records, the GPU executes, fences keep them in step. Under stress, the risk is no longer compilation. It's the volume of what we record, and every extra render pass we ask for." |
 | 26 | Slide 8 | — | "And Impeller doesn't keep a raster cache like Skia did. If we ask for work, we pay for it, every frame." |
 
-## 08:00 — Threads and tools in 2026 (2:00)
+## 09:00 — Threads and tools in 2026 (2:00)
 
 Source: [Profiling tools history](../history/03-profiling-tools.md) and [Graphics APIs history](../history/02-graphics-apis.md).
 
@@ -111,15 +116,15 @@ Source: [Profiling tools history](../history/03-profiling-tools.md) and [Graphic
 | 29 | Slide 10 (tools) | — | "The tools grew up too. Systrace became Perfetto in Android 10; Perfetto still opens Systrace files, and `flutter run --trace-systrace` still sends our events there. Observatory became DevTools, and since 2023 the DevTools timeline *is* Perfetto." |
 | 30 | Slide 11 (method) | — | "One method for every lap: which thread is over budget, which event, which code. Then one surgical fix, and measure again." |
 
-⏱ **10:00.** If late, shorten the Rosetta segment to lines 31 and 33.
+⏱ **11:00.** If late, say line R3 only and go straight to Lap 1.
 
-## 10:00 — Rosetta (2:00)
+## 11:00 — Rosetta (1:00)
 
 | # | Screen | Do | Say |
 |---|---|---|---|
-| 30 | Phone | Engine Room → Rosetta tab. | "Kotlin and iOS friends, this tab is for you." |
-| 31 | Phone | Point at each row. | "The main thread is the main thread. Our raster thread is your RenderThread on Android, or the render server on iOS. A Flutter `saveLayer` is your offscreen pass." |
-| 32 | Phone | — | "Everything you're about to see applies to Compose and SwiftUI too. Only the tool names change." |
+| R1 | Phone | Engine Room → Rosetta tab. | "Kotlin and iOS friends, this tab is for you." |
+| R2 | Phone | Point at each row. | "The main thread is the main thread. Our raster thread is your RenderThread on Android, or the render server on iOS. A Flutter `saveLayer` is your offscreen pass." |
+| R3 | Phone | — | "Everything you're about to see applies to Compose and SwiftUI too. Only the tool names change." |
 
 ## 12:00 — Lap 1: Telemetry Duel (5:00)
 
@@ -127,7 +132,7 @@ Promise: tessellation, parsing the DevTools Timeline, custom painter patterns.
 
 | # | Screen | Do | Say |
 |---|---|---|---|
-| 33 | Slide 11 (lap card) | — | "Lap one. Two drivers, speed and throttle, compared over a lap. One custom painter." |
+| 33 | Slide 12 (lap card) | — | "Lap one. Two drivers, speed and throttle, compared over a lap. One custom painter." |
 | 34 | Phone | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/duel"` | "Smooth? Look at the bars." |
 | 35 | DevTools | Performance page. Click one red frame. | "Raster is far past its four milliseconds. UI is fine. So it's Impeller's work, not our Dart." |
 | 36 | DevTools | Enable Track Paints. Timeline Events → search `KILN::TelemetryDuel`. | "Here's how to read the timeline: the frame, the raster slice, and inside it our named paint span. It's long." |
@@ -143,7 +148,7 @@ Promise: intentionally thrash a real-time canvas, read Systrace/Perfetto, comman
 
 | # | Screen | Do | Say |
 |---|---|---|---|
-| 42 | Slide 12 (lap card) | — | "Lap two. The track, coloured by speed. And this time, we thrash it on purpose." |
+| 42 | Slide 13 (lap card) | — | "Lap two. The track, coloured by speed. And this time, we thrash it on purpose." |
 | 43 | Phone | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/ribbon"` | "At 1× this is about a thousand segments. Raster is already near its budget." |
 | 44 | Phone | Thrash 2×, then 4×, then 8× (or `kiln://thrash/8`). Pause on each step. | "2×… 4×… 8×. Speed trails for all twenty cars. Watch the raster bar climb past four, past eight, into red. That's a stressed canvas." |
 | 45 | Perfetto | Start `record_android_trace` (10 s). Run the replay deep link. | "Now the whole system. Perfetto, the successor to Systrace." |
@@ -163,7 +168,7 @@ Promise: avoid `saveLayer()`, reduce layer complexity, precise repaint boundary 
 
 | # | Screen | Do | Say |
 |---|---|---|---|
-| 53 | Slide 13 (lap card) | — | "Lap three. The main screen: the most premium design, and the most hidden cost." |
+| 53 | Slide 14 (lap card) | — | "Lap three. The main screen: the most premium design, and the most hidden cost." |
 | 54 | Phone | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/pitwall"` | — |
 | 55 | DevTools + Phone | Turn on the offscreen-layers checkerboard. Car dots, tower and glass cards light up. | "Every checkerboard is a `saveLayer`: an offscreen render target. On a phone's tile-based GPU that means storing tile memory, switching render pass, and loading it back." |
 | 56 | Phone | **Glow without saveLayer** on. | "This one is inside a custom painter. Each car's glow called `canvas.saveLayer` with a blur. Twenty cars, twenty offscreen passes. Now each glow is a circle with a radial gradient: same look, no layer." |
@@ -190,16 +195,16 @@ Promise: the UI half of the ~4 ms / ~4 ms budget.
 |---|---|---|---|
 | 66 | Phone | `kiln://scenario/pitwall`, then `kiln://pitstop/all/on`, then `kiln://thrash/4`, then `kiln://replay` | "Every pit stop on. And let's leave the stress at 4×." |
 | 67 | Phone | Engine Room: both bars inside their ticks, green and purple. | "Same app. Same data. Same phone. Under stress, both threads inside their budget. Every frame on time." |
-| 68 | Slide 14 (before / after) | — | "Here's the before and after in Perfetto, if you want the proof without trusting my app." |
+| 68 | Slide 15 (before / after) | — | "Here's the before and after in Perfetto, if you want the proof without trusting my app." |
 
 ## 35:00 — Takeaways (1:00)
 
 | # | Screen | Do | Say |
 |---|---|---|---|
-| 69 | Slide 16 | — | "One: demystify the engine. Skia compiled shaders just in time; Impeller compiles ahead of time and turns your paths into triangles and explicit Vulkan command buffers." |
-| 70 | Slide 16 | — | "Two: profile low-level. Read the budget as about four milliseconds UI and four raster. DevTools for the frame, Systrace and Perfetto for the system." |
-| 71 | Slide 16 | — | "Three: tame your custom painters. Use the precompiled pathways, cut draw calls, isolate repaints precisely, and avoid `saveLayer`." |
-| 72 | Slide 17 | — | "Impeller made performance predictable. It didn't make overdraw free. Thank you." |
+| 69 | Slide 17 | — | "One: demystify the engine. Skia compiled shaders just in time; Impeller compiles ahead of time and turns your paths into triangles and explicit Vulkan command buffers." |
+| 70 | Slide 17 | — | "Two: profile low-level. Read the budget as about four milliseconds UI and four raster. DevTools for the frame, Systrace and Perfetto for the system." |
+| 71 | Slide 17 | — | "Three: tame your custom painters. Use the precompiled pathways, cut draw calls, isolate repaints precisely, and avoid `saveLayer`." |
+| 72 | Slide 18 | — | "Impeller made performance predictable. It didn't make overdraw free. Thank you." |
 
 ## 36:00 — Q&A (4:00)
 
@@ -226,6 +231,8 @@ challenged.
 | "Impeller is more predictable" | "Impeller is always faster" | Some effects measured slower than on Skia |
 | "Vulkan cost is the volume of calls" | "Vulkan is slow" | Vulkan removes hidden driver work and exposes your call count instead |
 | "SkSL warm-up helped but didn't scale" | "Warm-up never worked" | It gave real 2 to 5 times improvements in 2020 |
+| "The Skia build uses Flutter 3.24, because current Flutter no longer offers Skia on Android" | "I just turned Impeller off" | The opt-out is deprecated or removed; the audience may try it and fail |
+| "Skia compiles on first use, so I cleared its cache" | Presenting the spike without the reset | Without `pm clear`, the cached run looks smooth and the comparison is unfair in the other direction |
 
 ## Fallback cues
 
@@ -237,10 +244,18 @@ challenged.
 | Perfetto capture fails | Open the pre-recorded trace tab |
 | Fixed state is not inside budget on stage | "Thermals. Here's the rehearsal capture." Open the recorded trace. |
 | Running over time | Use the ⏱ cuts; if still late, skip Lap 4 and say line 65 only |
-| Skia clip will not play | Describe it in one sentence (line 14) and move on |
+| Shader Lab live run fails, or the Skia spike is too small to read | Slide 6: play the pre-recorded Shader Lab side-by-side and keep lines 15b–15e |
+| Concept video will not play | Describe it in one sentence (line 11) and move on |
 
-## Note on the Skia clip
+## Note on Shader Lab
 
-Record the clip before the event. If your Flutter version no longer accepts
-`--no-enable-impeller` on Android, record it with an older Flutter release (for example
-3.24) on the same phone, and say so on the slide.
+Skia can't be enabled in current Flutter on Android 10+, so the Skia side is a separate
+app (`dev.fluttercon.kiln.skia`) built with a pinned Flutter 3.24 (see
+[TRD §11.1](../technical/TRD.md#111-shader-lab-two-apks-two-renderers)). Before the event:
+
+1. Install both apps on the demo phone and the spare phone.
+2. In rehearsal, measure the worst frame for three runs: Skia first entry (after `pm clear`),
+   Skia second entry, Impeller first entry. Write the numbers in the runbook.
+3. Record the same three runs as a side-by-side video for Slide 6 (the backup).
+4. If the Skia first-entry spike isn't clearly visible from the back of the room, use the
+   recording on stage and say so honestly.

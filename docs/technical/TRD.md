@@ -267,16 +267,60 @@ startup, or a platform-channel query); if unreliable, verify in rehearsal with
 | Reset to broken | `adb shell am start -a android.intent.action.VIEW -d "kiln://pitstop/all/off"` |
 | Replay 5 s | `adb shell am start -a android.intent.action.VIEW -d "kiln://replay"` |
 | Set Thrash level | `adb shell am start -a android.intent.action.VIEW -d "kiln://thrash/8"` |
+| Open Shader Lab (Impeller) | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"` |
 
 ## 11. Build and run modes
 
 | Purpose | Command |
 |---|---|
 | Stage run with full tracing | `flutter run --profile --trace-systrace` |
-| Skia comparison (recorded clip only) | `flutter run --profile --trace-systrace --no-enable-impeller` |
 | Release sanity check | `flutter run --release` |
 
 Debug mode is never used for measurement: it runs JIT-compiled Dart and extra checks.
+
+### 11.1 Shader Lab: two APKs, two renderers
+
+Skia can no longer be selected on Android 10+ with current Flutter: the opt-out was
+deprecated in August 2025 ([flutter#173375](https://github.com/flutter/flutter/pull/173375))
+and is reported removed for Android 10+ from 3.44. The Skia side of the comparison is
+therefore a **separate build with a pinned older SDK**.
+
+| Build | SDK | Package ID | Renderer | Launcher label |
+|---|---|---|---|---|
+| Main Kiln app | Current stable (3.47) | `dev.fluttercon.kiln` | Impeller on Vulkan | Kiln |
+| Shader Lab, Impeller | Current stable (3.47) | `dev.fluttercon.kiln` (same app, `kiln://scenario/shaderlab`) | Impeller on Vulkan | Kiln |
+| Shader Lab, Skia | Pinned **3.24.x** via FVM, built with `--no-enable-impeller` baked into the manifest | `dev.fluttercon.kiln.skia` | Skia on OpenGL ES | Kiln Skia |
+
+- The Skia build is a **minimal app**: Shader Lab screen plus the Engine Room budget display.
+  It shares no code path with the main app beyond the Shader Lab widgets, which are kept
+  free of APIs newer than 3.24 so both SDKs compile them.
+- Both builds run in **profile** mode for comparable numbers.
+- Before every run, reset caches so the "first use" is real:
+
+| Action | Command |
+|---|---|
+| Reset Skia build (clears its persistent shader cache) | `adb shell pm clear dev.fluttercon.kiln.skia` |
+| Launch Skia Shader Lab | `adb shell am start -n dev.fluttercon.kiln.skia/.MainActivity` |
+| Open Impeller Shader Lab | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"` |
+
+Clearing the main Kiln app's data is **not** needed for the comparison and would reset
+stage state; Impeller has no runtime shader generation to reset. Measure Impeller's first
+entry after a fresh launch anyway, so the number shown is honest.
+
+### 11.2 Shader Lab screen
+
+- One button, **"Lights on"**, that transitions into a scene using many effects for the
+  first time at once: linear, radial and sweep gradients, `BackdropFilter` blur,
+  `ShaderMask`, `ColorFilter` blend modes, anti-aliased clips, and the custom
+  `speed_ramp.frag` fragment shader.
+- Engine Room shows **worst raster frame since entry** (ms) in large type, plus the usual
+  bars. Reset when the screen is opened.
+- Emits `KILN::ShaderLab::enter` and `KILN::ShaderLab::firstFrame` spans so the spike is easy
+  to find in DevTools and Perfetto.
+- Success criterion (measured in rehearsal on the demo phone): the Skia build's first entry
+  shows a visibly worse worst-frame than its second entry and than the Impeller build. If
+  the gap is too small on the flagship phone to read from the stage, use the pre-recorded
+  backup instead and say so.
 
 ## 12. Testing and validation
 
@@ -300,3 +344,7 @@ Debug mode is never used for measurement: it runs JIT-compiled Dart and extra ch
   guarantee a cached texture. `SnapshotWidget` is the explicit alternative.
 - Backdrop blur on Impeller can cost more than on Skia in some cases; the grouped fix
   only helps when filters are identical and non-overlapping.
+- Shader Lab depends on a pinned old SDK for the Skia build. On a fast flagship phone, Skia's
+  first-use compile spike may be small; it must be measured before the talk. Impeller can
+  also show a small first-entry cost while the driver creates pipeline objects from the
+  precompiled shaders; report it as measured.

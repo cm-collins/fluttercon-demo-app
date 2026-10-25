@@ -1,6 +1,7 @@
 # Abstract alignment
 
-The registered abstract is a promise to the audience. This page maps every promise to the
+The registered abstract is a promise to the audience. Terminology is aligned in
+[Talk vocabulary](vocabulary.md). This page maps every promise to the
 exact moment in the demo where it is delivered, and to the evidence on screen. If a row
 has no line number, the talk does not deliver it.
 
@@ -41,7 +42,7 @@ Line numbers refer to the [Demo script](demo-script.md).
 
 | # | Promise in the abstract | Delivered at | Evidence the audience sees | Background doc |
 |---|---|---|---|---|
-| P1 | Definitive transition to Impeller, AOT shader compilation | 03:00, lines 11–19 | Concept video, timeline slide, device Skia clip | [Rendering engine history](../history/01-rendering-engine.md), [Media README](media/README.md) |
+| P1 | Definitive transition to Impeller, AOT shader compilation | 03:00, lines 11–19 (live Shader Lab 15a–15e) | Concept video, timeline, live Skia vs Impeller worst-frame comparison | [Rendering engine history](../history/01-rendering-engine.md), [Media README](media/README.md) |
 | P2 | Rock-solid 120 fps on high-refresh Android | 01:30 lines 5–10; 33:00 lines 66–67 | Engine Room at 120 Hz, renderer badge, finale inside budget | [Frame scheduling](../notes/05-frame-scheduling.md) |
 | P3 | Diagnose, isolate, fix | Every lap, method slide line 29 | Same three-question method in each lap | [Profiling toolchain](../research/02-profiling-toolchain.md) |
 | P4 | How Impeller interacts with Vulkan on Android 10+ | 05:30 lines 19–25; line 6 | Pipeline and command-buffer slides, badge "Impeller · Vulkan" | [Vulkan primer](../notes/04-vulkan-primer.md), [Graphics APIs history](../history/02-graphics-apis.md) |
@@ -53,7 +54,7 @@ Line numbers refer to the [Demo script](demo-script.md).
 | P10 | Interpret Systrace / Perfetto metrics | Line 28; Lap 2 lines 45–47 | Main and raster thread slices, Expected vs Actual frame timeline | [Profiling tools history](../history/03-profiling-tools.md) |
 | P11 | Precise repaint boundary isolation | Lap 3 line 58 | Track Paints: circuit paint events disappear, only cars repaint | [Optimisation patterns](../notes/07-optimization-patterns.md) |
 | P12 | Layer complexity reduction | Lap 3 lines 55–59 | Offscreen-layer checkerboard disappears | [Optimisation patterns](../notes/07-optimization-patterns.md) |
-| T1 | Skia JIT vs Impeller AOT pipeline mechanics on Vulkan | Lines 13, 20, 69 | Clip plus pipeline slide | [Skia era](../notes/02-skia-era.md) |
+| T1 | Skia JIT vs Impeller AOT pipeline mechanics on Vulkan | Lines 14, 15a–15e, 21, 69 | Live Shader Lab (two builds), pipeline slide | [Skia era](../notes/02-skia-era.md) |
 | T2 | Read ~4 ms UI / ~4 ms raster allocations | Lines 8–9, 26, 35, 46, 64, 70 | Engine Room bars with a 4.17 ms tick per thread | [Frame scheduling](../notes/05-frame-scheduling.md) |
 | T3 | Custom painter patterns using precompiled pathways, avoiding `saveLayer()` | Lap 1 line 38; Lap 2 lines 49–52; Lap 3 line 56 | `drawVertices`, build-time fragment shader, gradient glow instead of `canvas.saveLayer` | [Optimisation patterns](../notes/07-optimization-patterns.md) |
 

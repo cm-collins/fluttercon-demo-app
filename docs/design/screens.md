@@ -16,6 +16,7 @@ flowchart LR
     ribbon -.-> room
     control -.-> room
     room --> rosetta["6 · Rosetta tab"]
+    pitwall -.-> lab["7 · Shader Lab<br/>(also in the separate Skia build)"]
 ```
 
 Every screen can also be opened with a `kiln://scenario/<id>` deep link.
@@ -101,6 +102,27 @@ Built cheaply on purpose (TR-7): its own `RepaintBoundary`, one painter, text up
 ## 6 · Rosetta (tab inside Engine Room)
 
 Translation table for Kotlin and iOS engineers. Content: [Rosetta](../reference/rosetta.md).
+
+## 7 · Shader Lab
+
+**Purpose:** show shader compilation jank live: Skia compiling on first use versus Impeller's
+ahead-of-time shaders. Built twice (see [TRD §11.1](../technical/TRD.md#111-shader-lab-two-apks-two-renderers)).
+
+- A dark, empty stage with one button: **Lights on**.
+- Pressing it reveals a scene that uses many effects for the first time at once: gradients,
+  a frosted blur panel, a `ShaderMask` title, blend-mode colour filters, anti-aliased clips
+  and the `speed_ramp.frag` shader.
+- Top right: the renderer badge ("Skia · OpenGL ES" or "Impeller · Vulkan") so the audience
+  always knows which build is on screen.
+- Centre bottom: **worst frame since entry** in large type (milliseconds), coloured with the
+  F1 timing colours.
+- No anti-pattern and no pit stops: the only variable is the renderer.
+
+| Run | What the audience should see |
+|---|---|
+| Skia, first entry after `pm clear` | Worst frame spikes; DevTools shows a long raster frame |
+| Skia, second entry | Much smaller: shaders are now cached on the device |
+| Impeller, first entry | Flat or close to flat; nothing generated mid-frame |
 
 ## Anti-pattern coverage
 

@@ -55,10 +55,10 @@ gantt
     Lights Out and Pit Wall           :h1, 00:00, 90s
     Budget, 4 ms UI and 4 ms raster   :h2, after h1, 90s
     section Architecture
-    How we got here (history)         :a1, after h2, 150s
+    History and live Shader Lab       :a1, after h2, 210s
     One frame on Vulkan               :a2, after a1, 150s
     Threads and tools in 2026         :a3, after a2, 2m
-    Rosetta tab                       :a4, after a3, 2m
+    Rosetta tab                       :a4, after a3, 1m
     section Live laps
     Lap 1 Telemetry Duel              :l1, after a4, 5m
     Lap 2 Speed Ribbon thrashed       :l2, after l1, 7m
@@ -81,7 +81,7 @@ If time runs short, cut Lap 4 first, then shorten the Rosetta segment.
 | 3 | The budget | 3.7 Hz vs 120 Hz; 8.33 ms split as ~4 ms UI and ~4 ms raster |
 | 4 | Skia → Impeller concept video | Full-screen [`skia-to-impeller-concept.mp4`](media/skia-to-impeller-concept.mp4); metaphor hook ([media README](media/README.md)) |
 | 5 | How we got here, 2018 to 2025 | Timeline from [History overview](../history/README.md): Flutter 1.0 on Skia, SkSL warm-up 2020, Impeller iOS 2023, Android 2024, 3.29 in 2025 |
-| 6 | Device Skia clip | ~30 s first-run shader stutter recording (see [Demo script](demo-script.md)) |
+| 6 | Shader Lab backup (hidden) | Pre-recorded side-by-side of the live Shader Lab runs; shown only if the live comparison fails (see [Demo script](demo-script.md#note-on-shader-lab)) |
 | 7 | Shaders to pipelines to triangles | Build-time shaders, pipelines built mostly at startup, DisplayList, CPU tessellation |
 | 8 | Explicit command buffers | Three lanes: raster thread records, Vulkan queue submits with a fence, GPU executes while the next frame records; no raster cache |
 | 9 | Threads in 2026 | Dart on the main thread since 3.29; raster thread for Impeller; the two 4 ms budgets; Vulkan official on Android since 2025 |
@@ -99,6 +99,7 @@ If time runs short, cut Lap 4 first, then shorten the Rosetta segment.
 | Question | Short answer |
 |---|---|
 | "Is 4 ms UI / 4 ms raster a hard rule?" | No. The threads pipeline, so each can reach 8.33 ms at 120 Hz without dropping. Four and four keeps the frame within one refresh and leaves headroom. |
+| "Why is the Skia app on an old Flutter?" | Current Flutter no longer offers Skia on Android 10+; the opt-out was deprecated in 2025. Same screen, same phone, pinned SDK. |
 | "Does Impeller compile anything at runtime?" | No new shaders. The Vulkan driver still builds pipeline objects from the precompiled shaders, mostly at startup and outside the frame. |
 | "Is Impeller always faster than Skia?" | No. It is more predictable. Some effects (certain blurs) measured slower; fixes are in progress upstream. |
 | "Does RepaintBoundary cache on Impeller?" | It isolates repaints but there is no raster cache. Use `SnapshotWidget` deliberately. |

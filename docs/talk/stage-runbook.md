@@ -30,6 +30,8 @@ flowchart LR
 - [ ] Developer options: USB debugging on, stay awake on
 - [ ] Device cool before the talk (no charging or heavy use in the last 10 minutes)
 - [ ] Renderer badge shows **Impeller · Vulkan**
+- [ ] **Kiln Skia** (`dev.fluttercon.kiln.skia`, pinned Flutter 3.24) installed; its badge shows **Skia · OpenGL ES**
+- [ ] Shader Lab reset command ready: `adb shell pm clear dev.fluttercon.kiln.skia`
 
 ## Laptop preparation
 
@@ -47,6 +49,8 @@ flutter run --profile --trace-systrace
 
 - [ ] Full 40-minute run with a timer
 - [ ] Each lap: broken state visibly red within 3 seconds
+- [ ] Shader Lab: record worst frame for Skia first entry ___ ms, Skia second entry ___ ms, Impeller first entry ___ ms
+- [ ] Shader Lab gap is readable from the back of the room; if not, plan to use the Slide 6 recording
 - [ ] Thrash: each step (1×, 2×, 4×, 8×) visibly raises the raster bar; 8× does not freeze the phone
 - [ ] Finale at Thrash 4× with all pit stops on: both thread bars near their 4 ms ticks
 - [ ] Every row of [Abstract alignment](abstract-alignment.md) delivered in the run
@@ -62,6 +66,7 @@ For every lap, capture both states on the demo device:
 
 | Lap | DevTools snapshot (broken / fixed) | Perfetto trace (broken / fixed) | Screen recording |
 |---|---|---|---|
+| Shader Lab (Skia first / Skia second / Impeller first) | ☐ / ☐ / ☐ | — | ☐ side-by-side |
 | 1 Telemetry Duel | ☐ / ☐ | ☐ / ☐ | ☐ |
 | 2 Speed Ribbon (Thrash 8×) | ☐ / ☐ | ☐ / ☐ | ☐ |
 | 3 Pit Wall | ☐ / ☐ | ☐ / ☐ | ☐ |

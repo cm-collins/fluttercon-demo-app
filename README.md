@@ -84,6 +84,7 @@ Start at [`docs/README.md`](docs/README.md).
 | [Rosetta](docs/reference/rosetta.md) | Flutter concepts mapped to Android and iOS |
 | [Sources](docs/reference/sources.md) | Primary sources behind the research |
 | [History](docs/history/README.md) | Skia to Impeller, OpenGL ES to Vulkan, Systrace to Perfetto |
+| [Talk vocabulary](docs/talk/vocabulary.md) | Aligned meanings for draw, path, shaders, layers, profiling |
 | [Deep-dive notes](docs/README.md#deep-dive-notes-notes) | Flutter internals, Skia, Impeller, Vulkan, scheduling, profiling, patterns |
 
 ## Requirements
