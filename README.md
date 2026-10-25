@@ -7,7 +7,7 @@ Kiln is an F1 race-replay dashboard built with Flutter. It looks like a premium 
 but every component hides a realistic rendering anti-pattern. On stage, each one is
 profiled live with Flutter DevTools and Perfetto, explained at the Impeller and Vulkan
 level, and fixed with a "pit stop" toggle until every frame fits the 8.33 ms budget of a
-120 Hz display.
+120 Hz display: about 4 ms for the UI thread and 4 ms for the raster thread.
 
 > OpenF1 car data arrives about 3.7 times per second. The screen refreshes 120 times per
 > second. That is about 32 frames between data points, and every frame has 8.33 ms.
@@ -33,9 +33,12 @@ flowchart LR
 | Lap | Screen | Anti-pattern | Fix |
 |---|---|---|---|
 | 1 | Telemetry Duel | Rebuilding thousands of path segments every frame | Reduce to screen resolution, build once, separate cursor layer |
-| 2 | Speed Ribbon | ~5,000 `drawPath` calls | One `drawVertices` call or a fragment shader |
-| 3 | Pit Wall | Hidden `saveLayer`, one blur per card, static map repainting | Leaf fades, `BackdropGroup`, `RepaintBoundary` |
+| 2 | Speed Ribbon, thrashed live (1× to 8×) | Thousands of `drawPath` calls | One `drawVertices` call, then a build-time fragment shader in the same draw |
+| 3 | Pit Wall | `canvas.saveLayer` per car glow, hidden `saveLayer` in the tower, one blur per card, static map repainting | Gradient glows, leaf fades, `RepaintBoundary`, `BackdropGroup` |
 | 4 | Race Control | JSON decoded in `build()` on the main thread | `Isolate.run` |
+
+Every promise in the registered abstract is mapped to a demo moment in
+[Abstract alignment](docs/talk/abstract-alignment.md).
 
 ## Status
 

@@ -31,6 +31,7 @@ flowchart LR
     research --> r3["03 OpenF1 data"]
     design --> d1["Design system"]
     design --> d2["Screens"]
+    talk --> t0["Abstract alignment"]
     talk --> t1["Talk outline"]
     talk --> t2["Demo script"]
     talk --> t3["Stage runbook"]
@@ -47,6 +48,7 @@ flowchart LR
 | `research/` | [OpenF1 data](research/03-openf1-data.md) | The telemetry source, its limits and licence |
 | `design/` | [Design system](design/design-system.md) | Colours, typography, motion and stage readability rules |
 | `design/` | [Screens](design/screens.md) | Every screen, its hidden anti-pattern and its fix |
+| `talk/` | [Abstract alignment](talk/abstract-alignment.md) | Every promise in the registered abstract mapped to a demo moment |
 | `talk/` | [Talk outline](talk/talk-outline.md) | The 40-minute narrative and key messages |
 | `talk/` | [Demo script](talk/demo-script.md) | Exactly what to click and say, minute by minute |
 | `talk/` | [Stage runbook](talk/stage-runbook.md) | Setup, rehearsal checklist and failure recovery |

@@ -7,14 +7,20 @@
 
 > Impeller made performance **predictable**. It didn't make overdraw free.
 
-## Three takeaways
+## Three takeaways (as registered)
 
-1. **Know the engine.** Skia compiled shaders while your app ran; Impeller compiles them at
-   build time and turns your paint calls into CPU-tessellated triangles and Vulkan command buffers.
-2. **Diagnose before you fix.** Which thread is over budget? Which event? Which code?
-   DevTools for Flutter, Perfetto for the system.
-3. **Fix surgically.** Reuse geometry, cut draw calls, avoid hidden `saveLayer`, group blurs,
-   isolate repaints, move work off the main thread — and prove it with numbers.
+These match the registered abstract word for word in their titles. Every promise in the
+abstract is traced to a demo line in [Abstract alignment](abstract-alignment.md).
+
+1. **Demystifying the Engine.** Skia compiled shaders just in time, during frames. Impeller
+   compiles them ahead of time, builds Vulkan pipelines from them, tessellates paths into
+   triangles on the CPU and records explicit command buffers.
+2. **Low-Level Profiling.** Read the frame budget as about 4 ms UI and 4 ms raster at
+   120 Hz. Which thread is over? Which event? Which code? DevTools Timeline for the frame,
+   Systrace/Perfetto for the system.
+3. **Taming Custom Painters.** Use the precompiled pathways (one `drawVertices`, build-time
+   fragment shaders), isolate repaints precisely, reduce layer complexity, and avoid
+   `saveLayer()`. Prove every fix with numbers.
 
 ## Narrative arc
 
@@ -26,13 +32,13 @@ journey
       Engine Room shows red frames: 2: Audience
     section Understand
       History from Skia to Impeller: 4: Audience
-      Paint call to Vulkan: 4: Audience
+      One frame on Vulkan: 4: Audience
       Rosetta for Kotlin and iOS: 5: Audience
     section Diagnose and fix
-      Lap 1 paths: 4: Audience
-      Lap 2 draw calls: 5: Audience
-      Lap 3 saveLayer and blur: 4: Audience
-      Lap 4 main thread: 4: Audience
+      Lap 1 tessellation: 4: Audience
+      Lap 2 thrash and draw calls: 5: Audience
+      Lap 3 saveLayer and repaint isolation: 4: Audience
+      Lap 4 UI budget: 4: Audience
     section Finish
       All fixes, all purple: 5: Audience
       Takeaways and Q&A: 5: Audience
@@ -47,15 +53,15 @@ gantt
     axisFormat %M:%S
     section Hook
     Lights Out and Pit Wall           :h1, 00:00, 90s
-    Frame budget and 3.7 Hz vs 120 Hz :h2, after h1, 90s
+    Budget, 4 ms UI and 4 ms raster   :h2, after h1, 90s
     section Architecture
     How we got here (history)         :a1, after h2, 150s
-    Paint call to GPU                 :a2, after a1, 150s
+    One frame on Vulkan               :a2, after a1, 150s
     Threads and tools in 2026         :a3, after a2, 2m
     Rosetta tab                       :a4, after a3, 2m
     section Live laps
-    Lap 1 Telemetry Duel              :l1, after a4, 6m
-    Lap 2 Speed Ribbon                :l2, after l1, 6m
+    Lap 1 Telemetry Duel              :l1, after a4, 5m
+    Lap 2 Speed Ribbon thrashed       :l2, after l1, 7m
     Lap 3 Pit Wall                    :l3, after l2, 6m
     Lap 4 Race Control                :l4, after l3, 3m
     section Finish
@@ -72,24 +78,27 @@ If time runs short, cut Lap 4 first, then shorten the Rosetta segment.
 |---|---|---|
 | 1 | Title | Name, handle, event |
 | 2 | (Live) Kiln on the phone | No slide content; let the app run |
-| 3 | 3.7 Hz vs 120 Hz, 8.33 ms | One big number per line |
+| 3 | The budget | 3.7 Hz vs 120 Hz; 8.33 ms split as ~4 ms UI and ~4 ms raster |
 | 4 | How we got here, 2018 to 2025 | Timeline from [History overview](../history/README.md): Flutter 1.0 on Skia, SkSL warm-up 2020, Impeller iOS 2023, Android 2024, 3.29 in 2025 |
 | 5 | 30-second Skia clip | Recorded first-run shader stutter (see the note at the end of the [Demo script](demo-script.md)) |
-| 6 | Paint call to GPU | Pipeline diagram; "tessellation means CPU triangulation"; no raster cache |
-| 7 | Threads in 2026 | Dart on the main thread since 3.29; raster thread for Impeller; Vulkan official on Android since 2025 |
-| 8 | Tools then and now | Systrace to Perfetto, Observatory to DevTools, DevTools timeline is Perfetto since 2023 ([Profiling tools history](../history/03-profiling-tools.md)) |
-| 9 | Diagnosis method | Flowchart from [Profiling toolchain](../research/02-profiling-toolchain.md) |
-| 10–12 | Lap title cards | Laps 1 to 3: symptom, thread, fix (Lap 4 runs without a card) |
-| 13 | Before / after | Side-by-side Perfetto screenshots |
-| 14 | Honest limits (Q&A backup) | No raster cache, Vulkan trace gaps, blur caveats, OpenGL ES devices |
-| 15 | Takeaways | The three above |
-| 16 | Closing and credits | Core message, OpenF1 credit, repo link, sources |
+| 6 | Shaders to pipelines to triangles | Build-time shaders, pipelines built mostly at startup, DisplayList, CPU tessellation |
+| 7 | Explicit command buffers | Three lanes: raster thread records, Vulkan queue submits with a fence, GPU executes while the next frame records; no raster cache |
+| 8 | Threads in 2026 | Dart on the main thread since 3.29; raster thread for Impeller; the two 4 ms budgets; Vulkan official on Android since 2025 |
+| 9 | Tools then and now | Systrace to Perfetto, Observatory to DevTools, DevTools timeline is Perfetto since 2023 ([Profiling tools history](../history/03-profiling-tools.md)) |
+| 10 | Diagnosis method | Flowchart from [Profiling toolchain](../research/02-profiling-toolchain.md) |
+| 11–13 | Lap title cards | Laps 1 to 3: symptom, thread, fix (Lap 4 runs without a card) |
+| 14 | Before / after | Side-by-side Perfetto screenshots |
+| 15 | Honest limits (Q&A backup) | No raster cache, Vulkan trace gaps, blur caveats, OpenGL ES devices |
+| 16 | Takeaways | The three registered takeaways |
+| 17 | Closing and credits | Core message, OpenF1 credit, repo link, sources |
 | A1–A3 | Appendix | AGI frame capture, engine flame graph, extra data |
 
 ## Questions to expect
 
 | Question | Short answer |
 |---|---|
+| "Is 4 ms UI / 4 ms raster a hard rule?" | No. The threads pipeline, so each can reach 8.33 ms at 120 Hz without dropping. Four and four keeps the frame within one refresh and leaves headroom. |
+| "Does Impeller compile anything at runtime?" | No new shaders. The Vulkan driver still builds pipeline objects from the precompiled shaders, mostly at startup and outside the frame. |
 | "Is Impeller always faster than Skia?" | No. It is more predictable. Some effects (certain blurs) measured slower; fixes are in progress upstream. |
 | "Does RepaintBoundary cache on Impeller?" | It isolates repaints but there is no raster cache. Use `SnapshotWidget` deliberately. |
 | "Why not show the GPU timing directly?" | Stock traces have limited Vulkan submit events; AGI shows it — appendix. |

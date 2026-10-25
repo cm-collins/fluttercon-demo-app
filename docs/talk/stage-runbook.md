@@ -47,6 +47,9 @@ flutter run --profile --trace-systrace
 
 - [ ] Full 40-minute run with a timer
 - [ ] Each lap: broken state visibly red within 3 seconds
+- [ ] Thrash: each step (1×, 2×, 4×, 8×) visibly raises the raster bar; 8× does not freeze the phone
+- [ ] Finale at Thrash 4× with all pit stops on: both thread bars near their 4 ms ticks
+- [ ] Every row of [Abstract alignment](abstract-alignment.md) delivered in the run
 - [ ] Each lap: fixed state measurably better; finale green or purple
 - [ ] Measure with mirroring on and off; note the difference
 - [ ] Simulate failures: unplug USB mid-lap and recover with backups
@@ -60,7 +63,7 @@ For every lap, capture both states on the demo device:
 | Lap | DevTools snapshot (broken / fixed) | Perfetto trace (broken / fixed) | Screen recording |
 |---|---|---|---|
 | 1 Telemetry Duel | ☐ / ☐ | ☐ / ☐ | ☐ |
-| 2 Speed Ribbon | ☐ / ☐ | ☐ / ☐ | ☐ |
+| 2 Speed Ribbon (Thrash 8×) | ☐ / ☐ | ☐ / ☐ | ☐ |
 | 3 Pit Wall | ☐ / ☐ | ☐ / ☐ | ☐ |
 | 4 Race Control | ☐ / ☐ | ☐ / ☐ | ☐ |
 | Finale | ☐ / ☐ | ☐ / ☐ | ☐ |

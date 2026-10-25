@@ -99,7 +99,7 @@ flowchart LR
 | FR-2 | Interpolate car position and telemetry so motion is smooth at 120 Hz. | Must |
 | FR-3 | Provide the five screens described in [Screens](../design/screens.md). | Must |
 | FR-4 | Each anti-pattern has a broken and a fixed implementation, switchable at runtime without restarting. | Must |
-| FR-5 | Engine Room shows live UI, raster and total frame time against the 8.33 ms budget, plus jank count and p90/p99. | Must |
+| FR-5 | Engine Room shows live UI and raster time, each against a 4.17 ms target tick and an 8.33 ms limit, plus total frame time, jank count and p90/p99. | Must |
 | FR-6 | Engine Room shows the active renderer (Impeller on Vulkan, or Impeller on OpenGL ES) and refresh rate. | Must |
 | FR-7 | "Replay 5s" re-runs an identical five-second workload for comparable traces. | Must |
 | FR-8 | Every scenario emits a named timeline span (`KILN::<Scenario>::<phase>`) visible in DevTools and Perfetto. | Must |
@@ -107,12 +107,13 @@ flowchart LR
 | FR-10 | Rosetta tab maps Flutter concepts to Android and iOS equivalents. | Should |
 | FR-11 | A "Box all" control applies every fix at once for the finale. | Should |
 | FR-12 | Lights Out start sequence creates a clean "frame zero" marker in the trace. | Could |
+| FR-13 | A **Thrash** control (1×, 2×, 4×, 8×) multiplies Speed Ribbon work live, and is also settable with `kiln://thrash/<n>`, so the audience watches the canvas being stressed. | Must |
 
 ## 7. Non-functional requirements
 
 | ID | Requirement |
 |---|---|
-| NFR-1 | With all fixes applied, the target device holds 120 Hz: p90 UI and raster times under 8.33 ms during the 5 s replay (measured in profile mode). |
+| NFR-1 | With all fixes applied and Thrash at 4×, the target device holds 120 Hz: p90 UI and raster times under 8.33 ms, with a target of about 4 ms each, during the 5 s replay (measured in profile mode). |
 | NFR-2 | With all anti-patterns active, jank is clearly visible: red frames in DevTools and on the Engine Room display. |
 | NFR-3 | Fully offline. No network calls at runtime. |
 | NFR-4 | Deterministic. The same replay produces comparable traces run to run. |
@@ -128,18 +129,20 @@ Each "lap" of the talk is one row. Details in [Screens](../design/screens.md).
 | Lap | Screen | Anti-pattern | Thread hit | Pit stop (fix) |
 |---|---|---|---|---|
 | 1 | Telemetry Duel | Rebuilding thousands of `Path` segments every frame | Raster | Reduce to screen resolution, build once, separate cursor layer |
-| 2 | Speed Ribbon | ~5,000 separate `drawPath` calls | Raster | One `drawVertices` call, or a fragment shader |
-| 3a | Pit Wall · Tower | Group `Opacity` and save-layer clips | Raster | Fade leaf colours, rounded decoration instead of a clip |
-| 3b | Pit Wall · KPI cards | One `BackdropFilter` per card | Raster | `BackdropGroup` + `BackdropFilter.grouped` |
+| 2 | Speed Ribbon (thrashed) | Thousands of separate `drawPath` calls, multiplied by the Thrash dial | Raster | One `drawVertices` call, then a build-time fragment shader for colour and glow in the same draw |
+| 3a | Pit Wall · Car glow | `canvas.saveLayer` with a blur per car inside a `CustomPainter` | Raster | Radial-gradient circles, no layer |
+| 3b | Pit Wall · Tower | Group `Opacity` and save-layer clips | Raster | Fade leaf colours, rounded decoration instead of a clip |
 | 3c | Pit Wall · Track map | Static circuit repaints with every car-dot move | UI and raster | Separate static layer, `RepaintBoundary`, correct `shouldRepaint` |
+| 3d | Pit Wall · KPI cards | One `BackdropFilter` per card | Raster | `BackdropGroup` + `BackdropFilter.grouped` |
 | 4 | Race Control | JSON decoded inside `build()` | UI | `Isolate.run` |
 
 ## 9. Success metrics
 
 | Metric | Target |
 |---|---|
-| Fixed-state p90 raster time on the demo device | < 8.33 ms |
-| Fixed-state p90 UI time | < 8.33 ms |
+| Fixed-state p90 raster time on the demo device (Thrash 4×) | < 8.33 ms, target ≈ 4 ms |
+| Fixed-state p90 UI time | < 8.33 ms, target ≈ 4 ms |
+| Every promise in the registered abstract delivered on stage ([Abstract alignment](../talk/abstract-alignment.md)) | 100% |
 | Broken-state jank visible within 3 s of opening each scenario | 100% of scenarios |
 | Live demo segments completed without falling back to recorded traces | ≥ 4 of 5 |
 | Rehearsals completed end-to-end on the stage setup | ≥ 3 |

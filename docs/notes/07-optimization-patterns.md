@@ -60,6 +60,10 @@ Related batching APIs: `drawRawPoints` (many points or lines), `drawAtlas` (many
 | **Broken** | [`tower_row_broken.dart`](../../samples/lib/src/tower/tower_row_broken.dart) |
 | **Fixed** | [`tower_row_fixed.dart`](../../samples/lib/src/tower/tower_row_fixed.dart) |
 
+The same applies inside a `CustomPainter`: an explicit `canvas.saveLayer` (for example to
+blur a glow behind each car) is one offscreen pass per call. In Kiln's `car-glow` pit stop,
+each glow becomes a circle filled with a `RadialGradient` shader: the same look, no layer.
+
 `FadeTransition` alone is **not** the fix: it avoids rebuilds, but still uses an opacity
 layer. Other hidden `saveLayer` sources: `ShaderMask`, `ColorFilter`, some `Chip` and `Text`
 configurations.

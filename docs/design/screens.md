@@ -32,16 +32,19 @@ Every screen can also be opened with a `kiln://scenario/<id>` deep link.
 
 ## 1 · Pit Wall (home)
 
-**Purpose:** the "beautiful but lying" dashboard. Hosts three anti-patterns.
+**Purpose:** the "beautiful but lying" dashboard. Hosts four anti-patterns: one inside a
+custom painter, three in the widget tree.
 
 | Area | Shows | Anti-pattern (broken) | Fix (pit stop) |
 |---|---|---|---|
 | Track map | Circuit outline, speed-coloured ribbon, 20 car dots | Circuit and cars in one painter; `shouldRepaint` always true, so the static circuit repaints every frame | `map-layers`: static circuit behind a `RepaintBoundary`, cars in a separate light painter |
+| Car glow | Soft team-colour halo under each car dot | Cars painter calls `canvas.saveLayer` with a blur for every car: 20 offscreen passes | `car-glow`: each halo is a circle filled with a `RadialGradient`; same look, no layer |
 | Tower | P1–P20, gaps, tyre rings | Position changes animated with group `Opacity`; rows clipped with `Clip.antiAliasWithSaveLayer` | `tower-fade`: fade leaf colours instead of the group, rounded decoration instead of a clip |
 | KPI cards | Fastest lap, top speed, DRS | One `BackdropFilter` per frosted card | `glass-group`: `BackdropGroup` + `BackdropFilter.grouped` with identical filters |
 
 **What the audience sees in traces:** raster thread over budget; offscreen-layer
-checkerboard lights up the tower and cards; the map span appears every frame.
+checkerboard lights up the car dots, the tower and the cards; with Track Paints on, the
+circuit's paint event appears every frame until `map-layers` is applied.
 
 ## 2 · Telemetry Duel
 
@@ -55,13 +58,20 @@ checkerboard lights up the tower and cards; the map span appears every frame.
 
 ## 3 · Speed Ribbon
 
-**Purpose:** the draw-call volume lesson (Vulkan).
+**Purpose:** the canvas we thrash on stage, and the draw-call volume lesson (Vulkan).
 
 - Full-screen circuit, coloured segment by segment by the selected driver's speed.
-- **Broken:** about 5,000 separate `drawPath` calls, one per segment, each with its own paint.
-- **Fix (`ribbon-vertices`):** one `drawVertices` call with a colour per vertex.
-- **Optional fix (`ribbon-shader`):** one mesh coloured by a fragment shader compiled at build time.
-- **Talk point:** on Vulkan, cost is often volume — pipeline binds and draws per frame
+- **Thrash dial (1×, 2×, 4×, 8×):** multiplies segment density and adds a speed trail for
+  every car. At 1× the ribbon is about a thousand segments; at 8× the raster thread is far
+  over budget. The dial sits on the screen itself, not only in the Engine Room, so the
+  audience sees the stress being applied.
+- **Broken:** one `drawPath` call per segment, each with its own paint.
+- **Fix (`ribbon-vertices`):** one `drawVertices` call with a colour per vertex. The vertex
+  count still grows with Thrash; the draw count stays at one.
+- **Second fix (`ribbon-shader`):** colour and an animated glow computed by a fragment shader
+  compiled at build time, in the same single draw. Shows Impeller's precompiled pathway.
+- **Talk point:** on Vulkan, cost is volume: tessellations, pipeline binds, buffer binds and
+  draws recorded into the command buffer every frame
   ([flutter#193399](https://github.com/flutter/flutter/issues/193399)).
 
 ## 4 · Race Control
@@ -79,7 +89,8 @@ checkerboard lights up the tower and cards; the map span appears every frame.
 
 | Element | Detail |
 |---|---|
-| Budget bars | UI, Raster, Total, each against an 8.33 ms marker, coloured with F1 timing colours |
+| Budget bars | UI and Raster, each with a 4.17 ms target tick and an 8.33 ms limit line; Total against 8.33 ms in F1 timing colours |
+| Thrash | Current level (1× to 8×), mirrored from the Speed Ribbon dial |
 | Stats | Rolling p50, p90, p99 and jank count over the last 240 frames |
 | Renderer badge | "Impeller · Vulkan" or "Impeller · OpenGL ES", refresh rate |
 | Pit stops | One switch per fix, labelled with the thread it helps |
@@ -98,6 +109,8 @@ flowchart LR
     subgraph raster["Raster thread"]
         a1["duel-paths"]
         a2["ribbon-vertices"]
+        a2b["ribbon-shader"]
+        a7["car-glow"]
         a3["tower-fade"]
         a4["glass-group"]
     end

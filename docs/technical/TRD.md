@@ -183,7 +183,8 @@ classDiagram
 |---|---|---|---|
 | `duel-paths` | Telemetry Duel | Full-resolution curves rebuilt for every trace every frame | Min/max decimation to ≤ 2 samples per pixel, path built once per size, cursor in a separate painter |
 | `ribbon-vertices` | Speed Ribbon | One `drawPath` per track segment (~5,000) | One `Canvas.drawVertices` with per-vertex colours |
-| `ribbon-shader` *(optional)* | Speed Ribbon | Same as above | Fragment shader colouring a single track mesh |
+| `ribbon-shader` | Speed Ribbon | `ribbon-vertices` fixed state, without glow | Fragment shader (compiled by `impellerc` at build time) adds speed colour and glow in the same single draw |
+| `car-glow` | Pit Wall | `canvas.saveLayer` with `ImageFilter.blur` per car inside the cars `CustomPainter` | Each glow drawn as a circle with a `RadialGradient` shader; no layer |
 | `tower-fade` | Pit Wall | `Opacity` around row groups, `Clip.antiAliasWithSaveLayer` | Fade leaf colours (no `Opacity`), rounded `BoxDecoration` instead of a clip |
 | `glass-group` | Pit Wall | One `BackdropFilter` per KPI card | `BackdropGroup` + `BackdropFilter.grouped` (identical filters, non-overlapping cards) |
 | `map-layers` | Pit Wall | Circuit and cars in one painter, `shouldRepaint` always true | Static circuit painter behind `RepaintBoundary`; cars in a separate light painter |
@@ -220,7 +221,18 @@ sequenceDiagram
 - Source: `SchedulerBinding.instance.addTimingsCallback`.
 - Per frame: `buildDuration` (UI), `rasterDuration` (raster), `totalSpan` (vsync to raster finish).
 - Rolling window of 240 frames (2 s at 120 Hz) for p50, p90, p99 and jank count.
-- Colour rule (F1 timing colours): purple ≤ 6.0 ms, green ≤ 8.33 ms, yellow ≤ 12 ms, red above.
+- Colour rule for the total (F1 timing colours): purple ≤ 6.0 ms, green ≤ 8.33 ms, yellow ≤ 12 ms, red above.
+- Per-thread bars (UI and raster): a tick at **4.17 ms** (half the frame, the single-frame-latency
+  target from the abstract) and a limit line at 8.33 ms. Green up to the tick, yellow up to the
+  limit (still 120 Hz thanks to pipelining, but one frame of extra latency), red above.
+
+### 9.1a Thrash control
+
+- Levels 1×, 2×, 4×, 8×. Multiplies Speed Ribbon segment density and adds a speed trail per
+  car, so the recorded draw work scales with the level.
+- Set from the Engine Room or with `kiln://thrash/<n>`. Emits a `KILN::Thrash::level` instant
+  event on change so the step is visible in traces.
+- Deterministic: the same level and replay produce comparable traces.
 
 ### 9.2 Trace spans
 
@@ -228,6 +240,7 @@ sequenceDiagram
 KILN::TelemetryDuel::paint
 KILN::SpeedRibbon::paint
 KILN::PitWall::trackMap
+KILN::PitWall::carGlow
 KILN::PitWall::tower
 KILN::PitWall::glass
 KILN::RaceControl::decode
@@ -253,6 +266,7 @@ startup, or a platform-channel query); if unreliable, verify in rehearsal with
 | Apply every fix | `adb shell am start -a android.intent.action.VIEW -d "kiln://pitstop/all/on"` |
 | Reset to broken | `adb shell am start -a android.intent.action.VIEW -d "kiln://pitstop/all/off"` |
 | Replay 5 s | `adb shell am start -a android.intent.action.VIEW -d "kiln://replay"` |
+| Set Thrash level | `adb shell am start -a android.intent.action.VIEW -d "kiln://thrash/8"` |
 
 ## 11. Build and run modes
 
