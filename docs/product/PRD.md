@@ -64,28 +64,28 @@ live, explain the engine behaviour behind it, and prove the fix with numbers.
 
 ```mermaid
 flowchart LR
-    root(("Kiln: Pit Wall"))
+    kiln["Kiln: Pit Wall"]
 
-    root --> replay["Replay engine"]
+    kiln --> replay["Replay engine"]
     replay --> r1["Bundled OpenF1 session"]
     replay --> r2["Fixed clock and seed"]
     replay --> r3["Interpolation 3.7 Hz to 120 Hz"]
 
-    root --> screens["Screens"]
+    kiln --> screens["Screens"]
     screens --> s1["Lights Out"]
     screens --> s2["Pit Wall"]
     screens --> s3["Telemetry Duel"]
     screens --> s4["Speed Ribbon"]
     screens --> s5["Race Control"]
 
-    root --> engine["Engine Room"]
+    kiln --> engine["Engine Room"]
     engine --> e1["Frame budget display"]
     engine --> e2["Pit stop toggles"]
     engine --> e3["Renderer badge"]
     engine --> e4["Replay 5s"]
     engine --> e5["Rosetta tab"]
 
-    root --> instr["Instrumentation"]
+    kiln --> instr["Instrumentation"]
     instr --> i1["FrameTiming"]
     instr --> i2["Named timeline spans"]
     instr --> i3["Deep links"]
@@ -154,19 +154,18 @@ Each "lap" of the talk is one row. Details in [Screens](../design/screens.md).
 gantt
     title Kiln build and rehearsal plan
     dateFormat YYYY-MM-DD
-    axisFormat %d %b
     section Foundations
-    Data export and replay engine      :a1, 2026-10-26, 4d
-    Design system and shell            :a2, 2026-10-26, 4d
+    Data export and replay engine           :a1, 2026-10-26, 4d
+    Design system and shell                 :a2, 2026-10-26, 4d
     section Scenarios
-    Telemetry Duel and Speed Ribbon    :b1, after a1, 4d
-    Pit Wall and Race Control          :b2, after b1, 4d
-    Engine Room and instrumentation    :b3, after a2, 5d
+    Telemetry Duel and Speed Ribbon         :b1, 2026-10-30, 4d
+    Pit Wall and Race Control               :b2, 2026-11-03, 4d
+    Engine Room and instrumentation         :b3, 2026-10-30, 5d
     section Validation
-    Measure on device, tune workloads  :c1, after b2, 3d
-    Record backup traces               :c2, after c1, 1d
-    section Stage
-    Rehearsal 1 to 3                   :d1, after c2, 5d
+    Measure on device and tune workloads    :c1, 2026-11-07, 3d
+    Record backup traces                    :c2, 2026-11-10, 1d
+    section Rehearsals
+    Rehearsals one through three            :d1, 2026-11-11, 5d
 ```
 
 Adjust dates to the confirmed talk date.
