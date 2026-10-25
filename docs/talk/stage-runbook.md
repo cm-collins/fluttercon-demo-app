@@ -36,7 +36,13 @@ flowchart LR
 ## Laptop preparation
 
 ```text
+cd apps/kiln
 flutter run --profile --trace-systrace
+
+# Kiln Skia (Shader Lab comparison only; build once, install beside Kiln)
+cd apps/kiln_skia
+fvm flutter pub get
+fvm flutter run --profile --trace-systrace
 ```
 
 - [ ] DevTools open on the Performance page, frames chart visible

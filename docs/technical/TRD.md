@@ -76,34 +76,80 @@ flowchart TB
 | TR-10 | Builds for the stage use `--profile`; DevTools and `--trace-systrace` are supported in that mode. |
 | TR-11 | Minimum SDK 29; the manifest must not disable Impeller. |
 | TR-12 | No network permission requirement at runtime for the demo flavour. |
+| TR-13 | The repo is a **monorepo**: main app `apps/kiln`, Skia helper app `apps/kiln_skia`, and shared `packages/shader_lab`. Shader Lab UI and shaders live only in `shader_lab`; both apps depend on it via path. |
+| TR-14 | `packages/shader_lab` must compile on **Flutter 3.24** (Skia build) and current stable (Impeller build). No APIs or packages newer than 3.24 inside that package. |
 
-## 4. Proposed folder structure
+## 4. Repository layout (monorepo)
+
+Two installable APKs share one Shader Lab implementation. Only the main app carries the
+full Pit Wall demo; the Skia app exists because one Flutter SDK cannot produce both
+renderers on current Android.
 
 ```text
-lib/
-  main.dart
-  app/                 # App shell, theme, router
-  core/
-    design/            # Tokens: colours, type, spacing (see design-system.md)
-    data/              # SessionLoader, TelemetryStore, models
-    replay/            # ReplayClock, Interpolator
-    instrumentation/   # FrameBudgetMonitor, trace span helpers, deep links
-  features/
-    lights_out/
-    pit_wall/
-      track_map/       # broken + fixed painters
-      tower/           # broken + fixed list
-      kpi_cards/       # broken + fixed glass
-    telemetry_duel/
-    speed_ribbon/
-    race_control/
-    engine_room/       # budget display, pit stops, rosetta tab
-assets/
-  sessions/            # bundled OpenF1 export
-shaders/               # .frag files compiled by impellerc at build time
+apps/
+  kiln/                      # Main demo — package dev.fluttercon.kiln
+    lib/
+      main.dart
+      app/                   # Shell, theme, router (kiln:// deep links)
+      core/
+        design/              # Tokens (see design-system.md)
+        data/                # SessionLoader, TelemetryStore
+        replay/              # ReplayClock, Interpolator
+        instrumentation/     # FrameBudgetMonitor, spans, deep links
+      features/
+        lights_out/
+        pit_wall/            # track_map, tower, kpi_cards (broken + fixed)
+        telemetry_duel/
+        speed_ribbon/
+        race_control/
+        engine_room/         # Budget display, pit stops, Rosetta
+        shader_lab/          # Thin route: imports packages/shader_lab only
+    assets/sessions/         # Bundled OpenF1 export
+    shaders/                 # Lap shaders (.frag); not used by Shader Lab package
+    android/                 # Impeller on (default); do not disable
+    pubspec.yaml             # path: ../../packages/shader_lab
+
+  kiln_skia/                 # Shader Lab only — package dev.fluttercon.kiln.skia
+    lib/
+      main.dart              # Single route: Shader Lab + minimal budget chrome
+    android/                 # Impeller disabled in manifest (Skia on OpenGL ES)
+    pubspec.yaml             # path: ../../packages/shader_lab
+    .fvmrc                   # Pins 3.24.x for this app only (FVM)
+
+packages/
+  shader_lab/                # Shared Shader Lab screen (both APKs)
+    lib/
+      shader_lab_screen.dart
+      lights_on_scene.dart   # Gradients, BackdropFilter, masks, speed_ramp.frag
+      budget_readout.dart    # Worst raster frame since entry
+    shaders/
+      speed_ramp.frag
+    pubspec.yaml             # SDK constraint compatible with 3.24 and current stable
+
+docs/                        # PRD, TRD, talk, design (unchanged)
+samples/                     # Reference broken/fixed widgets for notes 06–07
 tool/
-  export_session.dart  # one-off OpenF1 export script (run before the talk)
+  export_session.dart        # One-off OpenF1 export before bundling session.json
 ```
+
+### 4.1 Why split apps instead of one repo root
+
+| Concern | Approach |
+|---|---|
+| Impeller vs Skia on Android 10+ | `apps/kiln` uses current stable; `apps/kiln_skia` uses FVM-pinned 3.24 with Skia |
+| Same pixels on stage | One `packages/shader_lab`; both apps show identical Shader Lab UI |
+| Avoid dragging 3.24 into the main app | Main app never pins an old SDK; only `kiln_skia` carries `.fvmrc` |
+| Lap shaders vs Shader Lab shader | Lap `.frag` files stay under `apps/kiln/shaders/`; Shader Lab's `speed_ramp.frag` lives in the package so Skia can compile it too |
+
+### 4.2 Build entry points
+
+| App | Working directory | Typical command |
+|---|---|---|
+| Kiln (Impeller) | `apps/kiln` | `flutter run --profile --trace-systrace` |
+| Kiln Skia | `apps/kiln_skia` | `fvm flutter pub get` then `fvm flutter run --profile --trace-systrace` |
+
+Install both APKs on the demo phone before rehearsal. They coexist because package IDs
+differ (`dev.fluttercon.kiln` vs `dev.fluttercon.kiln.skia`).
 
 ## 5. Data pipeline
 
@@ -273,8 +319,9 @@ startup, or a platform-channel query); if unreliable, verify in rehearsal with
 
 | Purpose | Command |
 |---|---|
-| Stage run with full tracing | `flutter run --profile --trace-systrace` |
-| Release sanity check | `flutter run --release` |
+| Stage run, Kiln (Impeller) | `cd apps/kiln` then `flutter run --profile --trace-systrace` |
+| Stage run, Kiln Skia | `cd apps/kiln_skia` then `fvm flutter run --profile --trace-systrace` |
+| Release sanity check | Same directories; `flutter run --release` / `fvm flutter run --release` |
 
 Debug mode is never used for measurement: it runs JIT-compiled Dart and extra checks.
 
@@ -291,9 +338,10 @@ therefore a **separate build with a pinned older SDK**.
 | Shader Lab, Impeller | Current stable (3.47) | `dev.fluttercon.kiln` (same app, `kiln://scenario/shaderlab`) | Impeller on Vulkan | Kiln |
 | Shader Lab, Skia | Pinned **3.24.x** via FVM, built with `--no-enable-impeller` baked into the manifest | `dev.fluttercon.kiln.skia` | Skia on OpenGL ES | Kiln Skia |
 
-- The Skia build is a **minimal app**: Shader Lab screen plus the Engine Room budget display.
-  It shares no code path with the main app beyond the Shader Lab widgets, which are kept
-  free of APIs newer than 3.24 so both SDKs compile them.
+- The Skia build is **`apps/kiln_skia`**: Shader Lab plus the shared budget readout from
+  `packages/shader_lab`. It does not bundle Pit Wall, laps or session data.
+- Shader Lab UI lives in **`packages/shader_lab`** (TR-13, TR-14). The main app's
+  `features/shader_lab/` route is a thin wrapper for deep links and navigation only.
 - Both builds run in **profile** mode for comparable numbers.
 - Before every run, reset caches so the "first use" is real:
 

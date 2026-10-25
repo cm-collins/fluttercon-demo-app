@@ -106,7 +106,9 @@ Translation table for Kotlin and iOS engineers. Content: [Rosetta](../reference/
 ## 7 · Shader Lab
 
 **Purpose:** show shader compilation jank live: Skia compiling on first use versus Impeller's
-ahead-of-time shaders. Built twice (see [TRD §11.1](../technical/TRD.md#111-shader-lab-two-apks-two-renderers)).
+ahead-of-time shaders. UI lives in `packages/shader_lab` and ships in both
+`apps/kiln` and `apps/kiln_skia` (see [TRD §4](../technical/TRD.md#4-repository-layout-monorepo) and
+[§11.1](../technical/TRD.md#111-shader-lab-two-apks-two-renderers)).
 
 - A dark, empty stage with one button: **Lights on**.
 - Pressing it reveals a scene that uses many effects for the first time at once: gradients,

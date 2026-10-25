@@ -54,9 +54,17 @@ has not been scaffolded yet.
 ## Repository layout
 
 ```text
-docs/       PRD, TRD, research, design, talk, reference, history and deep-dive notes
-samples/    kiln_samples: broken and fixed code for every pattern, Perfetto config and queries
+apps/
+  kiln/           Main demo (Impeller, current Flutter) — dev.fluttercon.kiln
+  kiln_skia/      Shader Lab only (Skia, Flutter 3.24 via FVM) — dev.fluttercon.kiln.skia
+packages/
+  shader_lab/     Shared Shader Lab screen, compiled into both APKs
+docs/             PRD, TRD, research, design, talk, reference, history and deep-dive notes
+samples/          kiln_samples: broken and fixed reference code for the deep-dive notes
+tool/             OpenF1 session export script
 ```
+
+See [TRD §4](docs/technical/TRD.md) for the full monorepo tree.
 
 ## Sample code
 

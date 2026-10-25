@@ -108,7 +108,7 @@ flowchart LR
 | FR-11 | A "Box all" control applies every fix at once for the finale. | Should |
 | FR-12 | Lights Out start sequence creates a clean "frame zero" marker in the trace. | Could |
 | FR-13 | A **Thrash** control (1×, 2×, 4×, 8×) multiplies Speed Ribbon work live, and is also settable with `kiln://thrash/<n>`, so the audience watches the canvas being stressed. | Must |
-| FR-14 | A **Shader Lab** screen exists in two builds (Skia on a pinned older Flutter, Impeller on current Flutter) so the first-use shader compilation cost can be compared live, with the worst frame shown in large type. | Must |
+| FR-14 | A **Shader Lab** screen in `packages/shader_lab` ships in two apps (`apps/kiln` Impeller, `apps/kiln_skia` Skia on pinned Flutter 3.24) so first-use shader compilation can be compared live, with the worst frame shown in large type. | Must |
 
 ## 7. Non-functional requirements
 
