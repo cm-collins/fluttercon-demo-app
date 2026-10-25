@@ -37,6 +37,12 @@ flowchart LR
 | 3 | Pit Wall | `canvas.saveLayer` per car glow, hidden `saveLayer` in the tower, one blur per card, static map repainting | Gradient glows, leaf fades, `RepaintBoundary`, `BackdropGroup` |
 | 4 | Race Control | JSON decoded in `build()` on the main thread | `Isolate.run` |
 
+Before the laps, a **Shader Lab** screen shows why Impeller exists. The same screen is
+built twice: **Kiln Skia** (Flutter 3.24, Skia) and **Kiln** (current Flutter, Impeller).
+On a fresh install, Skia's worst frame spikes while shaders compile mid-frame, the second
+Skia run is smooth, and Impeller is flat from the first frame. A short
+[concept video](docs/talk/media/README.md) introduces the idea before the live run.
+
 Every promise in the registered abstract is mapped to a demo moment in
 [Abstract alignment](docs/talk/abstract-alignment.md).
 
@@ -85,6 +91,8 @@ Start at [`docs/README.md`](docs/README.md).
 | [Sources](docs/reference/sources.md) | Primary sources behind the research |
 | [History](docs/history/README.md) | Skia to Impeller, OpenGL ES to Vulkan, Systrace to Perfetto |
 | [Talk vocabulary](docs/talk/vocabulary.md) | Aligned meanings for draw, path, shaders, layers, profiling |
+| [Abstract alignment](docs/talk/abstract-alignment.md) | Every abstract promise mapped to a demo moment |
+| [Media](docs/talk/media/README.md) | Skia to Impeller concept video and embed notes |
 | [Deep-dive notes](docs/README.md#deep-dive-notes-notes) | Flutter internals, Skia, Impeller, Vulkan, scheduling, profiling, patterns |
 
 ## Requirements
@@ -92,6 +100,10 @@ Start at [`docs/README.md`](docs/README.md).
 - Flutter 3.47+ (stable)
 - A physical Android 10+ (API 29+) device with Vulkan 1.1 and a 120 Hz display
 - Profile mode for every measurement: `flutter run --profile --trace-systrace`
+- For the Shader Lab comparison only: Flutter 3.24 pinned with [FVM](https://fvm.app) to
+  build Kiln Skia (`dev.fluttercon.kiln.skia`), because current Flutter can no longer
+  reliably switch Impeller off on Android. Reset its shader cache before each run with
+  `adb shell pm clear dev.fluttercon.kiln.skia`. See [TRD §11.1](docs/technical/TRD.md).
 
 ## Data and trademarks
 

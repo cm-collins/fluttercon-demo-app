@@ -35,6 +35,8 @@ flowchart LR
     talk --> t1["Talk outline"]
     talk --> t2["Demo script"]
     talk --> t3["Stage runbook"]
+    talk --> t4["Vocabulary"]
+    talk --> t5["Media:<br/>concept video"]
     reference --> f1["Rosetta: Flutter / Android / iOS"]
     reference --> f2["Sources"]
 ```
