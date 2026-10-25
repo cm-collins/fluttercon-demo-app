@@ -1,0 +1,4 @@
+.dart_tool/
+build/
+# Resolved by each app against its own SDK (3.24 for kiln_skia, current for kiln).
+pubspec.lock

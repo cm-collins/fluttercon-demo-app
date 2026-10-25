@@ -45,6 +45,8 @@ to confuse), use [Talk vocabulary](../talk/vocabulary.md).
 | **`RepaintBoundary`** | Widget that gives its subtree its own layer so repaints don't spread. Not a cache on Impeller. |
 | **`saveLayer`** | Canvas call that draws a group into an offscreen texture, then composites it. Triggers a render-pass switch. |
 | **Shader Lab** | Kiln screen built twice (Skia on pinned Flutter 3.24, Impeller on current Flutter) to compare first-use shader compilation live. |
+| **Stall time** | Kiln timer: total time frames ran over budget after a trigger. See [vocabulary](../talk/vocabulary.md). |
+| **Time to smooth (lap time)** | Kiln timer: from the trigger frame until frames are back on budget, from `FrameTiming` timestamps. |
 | **SkSL** | Skia's shading language; source of runtime shader compilation in the Skia era. |
 | **SnapshotWidget** | Widget that replaces its child with a cached image while snapshotting is enabled. |
 | **SPIR-V** | Vulkan's intermediate shader format. |

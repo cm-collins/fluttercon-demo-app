@@ -39,9 +39,27 @@ flowchart TB
     cpu --> backup
 ```
 
+## Shader Lab: run both apps for Skia vs Impeller
+
+Same scene in `packages/shader_lab`; compare raster cost on **Lights on** with DevTools,
+Perfetto, and the on-phone lap time.
+
+| App | Directory | Command |
+|---|---|---|
+| Kiln (Impeller) | `apps/kiln` | `flutter run --profile --trace-systrace` → Home → Shader Lab, or `kiln://scenario/shaderlab` |
+| Kiln Skia | `apps/kiln_skia` | `fvm flutter run --profile --trace-systrace` |
+
+Before a Skia **first-run** demo: `adb shell pm clear dev.fluttercon.kiln.skia`.
+
+DevTools attaches to the app started by **`flutter run`**. To compare renderers, stop one run
+and start the other, or use exported snapshots / a second laptop.
+
+Step-by-step: [TRD §11.0](../technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything).
+
 ## 1. Flutter DevTools — Performance view
 
-Run: `flutter run --profile` (never debug mode for measurement).
+Run: `flutter run --profile --trace-systrace` on a physical device (never debug mode for
+measurement). For Shader Lab, use the monorepo commands in the table above.
 
 - **Flutter frames chart:** one bar pair per frame; red means over budget.
 - **Frame analysis:** hints for the selected frame (for example expensive `saveLayer`).

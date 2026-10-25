@@ -82,10 +82,10 @@ Source: [History overview](../history/README.md) and [Rendering engine history](
 | 13 | Slide 5 | Point at 2018. | "Flutter 1.0 shipped in December 2018 on Skia, the same 2D engine behind Chrome and Android's own UI." |
 | 14 | Slide 5 | — | "Skia compiled shaders just in time. The first time a new effect appeared, Skia generated a shader and the GPU driver compiled it on the raster thread, in the middle of a frame. That frame was late." |
 | 15a | Phone (Kiln Skia) | `adb shell pm clear dev.fluttercon.kiln.skia`, then launch **Kiln Skia**. Point at the badge "Skia · OpenGL ES". | "Now the real thing, live. Skia can't be switched on in today's Flutter any more, so this is the same screen built with Flutter 3.24. I've just wiped its shader cache, so this is a fresh install." |
-| 15b | Phone (Kiln Skia) | Tap **Lights on**. Point at the worst-frame number. | "Gradients, blur, masks, a custom shader: all appearing for the first time. Look at the worst frame. That's Skia generating shaders and the driver compiling them, inside the frame." |
-| 15c | Phone (Kiln Skia) | Back, then **Lights on** again. | "Second time: smooth. Same effects, same phone. The shaders are now cached. That's why you never saw this in development: your phone had already paid." |
-| 15d | Phone (Kiln) | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"`. Badge "Impeller · Vulkan". Tap **Lights on**. | "Now Impeller, first entry. The same effects. Those shaders were compiled before the app was ever installed." |
-| 15e | Phone (Kiln) | Point at the worst-frame number. | "That's the difference: Skia paid for compilation on your user's first frame. Impeller paid on our build machine." |
+| 15b | Phone (Kiln Skia) | Tap **Lights on**. Point at the lap time, then stall time. | "Gradients, blur, masks, a custom shader: all appearing for the first time. This lap time is how long until every frame was back on budget. That's Skia generating shaders and the driver compiling them, inside the frame." |
+| 15c | Phone (Kiln Skia) | Back, then **Lights on** again. Point at the run board: *First* above *Repeat*. | "Second time, same phone, same effects. Look at the board: the lap time collapses. The shaders are now cached. That's why you never saw this in development: your phone had already paid." |
+| 15d | Phone (Kiln) | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"`. Badge "Impeller · Vulkan". Tap **Lights on**. | "Now Impeller, first run. The same effects. Those shaders were compiled before the app was ever installed." |
+| 15e | Phone (Kiln) | Point at the lap time. | "That's the difference: Skia paid for compilation on your user's first run. Impeller paid on our build machine." |
 | 16 | Slide 5 | Point at 2020. | "In 2020 we got SkSL warm-up: record the shaders on one device, bundle them, and hope they match your user's GPU driver. It helped. It never scaled." |
 | 17 | Slide 5 | Point at 2023 to 2025. | "So the team built a renderer that compiles ahead of time. Impeller became the default on iOS in May 2023, and on Android Vulkan devices in December 2024." |
 | 18 | Slide 5 | — | "Since Flutter 3.29, in February 2025, Skia is gone from iOS. On Android, phones without a working Vulkan driver fall back to Impeller's own OpenGL ES backend, not to Skia." |
@@ -155,7 +155,7 @@ Promise: intentionally thrash a real-time canvas, read Systrace/Perfetto, comman
 | 46 | Perfetto | Show the app's main thread and `1.raster`. | "Main thread, short slices: UI is inside its four milliseconds. Raster thread: long slices, back to back. It never rests." |
 | 47 | Perfetto | Show Expected vs Actual timeline. | "This is SurfaceFlinger's verdict: expected frame, actual frame. Every red one is a dropped frame the user saw." |
 | 48 | Perfetto | — | "Thousands of `drawPath` calls means thousands of tessellations, pipeline binds, buffer binds and draws recorded into the command buffer, every frame. On Vulkan the cost is volume. The engine team's own issue measured about 1,800 Vulkan calls for 285 draws." |
-| 49 | Phone | Engine Room → **One-draw speed ribbon** on. Keep Thrash at 8×. | "Pit stop: the whole ribbon as one triangle mesh, a colour per vertex, one draw call. Still at 8×." |
+| 49 | Phone | Engine Room → **One-draw speed ribbon** on. Keep Thrash at 8×. Point at "Recovered in … s". | "Pit stop: the whole ribbon as one triangle mesh, a colour per vertex, one draw call. Still at 8×, and back on budget in that many seconds." |
 | 50 | Phone + Perfetto | Capture again. Show both traces side by side. | "Same picture, same stress. One draw. The raster thread has room to breathe again." |
 | 51 | Phone | **Shader-lit ribbon** on. | "Now make it more beautiful, not slower. This glow is a fragment shader, compiled at build time with the engine's own compiler. Still one draw, and nothing compiled at runtime. That's Impeller's precompiled pathway working for us." |
 | 52 | Phone | Thrash back to 1×. | "Rule: let the GPU do per-pixel work in one draw, instead of asking the CPU for thousands of draws." |
@@ -253,9 +253,13 @@ Skia can't be enabled in current Flutter on Android 10+, so the Skia side is a s
 app (`dev.fluttercon.kiln.skia`) built with a pinned Flutter 3.24 (see
 [TRD §11.1](../technical/TRD.md#111-shader-lab-two-apks-two-renderers)). Before the event:
 
-1. Install both apps on the demo phone and the spare phone.
-2. In rehearsal, measure the worst frame for three runs: Skia first entry (after `pm clear`),
-   Skia second entry, Impeller first entry. Write the numbers in the runbook.
+1. Install both apps on the demo phone and the spare phone. For live DevTools or Perfetto
+   during rehearsal, run each build with **`--profile --trace-systrace`** from
+   `apps/kiln` or `apps/kiln_skia` (see [TRD §11.0](../technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything)).
+   DevTools attaches to whichever app `flutter run` started; switch apps by stopping one run
+   and starting the other.
+2. In rehearsal, record the lap time, stall time and worst frame for three runs: Skia first
+   run (after `pm clear`), Skia repeat run, Impeller first run. Write the numbers in the runbook.
 3. Record the same three runs as a side-by-side video for Slide 6 (the backup).
 4. If the Skia first-entry spike isn't clearly visible from the back of the room, use the
    recording on stage and say so honestly.

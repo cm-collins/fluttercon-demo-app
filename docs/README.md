@@ -95,6 +95,7 @@ are not pasted into the notes; they link to the maintained sample package in
 2. Learning the material: **Talk vocabulary**, then the **history** overview, then **notes 01 → 08** in order.
 3. Building the app: **TRD**, **Design system**, then **note 07** with the `samples/` code.
 4. Rehearsing: **Demo script**, then **Stage runbook**.
+5. Profiling Shader Lab on device: [TRD §11.0](technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything), then [Profiling toolchain](research/02-profiling-toolchain.md).
 
 ## Conventions
 

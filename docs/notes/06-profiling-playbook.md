@@ -11,18 +11,34 @@ Hands-on steps for every tool used in the talk. The higher-level tool map is in
 
 ## 1. Run the app
 
-```text
-flutter run --profile --trace-systrace
-```
-
 `--trace-systrace` sends Flutter and Dart timeline events into Android's trace buffer, so
 they appear in Perfetto next to system events. DevTools keeps working.
 
-For the Skia comparison clip only:
+**Kiln (Impeller)** — from `apps/kiln`:
 
 ```text
-flutter run --profile --trace-systrace --no-enable-impeller
+cd apps/kiln
+flutter run --profile --trace-systrace
 ```
+
+Open Shader Lab from the home screen, or
+`adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"`.
+
+**Kiln Skia (Shader Lab only)** — from `apps/kiln_skia`:
+
+```text
+cd apps/kiln_skia
+fvm flutter pub get
+fvm flutter run --profile --trace-systrace
+```
+
+Before a Skia **first-run** demo: `adb shell pm clear dev.fluttercon.kiln.skia`.
+
+DevTools attaches to whichever app **`flutter run`** started. Switch apps = stop one run and
+start the other (or use exported snapshots). See [TRD §11.0](../technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything).
+
+For the full Pit Wall demo (when built), use the same **`--profile --trace-systrace`** pattern
+from `apps/kiln` only.
 
 ## 2. Mark your own code
 

@@ -35,16 +35,35 @@ flowchart LR
 
 ## Laptop preparation
 
+### How to run (DevTools + Perfetto)
+
+Physical device, USB debugging, **`adb` on PATH**. Always **profile** + **`--trace-systrace`**
+(never debug for numbers). Full detail: [TRD §11.0](../technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything).
+
+**Kiln (Impeller)** — from `apps/kiln`:
+
 ```text
 cd apps/kiln
 flutter run --profile --trace-systrace
+```
 
-# Kiln Skia (Shader Lab comparison only; build once, install beside Kiln)
+Open Shader Lab: **Home → Shader Lab**, or
+`adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"`.
+
+**Kiln Skia** — from `apps/kiln_skia`:
+
+```text
 cd apps/kiln_skia
 fvm flutter pub get
 fvm flutter run --profile --trace-systrace
 ```
 
+Before a **first-run** demo: `adb shell pm clear dev.fluttercon.kiln.skia`.
+
+**DevTools** attaches to whichever app **`flutter run`** started. Switch apps = stop one run
+and start the other (or use two laptops / recorded DevTools and Perfetto backups).
+
+- [ ] Kiln Skia build prerequisites: FVM (`dart pub global activate fvm`, add `%LOCALAPPDATA%\Pub\Cache\bin` to PATH), Flutter 3.24.5 (`fvm install 3.24.5`), and a **JDK 17** whose path matches `org.gradle.java.home` in `apps/kiln_skia/android/gradle.properties` (Gradle 8.3 cannot run on Android Studio's Java 25)
 - [ ] DevTools open on the Performance page, frames chart visible
 - [ ] Perfetto `record_android_trace` script tested with the phone (do **not** use WebUSB recording — it stops `adb` and disconnects `flutter run`)
 - [ ] Hidden browser tabs: one exported DevTools snapshot and one Perfetto trace per lap
@@ -55,7 +74,9 @@ fvm flutter run --profile --trace-systrace
 
 - [ ] Full 40-minute run with a timer
 - [ ] Each lap: broken state visibly red within 3 seconds
-- [ ] Shader Lab: record worst frame for Skia first entry ___ ms, Skia second entry ___ ms, Impeller first entry ___ ms
+- [ ] Shader Lab lap time / stall / worst frame — Skia first run ___ s / ___ ms / ___ ms; Skia repeat ___ s / ___ ms / ___ ms; Impeller first ___ s / ___ ms / ___ ms
+- [ ] Shader Lab lap time matches the same interval in DevTools (within one frame)
+- [ ] Each lap's pit stop shows "Recovered in … s" within 5 s (Speed Ribbon at Thrash 8×: ___ s)
 - [ ] Shader Lab gap is readable from the back of the room; if not, plan to use the Slide 6 recording
 - [ ] Thrash: each step (1×, 2×, 4×, 8×) visibly raises the raster bar; 8× does not freeze the phone
 - [ ] Finale at Thrash 4× with all pit stops on: both thread bars near their 4 ms ticks

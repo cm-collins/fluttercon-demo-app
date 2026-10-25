@@ -103,7 +103,7 @@ apps/
         speed_ribbon/
         race_control/
         engine_room/         # Budget display, pit stops, Rosetta
-        shader_lab/          # Thin route: imports packages/shader_lab only
+        shader_lab/          # shader_lab_route.dart: thin route + process-wide RunBoard
     assets/sessions/         # Bundled OpenF1 export
     shaders/                 # Lap shaders (.frag); not used by Shader Lab package
     android/                 # Impeller on (default); do not disable
@@ -119,12 +119,21 @@ apps/
 packages/
   shader_lab/                # Shared Shader Lab screen (both APKs)
     lib/
-      shader_lab_screen.dart
-      lights_on_scene.dart   # Gradients, BackdropFilter, masks, speed_ramp.frag
-      budget_readout.dart    # Worst raster frame since entry
+      shader_lab.dart        # Public exports
+      src/
+        shader_lab_screen.dart
+        lights_on_scene.dart # 16 blend modes, 3 gradient types, AA clips, blurs, ShaderMask, speed_ramp.frag
+        budget_readout.dart  # Lap time, stall time, worst frame
+        run_board.dart       # Last 5 Lights on runs (model)
+        run_board_view.dart
+        frame_window.dart    # Timer window logic (§9.2a); also used by Kiln pit-stop recovery
+        frame_timer.dart     # Feeds engine FrameTiming into a FrameWindow
+        lab_button.dart      # No ink splash (Material's sparkle is a runtime shader)
+        lab_tokens.dart
     shaders/
       speed_ramp.frag
-    pubspec.yaml             # SDK constraint compatible with 3.24 and current stable
+    test/                    # Window logic, run board, screen smoke test
+    pubspec.yaml             # sdk >=3.5.0, flutter >=3.24.0
 
 docs/                        # PRD, TRD, talk, design (unchanged)
 samples/                     # Reference broken/fixed widgets for notes 06–07
@@ -296,6 +305,43 @@ KILN::Replay::tick
 Spans appear in DevTools Timeline Events, and in Perfetto when the app runs with
 `--trace-systrace`. On stage: "search for KILN".
 
+### 9.2a Timers (Shader Lab and pit-stop recovery)
+
+Every timer is computed from **`FrameTiming` timestamps** (`vsyncStart`, `rasterFinish`), never
+from a `Stopwatch` drawn on screen: an on-screen stopwatch freezes during the stall it is
+trying to measure. The readout is updated after the measurement window closes.
+
+Shared definitions (budget = `1000 / refreshRate` ms, 8.33 ms at 120 Hz):
+
+| Term | Definition |
+|---|---|
+| **Over-budget frame** | `max(buildDuration, rasterDuration)` > budget |
+| **Window** | Starts at `vsyncStart` of the first frame after the trigger (tap or pit-stop toggle). Closes after 12 consecutive on-budget frames (~100 ms at 120 Hz) or a 5 s timeout. |
+| **Time to smooth** | `rasterFinish` of the last over-budget frame in the window minus window start. **0.000 s** if no frame went over budget. |
+| **Stall time** | Sum of `max(buildDuration, rasterDuration) − budget` over every over-budget frame in the window. |
+| **Worst frame** | Largest `max(buildDuration, rasterDuration)` in the window. |
+
+**Shader Lab "lap time" (both apps, in `packages/shader_lab`):**
+
+- Trigger: the **Lights on** tap. Shows **time to smooth** as an F1-style lap time
+  (`0.912`), with **stall time** and **worst frame** underneath.
+- Colours: purple if time to smooth is 0, green ≤ 0.100 s, yellow ≤ 0.500 s, red above.
+- **Run board:** the last 5 runs in this app process, newest first:
+  `Run # · Lap s · Stall ms · Worst ms · FIRST or REPEAT`. The renderer is the app's badge,
+  so it is not repeated per row. "First" means the first
+  Lights on since the process started. A **Clear** button empties it. Not persisted:
+  `pm clear` and app restarts start a fresh board, which matches the cache reset.
+- Spans: `KILN::ShaderLab::lightsOn` (instant, at tap) and `KILN::ShaderLab::smooth`
+  (instant, when the window closes) so the same interval can be found in DevTools and Perfetto.
+
+**Pit-stop recovery timer (Kiln only, Engine Room):**
+
+- Trigger: turning a pit stop **on** (single toggle or Box all).
+- Shows "Recovered in 0.42 s" (time to smooth), or "Not recovered" if the 5 s window
+  times out with frames still over budget. Keeps the last result per pit stop ID.
+- Event: `KILN::PitStop::recovered` with the pit stop ID and the time.
+- Turning a pit stop **off** does not start a timer; the broken state is meant to stay red.
+
 ### 9.3 Renderer badge
 
 Shows "Impeller · Vulkan" or "Impeller · OpenGL ES" so the audience can trust the
@@ -324,6 +370,49 @@ startup, or a platform-channel query); if unreliable, verify in rehearsal with
 | Release sanity check | Same directories; `flutter run --release` / `fvm flutter run --release` |
 
 Debug mode is never used for measurement: it runs JIT-compiled Dart and extra checks.
+
+### 11.0 How to run (so DevTools and Perfetto see everything)
+
+Use **profile** mode and **`--trace-systrace`** on a **physical device** over USB. Debug
+mode is not valid for measurement. **`adb`** must be on PATH (Android SDK `platform-tools`).
+
+**Kiln (Impeller)** — from `apps/kiln`:
+
+```text
+cd apps/kiln
+flutter run --profile --trace-systrace
+```
+
+Then open Shader Lab: **Home → Shader Lab**, or
+`adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"` (cold-start
+routing from that link is wired in the manifest; confirm in rehearsal).
+
+**Kiln Skia** — from `apps/kiln_skia`:
+
+```text
+cd apps/kiln_skia
+fvm flutter pub get
+fvm flutter run --profile --trace-systrace
+```
+
+Before a **first-run** Shader Lab demo (Skia shader cache empty):
+
+```text
+adb shell pm clear dev.fluttercon.kiln.skia
+```
+
+**DevTools** attaches to whichever app **`flutter run`** started. To compare Skia and
+Impeller in DevTools, stop one run and start the other (or use a second laptop / exported
+snapshots). Open DevTools from the terminal link → **Performance** → Flutter frames chart and
+Timeline; search **`KILN::ShaderLab::`**.
+
+**Perfetto:** keep `--trace-systrace` running and capture with the **`record_android_trace`**
+script over **adb** (not WebUSB on stage — WebUSB can stop `adb` and disconnect
+`flutter run`). Compare **main thread** vs **`1.raster`** around **Lights on**; correlate
+with the on-phone **lap time**.
+
+See [Profiling toolchain](../research/02-profiling-toolchain.md) and
+[Stage runbook](../talk/stage-runbook.md).
 
 ### 11.1 Shader Lab: two APKs, two renderers
 
@@ -361,12 +450,12 @@ entry after a fresh launch anyway, so the number shown is honest.
   first time at once: linear, radial and sweep gradients, `BackdropFilter` blur,
   `ShaderMask`, `ColorFilter` blend modes, anti-aliased clips, and the custom
   `speed_ramp.frag` fragment shader.
-- Engine Room shows **worst raster frame since entry** (ms) in large type, plus the usual
-  bars. Reset when the screen is opened.
-- Emits `KILN::ShaderLab::enter` and `KILN::ShaderLab::firstFrame` spans so the spike is easy
-  to find in DevTools and Perfetto.
-- Success criterion (measured in rehearsal on the demo phone): the Skia build's first entry
-  shows a visibly worse worst-frame than its second entry and than the Impeller build. If
+- Shows the **lap time** (time to smooth), stall time and worst frame for the latest
+  Lights on, plus the **run board** (§9.2a). Lap time is in large type.
+- Emits `KILN::ShaderLab::enter`, `KILN::ShaderLab::lightsOn` and `KILN::ShaderLab::smooth`
+  so the interval is easy to find in DevTools and Perfetto.
+- Success criterion (measured in rehearsal on the demo phone): the Skia build's first run
+  shows a visibly longer time to smooth than its second run and than the Impeller build. If
   the gap is too small on the flagship phone to read from the stage, use the pre-recorded
   backup instead and say so.
 
@@ -381,6 +470,7 @@ entry after a fresh launch anyway, so the number shown is honest.
 | Engine Room overhead | Compare with the display hidden |
 | Backend | Renderer badge plus `adb logcat` during rehearsal |
 | Thermal stability | 10-minute soak run; note raster drift |
+| Timer correctness | Unit tests feed synthetic `FrameTiming`-shaped data to the window logic (no jank → 0; one spike; timeout); on device, compare one Shader Lab run against the same interval in DevTools |
 
 ## 13. Risks and constraints
 

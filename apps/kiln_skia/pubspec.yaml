@@ -1,0 +1,21 @@
+name: kiln_skia
+description: Kiln Skia - Shader Lab only, built with Flutter 3.24 (Skia on OpenGL ES) for the live comparison.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shader_lab:
+    path: ../../packages/shader_lab
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

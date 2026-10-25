@@ -48,8 +48,9 @@ Every promise in the registered abstract is mapped to a demo moment in
 
 ## Status
 
-**Planning.** Documentation and the sample code package are in place; the demo app itself
-has not been scaffolded yet.
+**Building.** Shader Lab is built: `packages/shader_lab` (with its timers and run board),
+`apps/kiln_skia`, and an `apps/kiln` shell that opens it. Lights Out, Pit Wall and the four
+laps are next.
 
 ## Repository layout
 
@@ -107,11 +108,14 @@ Start at [`docs/README.md`](docs/README.md).
 
 - Flutter 3.47+ (stable)
 - A physical Android 10+ (API 29+) device with Vulkan 1.1 and a 120 Hz display
-- Profile mode for every measurement: `flutter run --profile --trace-systrace`
-- For the Shader Lab comparison only: Flutter 3.24 pinned with [FVM](https://fvm.app) to
-  build Kiln Skia (`dev.fluttercon.kiln.skia`), because current Flutter can no longer
-  reliably switch Impeller off on Android. Reset its shader cache before each run with
-  `adb shell pm clear dev.fluttercon.kiln.skia`. See [TRD §11.1](docs/technical/TRD.md).
+- Profile mode for every measurement on a **physical device** with **`adb` on PATH**; see
+  [How to run (DevTools and Perfetto)](docs/technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything):
+  - **Kiln (Impeller):** `cd apps/kiln` → `flutter run --profile --trace-systrace` → Shader Lab
+  - **Kiln Skia:** `cd apps/kiln_skia` → `fvm flutter run --profile --trace-systrace`; before a
+    first-run demo: `adb shell pm clear dev.fluttercon.kiln.skia`
+- DevTools attaches to whichever app `flutter run` started; switch apps by stopping one run and
+  starting the other (or use exported traces / a second laptop)
+- Kiln Skia also needs Flutter 3.24 via [FVM](https://fvm.app) and JDK 17 for Gradle — [TRD §11.1](docs/technical/TRD.md)
 
 ## Data and trademarks
 

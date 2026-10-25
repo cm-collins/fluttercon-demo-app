@@ -95,6 +95,7 @@ circuit's paint event appears every frame until `map-layers` is applied.
 | Stats | Rolling p50, p90, p99 and jank count over the last 240 frames |
 | Renderer badge | "Impeller · Vulkan" or "Impeller · OpenGL ES", refresh rate |
 | Pit stops | One switch per fix, labelled with the thread it helps |
+| Recovery time | After a pit stop is turned on: "Recovered in 0.42 s" or "Not recovered", kept per pit stop |
 | Actions | Replay 5s, Box all, Reset |
 
 Built cheaply on purpose (TR-7): its own `RepaintBoundary`, one painter, text updated at most four times per second.
@@ -116,15 +117,19 @@ ahead-of-time shaders. UI lives in `packages/shader_lab` and ships in both
   and the `speed_ramp.frag` shader.
 - Top right: the renderer badge ("Skia · OpenGL ES" or "Impeller · Vulkan") so the audience
   always knows which build is on screen.
-- Centre bottom: **worst frame since entry** in large type (milliseconds), coloured with the
-  F1 timing colours.
+- Centre bottom: the **lap time** in large type, F1 timing-screen style (`0.912`): how long
+  until frames were back on budget after Lights on. Under it, smaller: **stall time** and
+  **worst frame**. Purple when the lap time is 0, then green, yellow, red.
+- Right side: the **run board**, last 5 runs, newest first, each tagged *First* or *Repeat*.
+  The Skia first and repeat runs sit one above the other, so the drop is visible without
+  remembering numbers. **Clear** empties it.
 - No anti-pattern and no pit stops: the only variable is the renderer.
 
 | Run | What the audience should see |
 |---|---|
-| Skia, first entry after `pm clear` | Worst frame spikes; DevTools shows a long raster frame |
-| Skia, second entry | Much smaller: shaders are now cached on the device |
-| Impeller, first entry | Flat or close to flat; nothing generated mid-frame |
+| Skia, first run after `pm clear` | Long lap time, red; DevTools shows long raster frames |
+| Skia, repeat run | Lap time drops sharply: shaders are now cached on the device |
+| Impeller, first run | Lap time at or near 0.000, purple or green; nothing generated mid-frame |
 
 ## Anti-pattern coverage
 

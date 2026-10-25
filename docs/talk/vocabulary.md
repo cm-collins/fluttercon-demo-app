@@ -115,6 +115,9 @@ flowchart TB
 | **`KILN::<Scenario>::<phase>`** | Custom timeline spans from `dart:developer` `Timeline`. | e.g. `KILN::TelemetryDuel::paint`. |
 | **Expected / Actual timeline** | SurfaceFlinger's view of whether the app frame landed on time. | Lap 2 line 47. |
 | **UI bar / Raster bar** | DevTools frame chart: which part of the budget was exceeded. | "Read the bars first." |
+| **Lap time (time to smooth)** | From the trigger frame until the last over-budget frame finished; 0 if nothing went over. Measured from engine `FrameTiming` timestamps, not an on-screen stopwatch. | Shader Lab, lines 15b–15e. |
+| **Stall time** | Total time frames spent over budget in that window: how long the user actually saw stutter. | Shader Lab, under the lap time. |
+| **Recovery time** | Lap time after turning a pit stop on: how fast frames got back on budget. | Engine Room, line 49. |
 
 ---
 
@@ -138,7 +141,7 @@ flowchart TB
 
 | Term | Best moment |
 |---|---|
-| Shader compilation jank | Concept video, then live Shader Lab: Skia first entry vs second entry vs Impeller (lines 11–15e) |
+| Shader compilation jank | Concept video, then live Shader Lab lap times: Skia first run vs repeat run vs Impeller (lines 11–15e) |
 | AOT / pipeline | One frame on Vulkan (lines 20–24) |
 | Tessellation / path | Lap 1 (lines 37–41) |
 | Command buffer / draw volume | Lap 2 thrash + Perfetto (lines 44–52) |

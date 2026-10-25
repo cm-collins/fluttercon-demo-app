@@ -108,7 +108,9 @@ flowchart LR
 | FR-11 | A "Box all" control applies every fix at once for the finale. | Should |
 | FR-12 | Lights Out start sequence creates a clean "frame zero" marker in the trace. | Could |
 | FR-13 | A **Thrash** control (1×, 2×, 4×, 8×) multiplies Speed Ribbon work live, and is also settable with `kiln://thrash/<n>`, so the audience watches the canvas being stressed. | Must |
-| FR-14 | A **Shader Lab** screen in `packages/shader_lab` ships in two apps (`apps/kiln` Impeller, `apps/kiln_skia` Skia on pinned Flutter 3.24) so first-use shader compilation can be compared live, with the worst frame shown in large type. | Must |
+| FR-14 | A **Shader Lab** screen in `packages/shader_lab` ships in two apps (`apps/kiln` Impeller, `apps/kiln_skia` Skia on pinned Flutter 3.24) so first-use shader compilation can be compared live (timers in FR-15). | Must |
+| FR-15 | Shader Lab shows a **lap time** after each Lights on: time until frames are back on budget, plus stall time and worst frame, all from engine frame timestamps. A **run board** lists the last 5 runs so first and repeat runs can be compared on one screen. | Must |
+| FR-16 | Turning a pit stop on shows a **recovery time** in the Engine Room ("Recovered in 0.42 s" or "Not recovered"). | Should |
 
 ## 7. Non-functional requirements
 
@@ -155,6 +157,9 @@ Each "lap" of the talk is one row. Details in [Screens](../design/screens.md).
 gantt
     title Kiln build and rehearsal plan
     dateFormat YYYY-MM-DD
+    section Shader Lab first
+    Shader Lab package and Kiln Skia        :s1, 2026-10-26, 3d
+    Measure Skia vs Impeller on the phone   :s2, after s1, 1d
     section Foundations
     Data export and replay engine           :a1, 2026-10-26, 4d
     Design system and shell                 :a2, 2026-10-26, 4d

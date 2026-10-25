@@ -1,0 +1,21 @@
+name: kiln
+description: "Kiln: Pit Wall - live demo app for the Impeller on Android talk."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shader_lab:
+    path: ../../packages/shader_lab
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
