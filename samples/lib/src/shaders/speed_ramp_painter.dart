@@ -18,7 +18,8 @@ Future<ui.FragmentShader> loadSpeedRampShader({
 
 /// Fills its area with the animated speed ramp in a single draw.
 class SpeedRampPainter extends CustomPainter {
-  SpeedRampPainter({required this.shader, required this.time}) : super(repaint: time);
+  SpeedRampPainter({required this.shader, required this.time})
+    : super(repaint: time);
 
   final ui.FragmentShader shader;
 

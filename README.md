@@ -50,9 +50,8 @@ Every promise in the registered abstract is mapped to a demo moment in
 
 ## Status
 
-**Building.** Shader Lab, its timers and run board are built. The next foundation change is
-to migrate the existing Skia helper into `impeller` and `skia` Android product flavors under
-`apps/kiln`, then continue with Lights Out, Pit Wall and the four laps.
+**Building.** Shader Lab, its timers, run board and the same-source `impeller` and `skia`
+Android product flavors are built. Lights Out, Pit Wall and the four laps are next.
 
 ## Repository layout
 

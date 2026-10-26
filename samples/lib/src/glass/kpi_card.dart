@@ -6,11 +6,18 @@ import '../core/kiln_colors.dart';
 
 /// Shared by every card. Grouped backdrop filters only collapse into one pass
 /// when their filters are identical.
-final ui.ImageFilter kilnGlassBlur = ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18);
+final ui.ImageFilter kilnGlassBlur = ui.ImageFilter.blur(
+  sigmaX: 18,
+  sigmaY: 18,
+);
 
 @immutable
 class KpiCardData {
-  const KpiCardData({required this.label, required this.value, this.valueColor = KilnColors.textPrimary});
+  const KpiCardData({
+    required this.label,
+    required this.value,
+    this.valueColor = KilnColors.textPrimary,
+  });
 
   final String label;
   final String value;
@@ -33,10 +40,20 @@ class KpiCardContent extends StatelessWidget {
         children: [
           Text(
             card.value,
-            style: TextStyle(fontFamily: 'JetBrains Mono', fontSize: 20, color: card.valueColor),
+            style: TextStyle(
+              fontFamily: 'JetBrains Mono',
+              fontSize: 20,
+              color: card.valueColor,
+            ),
           ),
           const SizedBox(height: 2),
-          Text(card.label, style: const TextStyle(fontSize: 13, color: KilnColors.textSecondary)),
+          Text(
+            card.label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: KilnColors.textSecondary,
+            ),
+          ),
         ],
       ),
     );

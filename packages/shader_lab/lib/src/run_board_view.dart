@@ -75,8 +75,7 @@ class _RunRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final r = run.result;
-    final Color lapTint =
-        r.timedOut ? LabColors.red : lapColor(r.timeToSmooth);
+    final Color lapTint = r.timedOut ? LabColors.red : lapColor(r.timeToSmooth);
     return _Row(
       cells: <String>[
         '${run.number}',

@@ -78,7 +78,7 @@ and start the other (or use two laptops / recorded DevTools and Perfetto backups
 
 - [ ] Full 40-minute run with a timer
 - [ ] Each lap: broken state visibly red within 3 seconds
-- [ ] Shader Lab lap time / stall / worst frame — Skia first run ___ s / ___ ms / ___ ms; Skia repeat ___ s / ___ ms / ___ ms; Impeller first ___ s / ___ ms / ___ ms
+- [ ] Shader Lab lap time / stall / worst frame — Skia first run TBD s / TBD ms / TBD ms; Skia repeat TBD s / TBD ms / TBD ms; Impeller first TBD s / TBD ms / TBD ms
 - [ ] Shader Lab lap time matches the same interval in DevTools (within one frame)
 - [ ] Each lap's pit stop shows "Recovered in … s" within 5 s (Speed Ribbon at Thrash 8×: ___ s)
 - [ ] Shader Lab gap is readable from the back of the room; if not, plan to use the Slide 6 recording

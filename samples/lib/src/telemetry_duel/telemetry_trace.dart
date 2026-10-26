@@ -5,7 +5,11 @@ import '../core/kiln_colors.dart';
 
 /// One telemetry channel (for example speed) for one driver over one lap.
 class TelemetryTrace {
-  TelemetryTrace({required this.label, required this.values, required this.color});
+  TelemetryTrace({
+    required this.label,
+    required this.values,
+    required this.color,
+  });
 
   final String label;
 
@@ -20,7 +24,10 @@ class TelemetryTrace {
   /// A path reduced to screen resolution, rebuilt only when [size] changes.
   Path cachedPath(Size size) {
     if (_cachedPath == null || _cachedSize != size) {
-      _cachedPath = buildTracePath(decimateMinMax(values, size.width.ceil()), size);
+      _cachedPath = buildTracePath(
+        decimateMinMax(values, size.width.ceil()),
+        size,
+      );
       _cachedSize = size;
     }
     return _cachedPath!;

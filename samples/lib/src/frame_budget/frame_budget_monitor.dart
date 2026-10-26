@@ -30,11 +30,11 @@ class FrameBudgetSnapshot {
   });
 
   const FrameBudgetSnapshot.empty(this.budgetMs)
-      : ui = FrameStats.zero,
-        raster = FrameStats.zero,
-        total = FrameStats.zero,
-        jankCount = 0,
-        frameCount = 0;
+    : ui = FrameStats.zero,
+      raster = FrameStats.zero,
+      total = FrameStats.zero,
+      jankCount = 0,
+      frameCount = 0;
 
   final double budgetMs;
 
@@ -61,7 +61,7 @@ class FrameBudgetSnapshot {
 /// release builds), so [value] updates at that cadence, not every frame.
 class FrameBudgetMonitor extends ValueNotifier<FrameBudgetSnapshot> {
   FrameBudgetMonitor({this.refreshRateHz = 120, this.windowSize = 240})
-      : super(FrameBudgetSnapshot.empty(1000 / refreshRateHz));
+    : super(FrameBudgetSnapshot.empty(1000 / refreshRateHz));
 
   final double refreshRateHz;
   final int windowSize;

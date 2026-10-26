@@ -12,7 +12,11 @@ import 'telemetry_trace.dart';
 /// segment per pixel instead of thousands of curves; the win on the UI side
 /// comes from not rebuilding or re-recording the paths.
 class TelemetryDuelFixed extends StatelessWidget {
-  const TelemetryDuelFixed({super.key, required this.traces, required this.progress});
+  const TelemetryDuelFixed({
+    super.key,
+    required this.traces,
+    required this.progress,
+  });
 
   final List<TelemetryTrace> traces;
   final ValueListenable<double> progress;
@@ -22,7 +26,9 @@ class TelemetryDuelFixed extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        RepaintBoundary(child: CustomPaint(painter: _TraceLayerPainter(traces))),
+        RepaintBoundary(
+          child: CustomPaint(painter: _TraceLayerPainter(traces)),
+        ),
         CustomPaint(painter: _CursorPainter(progress)),
       ],
     );
@@ -50,7 +56,8 @@ class _TraceLayerPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_TraceLayerPainter oldDelegate) => oldDelegate.traces != traces;
+  bool shouldRepaint(_TraceLayerPainter oldDelegate) =>
+      oldDelegate.traces != traces;
 }
 
 class _CursorPainter extends CustomPainter {
@@ -59,8 +66,10 @@ class _CursorPainter extends CustomPainter {
   final ValueListenable<double> progress;
 
   @override
-  void paint(Canvas canvas, Size size) => paintLapCursor(canvas, size, progress.value);
+  void paint(Canvas canvas, Size size) =>
+      paintLapCursor(canvas, size, progress.value);
 
   @override
-  bool shouldRepaint(_CursorPainter oldDelegate) => oldDelegate.progress != progress;
+  bool shouldRepaint(_CursorPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }

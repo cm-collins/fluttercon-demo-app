@@ -15,8 +15,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "dev.fluttercon.kiln"
+        manifestPlaceholders["appLabel"] = "Kiln"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -27,6 +27,19 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    flavorDimensions += "renderer"
+    productFlavors {
+        create("impeller") {
+            dimension = "renderer"
+            manifestPlaceholders["appLabel"] = "Kiln Impeller"
+        }
+        create("skia") {
+            dimension = "renderer"
+            applicationIdSuffix = ".skia"
+            manifestPlaceholders["appLabel"] = "Kiln Skia"
+        }
     }
 
     buildTypes {

@@ -20,7 +20,8 @@ class TowerRowBroken extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: highlight,
-      builder: (context, child) => Opacity(opacity: 0.4 + 0.6 * highlight.value, child: child),
+      builder: (context, child) =>
+          Opacity(opacity: 0.4 + 0.6 * highlight.value, child: child),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),
         clipBehavior: Clip.antiAliasWithSaveLayer,

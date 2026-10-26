@@ -10,7 +10,11 @@ import 'ribbon_geometry.dart';
 /// The mesh is built once per size and reused, so per frame the engine records
 /// a single draw instead of thousands.
 class SpeedRibbonFixed extends StatefulWidget {
-  const SpeedRibbonFixed({super.key, required this.geometry, this.strokeWidth = 6});
+  const SpeedRibbonFixed({
+    super.key,
+    required this.geometry,
+    this.strokeWidth = 6,
+  });
 
   final RibbonGeometry geometry;
   final double strokeWidth;
@@ -25,7 +29,8 @@ class _SpeedRibbonFixedState extends State<SpeedRibbonFixed> {
   @override
   void didUpdateWidget(SpeedRibbonFixed oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.geometry != widget.geometry || oldWidget.strokeWidth != widget.strokeWidth) {
+    if (oldWidget.geometry != widget.geometry ||
+        oldWidget.strokeWidth != widget.strokeWidth) {
       _cache.clear();
     }
   }
@@ -40,7 +45,11 @@ class _SpeedRibbonFixedState extends State<SpeedRibbonFixed> {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size.infinite,
-      painter: _VerticesRibbonPainter(widget.geometry, widget.strokeWidth, _cache),
+      painter: _VerticesRibbonPainter(
+        widget.geometry,
+        widget.strokeWidth,
+        _cache,
+      ),
     );
   }
 }
@@ -85,6 +94,7 @@ class _VerticesRibbonPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_VerticesRibbonPainter oldDelegate) {
-    return oldDelegate.geometry != geometry || oldDelegate.strokeWidth != strokeWidth;
+    return oldDelegate.geometry != geometry ||
+        oldDelegate.strokeWidth != strokeWidth;
   }
 }

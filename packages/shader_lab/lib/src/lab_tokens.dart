@@ -2,8 +2,7 @@ import 'package:flutter/widgets.dart';
 
 /// "Obsidian & Aurora" tokens used by Shader Lab (see docs/design/design-system.md).
 ///
-/// Colours are const ARGB literals: `Color.withValues` does not exist on
-/// Flutter 3.24 and `withOpacity` is deprecated on current stable.
+/// Colours are const ARGB literals so the palette is immutable and exact.
 abstract final class LabColors {
   static const Color bg = Color(0xFF07080C);
   static const Color surface = Color(0xFF10131A);

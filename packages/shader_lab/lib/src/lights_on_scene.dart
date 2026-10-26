@@ -49,9 +49,7 @@ class _LightsOnSceneState extends State<LightsOnScene>
             ),
           ),
         ),
-        RepaintBoundary(
-          child: CustomPaint(painter: _SweepRingPainter(_clock)),
-        ),
+        RepaintBoundary(child: CustomPaint(painter: _SweepRingPainter(_clock))),
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -109,9 +107,7 @@ class _GradientTitle extends StatelessWidget {
           fontSize: 40,
           fontWeight: FontWeight.w800,
           letterSpacing: 6,
-          shadows: <Shadow>[
-            Shadow(color: Color(0x88FF4D6D), blurRadius: 18),
-          ],
+          shadows: <Shadow>[Shadow(color: Color(0x88FF4D6D), blurRadius: 18)],
         ),
       ),
     );
@@ -248,10 +244,7 @@ class _EffectTile extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: _tints[index % _tints.length],
-              blurRadius: 14,
-            ),
+            BoxShadow(color: _tints[index % _tints.length], blurRadius: 14),
           ],
         ),
         child: tile,

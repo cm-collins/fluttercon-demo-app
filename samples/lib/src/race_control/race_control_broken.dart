@@ -19,7 +19,8 @@ class RaceControlFeedBroken extends StatelessWidget {
     });
     return ListView.builder(
       itemCount: messages.length,
-      itemBuilder: (context, index) => RaceControlTile(message: messages[index]),
+      itemBuilder: (context, index) =>
+          RaceControlTile(message: messages[index]),
     );
   }
 }

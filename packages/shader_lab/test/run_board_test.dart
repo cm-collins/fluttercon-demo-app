@@ -2,13 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shader_lab/shader_lab.dart';
 
 FrameWindowResult result(int lapMs) => FrameWindowResult(
-      timeToSmooth: Duration(milliseconds: lapMs),
-      stall: Duration.zero,
-      worst: Duration.zero,
-      frames: 12,
-      overBudgetFrames: 0,
-      timedOut: false,
-    );
+  timeToSmooth: Duration(milliseconds: lapMs),
+  stall: Duration.zero,
+  worst: Duration.zero,
+  frames: 12,
+  overBudgetFrames: 0,
+  timedOut: false,
+);
 
 void main() {
   test('only the first run since the process started is tagged first', () {

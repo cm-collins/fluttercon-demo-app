@@ -6,7 +6,7 @@ import '../core/kiln_colors.dart';
 /// Circuit centre line with a speed value at every point.
 class RibbonGeometry {
   RibbonGeometry({required this.points, required this.speeds})
-      : assert(points.length == speeds.length * 2);
+    : assert(points.length == speeds.length * 2);
 
   /// Interleaved `x, y` pairs normalised to 0..1.
   final Float32List points;
@@ -17,7 +17,10 @@ class RibbonGeometry {
   int get length => speeds.length;
 
   Offset pointAt(int index, Size size) {
-    return Offset(points[index * 2] * size.width, points[index * 2 + 1] * size.height);
+    return Offset(
+      points[index * 2] * size.width,
+      points[index * 2 + 1] * size.height,
+    );
   }
 }
 

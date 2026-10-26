@@ -1,42 +1,163 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: Dart
+name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  flutter-quality:
+    name: Flutter quality (${{ matrix.package }})
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: kiln
+            working-directory: apps/kiln
+          - package: shader_lab
+            working-directory: packages/shader_lab
+          - package: samples
+            working-directory: samples
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
-      # Note: This workflow uses the latest stable version of the Dart SDK.
-      # You can specify other versions if desired, see documentation here:
-      # https://github.com/dart-lang/setup-dart/blob/main/README.md
-      # - uses: dart-lang/setup-dart@v1
-      - uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          channel: stable
+          flutter-version: 3.47.8
+          cache: true
 
       - name: Install dependencies
-        run: dart pub get
+        working-directory: ${{ matrix.working-directory }}
+        run: flutter pub get
 
-      # Uncomment this step to verify the use of 'dart format' on each commit.
-      # - name: Verify formatting
-      #   run: dart format --output=none --set-exit-if-changed .
+      - name: Verify formatting
+        working-directory: ${{ matrix.working-directory }}
+        run: dart format --output=none --set-exit-if-changed lib test
 
-      # Consider passing '--fatal-infos' for slightly stricter analysis.
-      - name: Analyze project source
-        run: dart analyze
+      - name: Analyze
+        working-directory: ${{ matrix.working-directory }}
+        run: flutter analyze --fatal-infos
 
-      # Your project will need to have tests in test/ and a dependency on
-      # package:test for this step to succeed. Note that Flutter projects will
-      # want to change this to 'flutter test'.
       - name: Run tests
-        run: dart test
+        working-directory: ${{ matrix.working-directory }}
+        run: flutter test
+
+      - name: Run Kiln tests with the Skia label
+        if: matrix.package == 'kiln'
+        working-directory: apps/kiln
+        run: flutter test --dart-define="KILN_RENDERER=Skia · OpenGL ES"
+
+  android-profile-build:
+    name: Android profile APK (${{ matrix.flavor }})
+    needs: flutter-quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flavor: impeller
+            renderer: Impeller · Vulkan
+          - flavor: skia
+            renderer: Skia · OpenGL ES
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          channel: stable
+          flutter-version: 3.47.8
+          cache: true
+
+      - name: Install dependencies
+        working-directory: apps/kiln
+        run: flutter pub get
+
+      - name: Build profile APK
+        working-directory: apps/kiln
+        run: >-
+          flutter build apk
+          --profile
+          --flavor "${{ matrix.flavor }}"
+          --dart-define="KILN_RENDERER=${{ matrix.renderer }}"
+
+      - name: Upload profile APK
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: kiln-${{ matrix.flavor }}-profile
+          path: apps/kiln/build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-profile.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tool/ci/package-lock.json
+
+      - name: Install documentation tools
+        run: npm ci --prefix tool/ci --ignore-scripts
+
+      - name: Check Markdown style
+        run: >-
+          tool/ci/node_modules/.bin/markdownlint-cli2
+          "README.md"
+          "docs/**/*.md"
+          "apps/**/*.md"
+          "packages/**/*.md"
+          "samples/**/*.md"
+
+      - name: Check local links and extract Mermaid diagrams
+        run: python3 tool/ci/validate_docs.py --mermaid-dir "$RUNNER_TEMP/mermaid"
+
+      - name: Parse Mermaid diagrams
+        run: |
+          for diagram in "$RUNNER_TEMP"/mermaid/*.mmd; do
+            tool/ci/node_modules/.bin/mmdc \
+              --puppeteerConfigFile tool/ci/puppeteer.json \
+              --input "$diagram" \
+              --output "$diagram.svg"
+          done

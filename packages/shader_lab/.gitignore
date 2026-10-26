@@ -1,4 +1,4 @@
 .dart_tool/
 build/
-# Resolved by each app against its own SDK (3.24 for kiln_skia, current for kiln).
+# This reusable package is resolved by its consuming app.
 pubspec.lock

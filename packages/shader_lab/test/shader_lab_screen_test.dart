@@ -3,20 +3,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shader_lab/shader_lab.dart';
 
 Widget host(RunBoard board) => Directionality(
-      textDirection: TextDirection.ltr,
-      child: MediaQuery(
-        data: const MediaQueryData(size: Size(412, 915)),
-        child: ShaderLabScreen(
-          rendererLabel: 'Skia · OpenGL ES',
-          board: board,
-          shaderAsset: 'shaders/speed_ramp.frag',
-        ),
-      ),
-    );
+  textDirection: TextDirection.ltr,
+  child: MediaQuery(
+    data: const MediaQueryData(size: Size(412, 915)),
+    child: ShaderLabScreen(
+      rendererLabel: 'Skia · OpenGL ES',
+      board: board,
+      shaderAsset: 'shaders/speed_ramp.frag',
+    ),
+  ),
+);
 
 void main() {
-  testWidgets('shows the renderer badge and an empty lap before any run',
-      (WidgetTester tester) async {
+  testWidgets('shows the renderer badge and an empty lap before any run', (
+    WidgetTester tester,
+  ) async {
     await tester.binding.setSurfaceSize(const Size(412, 915));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -27,8 +28,9 @@ void main() {
     expect(find.text('–.–––'), findsOneWidget);
   });
 
-  testWidgets('Lights on reveals the scene once the shader has loaded',
-      (WidgetTester tester) async {
+  testWidgets('Lights on reveals the scene once the shader has loaded', (
+    WidgetTester tester,
+  ) async {
     await tester.binding.setSurfaceSize(const Size(412, 915));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 

@@ -26,8 +26,9 @@ FrameWindowResult? feed(FrameWindow window, List<FrameSample> frames) {
 void main() {
   test('no over-budget frame gives a zero lap time after the settle run', () {
     final FrameWindow window = FrameWindow(budget: budget, triggerMicros: 0);
-    final FrameWindowResult? result =
-        feed(window, <FrameSample>[for (int i = 0; i < 12; i++) frame(i, 4000)]);
+    final FrameWindowResult? result = feed(window, <FrameSample>[
+      for (int i = 0; i < 12; i++) frame(i, 4000),
+    ]);
 
     expect(result, isNotNull);
     expect(result!.timeToSmooth, Duration.zero);
@@ -95,8 +96,10 @@ void main() {
   });
 
   test('frames that started before the trigger are ignored', () {
-    final FrameWindow window =
-        FrameWindow(budget: budget, triggerMicros: 3 * frameUs);
+    final FrameWindow window = FrameWindow(
+      budget: budget,
+      triggerMicros: 3 * frameUs,
+    );
     final FrameWindowResult? result = feed(window, <FrameSample>[
       frame(0, 90000),
       frame(1, 90000),
@@ -113,8 +116,9 @@ void main() {
       triggerMicros: 0,
       timeout: const Duration(milliseconds: 100),
     );
-    final FrameWindowResult? result =
-        feed(window, <FrameSample>[for (int i = 0; i < 20; i++) frame(i, 20000)]);
+    final FrameWindowResult? result = feed(window, <FrameSample>[
+      for (int i = 0; i < 20; i++) frame(i, 20000),
+    ]);
 
     expect(result, isNotNull);
     expect(result!.timedOut, isTrue);
@@ -123,8 +127,9 @@ void main() {
 
   test('ignores frames after it closes', () {
     final FrameWindow window = FrameWindow(budget: budget, triggerMicros: 0);
-    final FrameWindowResult? first =
-        feed(window, <FrameSample>[for (int i = 0; i < 12; i++) frame(i, 4000)]);
+    final FrameWindowResult? first = feed(window, <FrameSample>[
+      for (int i = 0; i < 12; i++) frame(i, 4000),
+    ]);
     final FrameWindowResult? after = window.add(frame(12, 90000));
 
     expect(identical(first, after), isTrue);

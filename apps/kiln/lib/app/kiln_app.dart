@@ -3,6 +3,7 @@ import 'package:shader_lab/shader_lab.dart';
 
 import '../features/shader_lab/shader_lab_route.dart';
 import 'home_screen.dart';
+import 'kiln_build_config.dart';
 
 /// Routes match the path of `kiln://scenario/<name>` deep links.
 abstract final class KilnRoutes {
@@ -16,7 +17,7 @@ class KilnApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Kiln',
+      title: KilnBuildConfig.appLabel,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,

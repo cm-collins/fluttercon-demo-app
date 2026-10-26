@@ -20,7 +20,10 @@ class GlassCardsBroken extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: BackdropFilter(filter: kilnGlassBlur, child: KpiCardContent(card: card)),
+                child: BackdropFilter(
+                  filter: kilnGlassBlur,
+                  child: KpiCardContent(card: card),
+                ),
               ),
             ),
           ),

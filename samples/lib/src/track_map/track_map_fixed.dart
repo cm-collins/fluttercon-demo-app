@@ -64,7 +64,8 @@ class _CircuitPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CircuitPainter oldDelegate) => oldDelegate.circuit != circuit;
+  bool shouldRepaint(_CircuitPainter oldDelegate) =>
+      oldDelegate.circuit != circuit;
 }
 
 class _CarsPainter extends CustomPainter {

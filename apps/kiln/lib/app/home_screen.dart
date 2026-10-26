@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shader_lab/shader_lab.dart';
 
+import 'kiln_build_config.dart';
 import 'kiln_app.dart';
 
 /// Temporary launcher until Lights Out and Pit Wall exist.
@@ -25,7 +26,10 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text('IMPELLER · 120 Hz · 8.33 ms', style: LabText.label),
+              const Text(
+                '${KilnBuildConfig.rendererLabel} · 120 Hz · 8.33 ms',
+                style: LabText.label,
+              ),
               const SizedBox(height: 32),
               _Entry(
                 title: 'Shader Lab',

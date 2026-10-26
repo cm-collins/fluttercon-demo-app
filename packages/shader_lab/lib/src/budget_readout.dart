@@ -35,9 +35,7 @@ class BudgetReadout extends StatelessWidget {
     } else {
       lap = formatLap(result.timeToSmooth);
       lapTint = result.timedOut ? LabColors.red : lapColor(result.timeToSmooth);
-      caption = result.timedOut
-          ? 'NOT SMOOTH AFTER 5 s'
-          : 'LIGHTS ON → SMOOTH';
+      caption = result.timedOut ? 'NOT SMOOTH AFTER 5 s' : 'LIGHTS ON → SMOOTH';
     }
 
     return Container(
@@ -74,9 +72,7 @@ class BudgetReadout extends StatelessWidget {
               _Stat(
                 label: 'WORST FRAME',
                 value: result == null ? '–' : '${formatMs(result.worst)} ms',
-                color: result == null
-                    ? null
-                    : frameColor(result.worst, budget),
+                color: result == null ? null : frameColor(result.worst, budget),
               ),
               _Stat(
                 label: 'OVER BUDGET',
@@ -107,10 +103,7 @@ class _Stat extends StatelessWidget {
         children: <Widget>[
           Text(label, style: LabText.label),
           const SizedBox(height: 2),
-          Text(
-            value,
-            style: LabText.number.copyWith(color: color),
-          ),
+          Text(value, style: LabText.number.copyWith(color: color)),
         ],
       ),
     );

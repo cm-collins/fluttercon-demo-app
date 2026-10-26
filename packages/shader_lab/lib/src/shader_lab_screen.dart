@@ -225,10 +225,7 @@ class _DarkStage extends StatelessWidget {
               child: Text(
                 'Every effect behind Lights on is drawn for the first time.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: LabColors.textSecondary,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: LabColors.textSecondary, fontSize: 16),
               ),
             ),
           ],

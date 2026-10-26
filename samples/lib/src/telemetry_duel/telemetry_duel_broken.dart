@@ -10,7 +10,11 @@ import 'telemetry_trace.dart';
 /// flattened and triangulated again on the raster thread, 120 times a second,
 /// even though only the cursor moved.
 class TelemetryDuelBroken extends StatelessWidget {
-  const TelemetryDuelBroken({super.key, required this.traces, required this.progress});
+  const TelemetryDuelBroken({
+    super.key,
+    required this.traces,
+    required this.progress,
+  });
 
   final List<TelemetryTrace> traces;
   final ValueListenable<double> progress;

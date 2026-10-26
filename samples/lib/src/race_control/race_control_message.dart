@@ -36,7 +36,8 @@ class RaceControlMessage {
 List<RaceControlMessage> parseRaceControlBatch(String raw) {
   final decoded = jsonDecode(raw) as List<Object?>;
   return [
-    for (final entry in decoded) RaceControlMessage.fromJson(entry! as Map<String, Object?>),
+    for (final entry in decoded)
+      RaceControlMessage.fromJson(entry! as Map<String, Object?>),
   ];
 }
 
@@ -55,9 +56,15 @@ class RaceControlTile extends StatelessWidget {
         children: [
           Text(
             '$lap${message.flag ?? message.category}',
-            style: const TextStyle(fontSize: 13, color: KilnColors.textSecondary),
+            style: const TextStyle(
+              fontSize: 13,
+              color: KilnColors.textSecondary,
+            ),
           ),
-          Text(message.message, style: const TextStyle(fontSize: 16, color: KilnColors.textPrimary)),
+          Text(
+            message.message,
+            style: const TextStyle(fontSize: 16, color: KilnColors.textPrimary),
+          ),
         ],
       ),
     );

@@ -9,7 +9,11 @@ import 'ribbon_geometry.dart';
 /// With ~5,000 segments that is ~5,000 stroked paths to tessellate and ~5,000
 /// draws for Impeller to record into the Vulkan render pass, every frame.
 class SpeedRibbonBroken extends StatelessWidget {
-  const SpeedRibbonBroken({super.key, required this.geometry, this.strokeWidth = 6});
+  const SpeedRibbonBroken({
+    super.key,
+    required this.geometry,
+    this.strokeWidth = 6,
+  });
 
   final RibbonGeometry geometry;
   final double strokeWidth;

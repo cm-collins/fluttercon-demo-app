@@ -29,6 +29,7 @@ has no line number, the talk does not deliver it.
 > enterprise-grade mobile experiences.
 >
 > **Key takeaways**
+>
 > - **Demystifying the Engine:** Understand the architectural differences between Skia's
 >   JIT shader compilation and Impeller's AOT pipeline mechanics on Vulkan.
 > - **Low-Level Profiling:** Master advanced Flutter DevTools and Android Systrace to read

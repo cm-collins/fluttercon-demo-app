@@ -34,14 +34,25 @@ class TowerRowContent extends StatelessWidget {
     const mono = TextStyle(fontFamily: 'JetBrains Mono', fontSize: 16);
     return Row(
       children: [
-        SizedBox(width: 24, child: Text('${row.position}', style: mono.copyWith(color: secondary))),
-        Expanded(child: Text(row.code, style: mono.copyWith(color: primary))),
+        SizedBox(
+          width: 24,
+          child: Text(
+            '${row.position}',
+            style: mono.copyWith(color: secondary),
+          ),
+        ),
+        Expanded(
+          child: Text(row.code, style: mono.copyWith(color: primary)),
+        ),
         Text(row.gap, style: mono.copyWith(color: secondary)),
         const SizedBox(width: 8),
         DecoratedBox(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: row.tyreColor.withValues(alpha: alpha), width: 2),
+            border: Border.all(
+              color: row.tyreColor.withValues(alpha: alpha),
+              width: 2,
+            ),
           ),
           child: const SizedBox.square(dimension: 10),
         ),

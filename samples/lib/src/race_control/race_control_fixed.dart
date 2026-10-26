@@ -6,7 +6,8 @@ import 'race_control_message.dart';
 
 /// Fix: batches are decoded once, on a background isolate, and the list only
 /// reads already-decoded messages.
-class RaceControlFeedController extends ValueNotifier<List<RaceControlMessage>> {
+class RaceControlFeedController
+    extends ValueNotifier<List<RaceControlMessage>> {
   RaceControlFeedController() : super(const []);
 
   Future<void> ingest(String rawBatch) async {
@@ -31,7 +32,8 @@ class RaceControlFeedFixed extends StatelessWidget {
       valueListenable: controller,
       builder: (context, messages, _) => ListView.builder(
         itemCount: messages.length,
-        itemBuilder: (context, index) => RaceControlTile(message: messages[index]),
+        itemBuilder: (context, index) =>
+            RaceControlTile(message: messages[index]),
       ),
     );
   }
