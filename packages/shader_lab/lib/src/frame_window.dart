@@ -27,6 +27,7 @@ class FrameWindowResult {
     required this.frames,
     required this.overBudgetFrames,
     required this.timedOut,
+    this.capped = false,
   });
 
   /// From window start to the end of the last over-budget frame; zero if none.
@@ -43,6 +44,10 @@ class FrameWindowResult {
 
   /// True if frames were still over budget when the timeout expired.
   final bool timedOut;
+
+  /// True when the window closed after [FrameWindow.maxFrames] without a
+  /// settle run. The slowest frame is still the number to read.
+  final bool capped;
 }
 
 /// Measures how long frames take to get back on budget after a trigger.
@@ -56,12 +61,14 @@ class FrameWindow {
     required this.triggerMicros,
     this.settleFrames = 12,
     this.timeout = const Duration(seconds: 5),
+    this.maxFrames,
   });
 
   final Duration budget;
   final int triggerMicros;
   final int settleFrames;
   final Duration timeout;
+  final int? maxFrames;
 
   int? _startMicros;
   int? _lastOverFinishMicros;
@@ -100,9 +107,11 @@ class FrameWindow {
     }
 
     final bool settled = _onBudgetRun >= settleFrames;
+    final int? limit = maxFrames;
+    final bool capped = limit != null && _frames >= limit;
     final bool expired =
         sample.rasterFinishMicros - start >= timeout.inMicroseconds;
-    if (settled || expired) {
+    if (settled || expired || capped) {
       final int? lastOver = _lastOverFinishMicros;
       _result = FrameWindowResult(
         timeToSmooth: lastOver == null
@@ -112,7 +121,8 @@ class FrameWindow {
         worst: _worst,
         frames: _frames,
         overBudgetFrames: _overFrames,
-        timedOut: !settled,
+        timedOut: expired && !settled && !capped,
+        capped: capped && !settled,
       );
     }
     return _result;

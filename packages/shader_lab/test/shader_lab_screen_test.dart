@@ -9,13 +9,14 @@ Widget host(RunBoard board) => Directionality(
     child: ShaderLabScreen(
       rendererLabel: 'Skia · OpenGL ES',
       board: board,
-      shaderAsset: 'shaders/speed_ramp.frag',
+      snapshot: MarketSnapshot.sample,
+      shaderAsset: 'shaders/depth_fill.frag',
     ),
   ),
 );
 
 void main() {
-  testWidgets('shows the renderer badge and an empty lap before any run', (
+  testWidgets('shows the book before the depth shader is drawn', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(412, 915));
@@ -23,16 +24,18 @@ void main() {
 
     await tester.pumpWidget(host(RunBoard()));
 
+    expect(find.text('BTC/USDT'), findsOneWidget);
     expect(find.text('Skia · OpenGL ES'), findsOneWidget);
-    expect(find.text('LIGHTS ON'), findsOneWidget);
-    expect(find.text('RECOVERY TIME · PRESS LIGHTS ON'), findsOneWidget);
+    expect(find.text('DRAW DEPTH'), findsOneWidget);
+    expect(find.text('Depth shader has not been drawn.'), findsOneWidget);
+    expect(find.text('RECOVERY TIME · PRESS DRAW DEPTH'), findsOneWidget);
     expect(find.text('ACCUMULATED OVERRUN'), findsOneWidget);
     expect(find.text('SLOWEST FRAME'), findsOneWidget);
     expect(find.text('FIRST − REPEAT'), findsOneWidget);
     expect(find.text('–.–––'), findsOneWidget);
   });
 
-  testWidgets('Lights on reveals the scene once the shader has loaded', (
+  testWidgets('Draw depth mounts the shader once it has loaded', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(412, 915));
@@ -44,14 +47,10 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.text('LIGHTS ON'));
+    await tester.tap(find.text('DRAW DEPTH'));
     await tester.pump();
 
-    expect(find.text('LIGHTS OFF'), findsOneWidget);
+    expect(find.text('Depth shader has not been drawn.'), findsNothing);
     expect(find.text('·.···'), findsOneWidget);
-
-    await tester.tap(find.text('LIGHTS OFF'));
-    await tester.pump();
-    expect(find.text('LIGHTS ON'), findsOneWidget);
   });
 }

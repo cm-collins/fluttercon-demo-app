@@ -110,6 +110,22 @@ void main() {
     expect(result.frames, 12);
   });
 
+  test('a frame cap closes a burst that never gets under budget', () {
+    final FrameWindow window = FrameWindow(
+      budget: budget,
+      triggerMicros: 0,
+      maxFrames: 16,
+    );
+    final FrameWindowResult? result = feed(window, <FrameSample>[
+      for (int i = 0; i < 20; i++) frame(i, 25000),
+    ]);
+
+    expect(result!.capped, isTrue);
+    expect(result.timedOut, isFalse);
+    expect(result.frames, 16);
+    expect(result.worst, const Duration(microseconds: 25000));
+  });
+
   test('times out when frames never settle', () {
     final FrameWindow window = FrameWindow(
       budget: budget,

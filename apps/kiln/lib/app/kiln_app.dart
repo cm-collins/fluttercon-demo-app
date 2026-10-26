@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shader_lab/shader_lab.dart';
 
-import '../features/shader_lab/shader_lab_route.dart';
+import '../features/markets/binance_gateway.dart';
+import '../features/markets/markets_route.dart';
 import 'home_screen.dart';
 import 'kiln_runtime.dart';
 
@@ -12,9 +13,14 @@ abstract final class KilnRoutes {
 }
 
 class KilnApp extends StatelessWidget {
-  const KilnApp({super.key, this.runtime = KilnRuntime.impeller});
+  const KilnApp({
+    super.key,
+    this.runtime = KilnRuntime.impeller,
+    this.gateway = const BinanceGateway(),
+  });
 
   final KilnRuntime runtime;
+  final MarketGateway gateway;
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +33,15 @@ class KilnApp extends StatelessWidget {
         splashFactory: NoSplash.splashFactory,
       ),
       builder: (BuildContext context, Widget? child) {
-        return KilnScope(runtime: runtime, child: child ?? const SizedBox());
+        return KilnScope(
+          runtime: runtime,
+          gateway: gateway,
+          child: child ?? const SizedBox(),
+        );
       },
       onGenerateRoute: (RouteSettings settings) {
         final Widget page = switch (settings.name) {
-          KilnRoutes.shaderLab => const ShaderLabRoute(),
+          KilnRoutes.shaderLab => const MarketsRoute(),
           _ => const HomeScreen(),
         };
         return MaterialPageRoute<void>(
@@ -44,17 +54,30 @@ class KilnApp extends StatelessWidget {
 }
 
 class KilnScope extends InheritedWidget {
-  const KilnScope({super.key, required this.runtime, required super.child});
+  const KilnScope({
+    super.key,
+    required this.runtime,
+    required this.gateway,
+    required super.child,
+  });
 
   final KilnRuntime runtime;
+  final MarketGateway gateway;
 
-  static KilnRuntime of(BuildContext context) {
+  static KilnScope _scope(BuildContext context) {
     final KilnScope? scope = context
         .dependOnInheritedWidgetOfExactType<KilnScope>();
     assert(scope != null, 'KilnScope was not found');
-    return scope!.runtime;
+    return scope!;
   }
 
+  static KilnRuntime of(BuildContext context) => _scope(context).runtime;
+
+  static MarketGateway gatewayOf(BuildContext context) =>
+      _scope(context).gateway;
+
   @override
-  bool updateShouldNotify(KilnScope oldWidget) => runtime != oldWidget.runtime;
+  bool updateShouldNotify(KilnScope oldWidget) {
+    return runtime != oldWidget.runtime || gateway != oldWidget.gateway;
+  }
 }

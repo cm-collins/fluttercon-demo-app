@@ -12,7 +12,7 @@ class LabRun {
   /// 1-based count since the process started; survives [RunBoard.clear].
   final int number;
 
-  /// True only for the first Lights on since the process started.
+  /// True only for the first Draw depth since the process started.
   final bool first;
 
   final FrameWindowResult result;

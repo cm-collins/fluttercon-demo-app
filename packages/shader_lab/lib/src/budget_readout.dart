@@ -34,13 +34,19 @@ class BudgetReadout extends StatelessWidget {
     } else if (result == null) {
       recovery = '–.–––';
       recoveryTint = LabColors.textSecondary;
-      caption = 'PRESS LIGHTS ON';
+      caption = 'PRESS DRAW DEPTH';
     } else {
       recovery = formatLap(result.timeToSmooth);
       recoveryTint = result.timedOut
           ? LabColors.red
+          : result.capped
+          ? LabColors.yellow
           : lapColor(result.timeToSmooth);
-      caption = result.timedOut ? 'NOT SMOOTH AFTER 5 s' : 'LIGHTS ON → SMOOTH';
+      caption = result.timedOut
+          ? 'NOT SMOOTH AFTER 5 s'
+          : result.capped
+          ? 'SAMPLED'
+          : 'DRAW DEPTH → SMOOTH';
     }
 
     return Container(
@@ -72,7 +78,7 @@ class BudgetReadout extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Time from Lights on until frames stay within $budgetMs ms.',
+            'Time from Draw depth until frames stay within $budgetMs ms.',
             style: LabText.label,
           ),
           const SizedBox(height: 10),
@@ -97,7 +103,7 @@ class BudgetReadout extends StatelessWidget {
                 ? '–'
                 : '${formatSignedLap(recoveryGap!)} s',
             detail: recoveryGap == null
-                ? 'Run Lights on again to compare the first recovery with a repeat.'
+                ? 'Draw depth again to compare the first recovery with a repeat.'
                 : 'First recovery minus the latest repeat. A large positive gap means first-use shader work.',
             valueColor: recoveryGap == null ? null : _gapColor(recoveryGap!),
           ),

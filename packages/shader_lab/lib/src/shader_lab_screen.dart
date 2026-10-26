@@ -3,35 +3,45 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 
+import 'book_ladder.dart';
 import 'budget_readout.dart';
+import 'candle_chart.dart';
+import 'depth_chart.dart';
 import 'frame_timer.dart';
 import 'frame_window.dart';
 import 'lab_button.dart';
 import 'lab_tokens.dart';
-import 'lights_on_scene.dart';
+import 'market.dart';
 import 'run_board.dart';
 import 'run_board_view.dart';
 
-/// Shader Lab: compare first-use shader cost between renderers.
+/// Market dashboard used to time the first draw of one fragment shader.
 ///
-/// The same widget runs in both Android flavors. The app supplies the renderer
-/// family, while the frame budget comes from the connected display. Confirm
-/// Impeller's Vulkan or OpenGL ES selection in `adb logcat`.
+/// Candles and the ladder are ordinary solid paints. They are on screen before
+/// the tap. [snapshot] comes from the public Binance book. The depth fill is
+/// loaded before the tap so file I/O is outside the clock; the clock starts
+/// when that shader is drawn.
 class ShaderLabScreen extends StatefulWidget {
   const ShaderLabScreen({
     super.key,
     required this.rendererLabel,
     required this.board,
     this.architectureNote,
-    this.shaderAsset = 'packages/shader_lab/shaders/speed_ramp.frag',
+    this.snapshot,
+    this.shaderAsset = 'packages/shader_lab/shaders/depth_fill.frag',
+    this.onMeasuring,
   });
 
   final String rendererLabel;
   final RunBoard board;
   final String? architectureNote;
+  final MarketSnapshot? snapshot;
 
-  /// Asset key of the fragment shader; differs only when this package is the root app.
+  /// Asset key of the depth shader. The package test uses its own asset path.
   final String shaderAsset;
+
+  /// Fired when a measured draw starts or finishes, so a live price socket can pause.
+  final ValueChanged<bool>? onMeasuring;
 
   @override
   State<ShaderLabScreen> createState() => _ShaderLabScreenState();
@@ -40,19 +50,19 @@ class ShaderLabScreen extends StatefulWidget {
 class _ShaderLabScreenState extends State<ShaderLabScreen> {
   final FrameTimer _timer = FrameTimer();
   ui.FragmentProgram? _program;
-  bool _lit = false;
+  int _generation = 0;
   bool _measuring = false;
 
   @override
   void initState() {
     super.initState();
-    Timeline.instantSync('KILN::ShaderLab::enter');
-    // Loaded before Lights on so asset I/O is not part of the measured window.
-    ui.FragmentProgram.fromAsset(widget.shaderAsset).then((program) {
-      if (mounted) {
-        setState(() => _program = program);
-      }
-    });
+    Timeline.instantSync('KILN::Markets::enter');
+    ui.FragmentProgram.fromAsset(widget.shaderAsset)
+        .then((ui.FragmentProgram program) {
+          if (mounted) {
+            setState(() => _program = program);
+          }
+        });
   }
 
   @override
@@ -63,30 +73,23 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
 
   Duration get _budget => budgetFor(View.of(context).display.refreshRate);
 
-  void _lightsOn() {
+  void _drawDepth() {
     Timeline.instantSync(
-      'KILN::ShaderLab::lightsOn',
+      'KILN::Markets::drawDepth',
       arguments: <String, String>{'renderer': widget.rendererLabel},
     );
     _timer.arm(budget: _budget, onResult: _onResult);
+    widget.onMeasuring?.call(true);
     setState(() {
-      _lit = true;
+      _generation += 1;
       _measuring = true;
-    });
-  }
-
-  void _lightsOff() {
-    _timer.cancel();
-    setState(() {
-      _lit = false;
-      _measuring = false;
     });
   }
 
   void _onResult(FrameWindowResult result) {
     final LabRun run = widget.board.add(result);
     Timeline.instantSync(
-      'KILN::ShaderLab::smooth',
+      'KILN::Markets::smooth',
       arguments: <String, String>{
         'renderer': widget.rendererLabel,
         'run': '${run.number}',
@@ -98,12 +101,15 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
     if (mounted) {
       setState(() => _measuring = false);
     }
+    widget.onMeasuring?.call(false);
   }
 
   @override
   Widget build(BuildContext context) {
+    final MarketSnapshot? snapshot = widget.snapshot;
     final ui.FragmentProgram? program = _program;
     final Duration budget = _budget;
+    final bool ready = snapshot != null && program != null;
     return ColoredBox(
       color: LabColors.bg,
       child: SafeArea(
@@ -115,50 +121,88 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
               _Header(
                 rendererLabel: widget.rendererLabel,
                 budget: budget,
-                architectureNote: widget.architectureNote,
+                pair: snapshot?.quote.pair,
               ),
               const SizedBox(height: 12),
               Expanded(
-                flex: 2,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: _lit && program != null
-                      ? LightsOnScene(program: program)
-                      : const _DarkStage(),
+                child: ListView(
+                  children: <Widget>[
+                    if (widget.architectureNote != null) ...<Widget>[
+                      Text(widget.architectureNote!, style: LabText.label),
+                      const SizedBox(height: 12),
+                    ],
+                    if (snapshot == null)
+                      const Text(
+                        'Waiting for the Binance book.',
+                        style: LabText.body,
+                      )
+                    else ...<Widget>[
+                      _QuoteHeader(quote: snapshot.quote),
+                      const SizedBox(height: 12),
+                      CandleChart(candles: snapshot.candles),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Candles and the ladder use solid paints already on screen.',
+                        style: LabText.label,
+                      ),
+                      const SizedBox(height: 16),
+                      BookLadder(bids: snapshot.bids, asks: snapshot.asks),
+                      const SizedBox(height: 16),
+                      RunBoardView(
+                        board: widget.board,
+                        onClear: widget.board.clear,
+                      ),
+                    ],
+                  ],
                 ),
               ),
               const SizedBox(height: 12),
-              Expanded(
-                flex: 3,
-                child: ListenableBuilder(
-                  listenable: widget.board,
-                  builder: (BuildContext context, Widget? _) =>
-                      SingleChildScrollView(
-                        child: Column(
-                          children: <Widget>[
-                            BudgetReadout(
-                              latest: widget.board.latest,
-                              measuring: _measuring,
-                              budget: budget,
-                              recoveryGap: widget.board.recoveryGap,
-                            ),
-                            const SizedBox(height: 12),
-                            RunBoardView(
-                              board: widget.board,
-                              onClear: widget.board.clear,
-                            ),
-                          ],
+              SizedBox(
+                height: 120,
+                child: snapshot == null || _generation == 0 || program == null
+                    ? const DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: LabColors.surface,
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
                         ),
+                        child: Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text(
+                              'Depth shader has not been drawn.',
+                              textAlign: TextAlign.center,
+                              style: LabText.body,
+                            ),
+                          ),
+                        ),
+                      )
+                    : DepthChart(
+                        key: ValueKey<int>(_generation),
+                        program: program,
+                        bids: snapshot.bids,
+                        asks: snapshot.asks,
                       ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Draw depth times the first use of one fragment shader. The file is already loaded.',
+                style: LabText.label,
+              ),
+              const SizedBox(height: 12),
+              ListenableBuilder(
+                listenable: widget.board,
+                builder: (BuildContext context, Widget? _) => BudgetReadout(
+                  latest: widget.board.latest,
+                  measuring: _measuring,
+                  budget: budget,
+                  recoveryGap: widget.board.recoveryGap,
                 ),
               ),
               const SizedBox(height: 12),
               LabButton(
-                label: _lit ? 'LIGHTS OFF' : 'LIGHTS ON',
-                primary: !_lit,
-                onPressed: program == null
-                    ? null
-                    : (_lit ? _lightsOff : _lightsOn),
+                label: 'DRAW DEPTH',
+                primary: _generation == 0,
+                onPressed: ready ? _drawDepth : null,
               ),
             ],
           ),
@@ -172,12 +216,12 @@ class _Header extends StatelessWidget {
   const _Header({
     required this.rendererLabel,
     required this.budget,
-    required this.architectureNote,
+    required this.pair,
   });
 
   final String rendererLabel;
   final Duration budget;
-  final String? architectureNote;
+  final String? pair;
 
   @override
   Widget build(BuildContext context) {
@@ -185,18 +229,17 @@ class _Header extends StatelessWidget {
     final Color accent = skia ? LabColors.ember : LabColors.violet;
     final double hz = 1000000 / budget.inMicroseconds;
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Text('Shader Lab', style: LabText.title),
+              Text(pair ?? 'Markets', style: LabText.title),
               Text(
                 '${hz.round()} Hz · ${formatMs(budget)} ms budget',
                 style: LabText.label,
               ),
-              if (architectureNote != null)
-                Text(architectureNote!, style: LabText.label),
             ],
           ),
         ),
@@ -220,45 +263,39 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Plain stage before Lights on: solid fills only, so no scene effect is warmed up.
-class _DarkStage extends StatelessWidget {
-  const _DarkStage();
+class _QuoteHeader extends StatelessWidget {
+  const _QuoteHeader({required this.quote});
+
+  final MarketQuote quote;
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: LabColors.surface,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                for (int i = 0; i < 5; i++)
-                  Container(
-                    width: 28,
-                    height: 28,
-                    margin: const EdgeInsets.symmetric(horizontal: 6),
-                    decoration: const BoxDecoration(
-                      color: LabColors.hairline,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                'Every effect behind Lights on is drawn for the first time.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: LabColors.textSecondary, fontSize: 16),
+    final bool up = quote.changePercent >= 0;
+    final Color tint = up ? LabColors.green : LabColors.red;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: <Widget>[
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                formatQuote(quote.last),
+                style: LabText.lapTime.copyWith(fontSize: 36),
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                'H ${formatQuote(quote.high)}   L ${formatQuote(quote.low)}   Vol ${formatVolume(quote.quoteVolume)}',
+                style: LabText.label,
+              ),
+            ],
+          ),
         ),
-      ),
+        Text(
+          formatPercent(quote.changePercent),
+          style: LabText.number.copyWith(color: tint),
+        ),
+      ],
     );
   }
 }

@@ -109,7 +109,7 @@ flowchart LR
 | FR-12 | Lights Out start sequence creates a clean "frame zero" marker in the trace. | Could |
 | FR-13 | A **Thrash** control (1×, 2×, 4×, 8×) multiplies Speed Ribbon work live, and is also settable with `kiln://thrash/<n>`, so the audience watches the canvas being stressed. | Must |
 | FR-14 | A **Shader Lab** screen in `packages/shader_lab` ships in two separately installable APKs built from `apps/kiln`: an `impeller` flavor and a `skia` flavor. Both use the same Flutter SDK, Dart code, assets and profile build mode so first-use shader compilation can be compared live (timers in FR-15). | Must |
-| FR-15 | Shader Lab shows **recovery time** after each Lights on: time until frames are back within the connected display's budget, plus accumulated overrun, slowest frame, and the first-minus-repeat gap. A **run board** lists the last 5 runs. | Must |
+| FR-15 | The market dashboard shows **recovery time** after each Draw depth: time until frames are back within the connected display's budget, plus accumulated overrun, slowest frame, and the first-minus-repeat gap. The depth fill is the only new shader. A **run board** lists the last 5 runs. | Must |
 | FR-16 | Turning a pit stop on shows a **recovery time** in the Engine Room ("Recovered in 0.42 s" or "Not recovered"). | Should |
 
 ## 7. Non-functional requirements

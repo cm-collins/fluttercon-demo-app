@@ -112,10 +112,10 @@ on first use versus Impeller's offline-compiled shader set. UI lives in
 `apps/kiln` (see [TRD §4](../technical/TRD.md#4-repository-layout-monorepo) and
 [§11.1](../technical/TRD.md#111-shader-lab-one-project-two-flavor-apks)).
 
-- A dark, empty stage with one button: **Lights on**.
-- Pressing it reveals a scene that uses many effects for the first time at once: gradients,
-  a frosted blur panel, a `ShaderMask` title, blend-mode colour filters, anti-aliased clips
-  and the `speed_ramp.frag` shader.
+- A Binance watchlist, then one instrument: last price, 1-minute candles, and the bid/ask ladder.
+  Those use solid paints and are on screen before the measurement.
+- One button: **Draw depth**. It draws the already loaded order book with `depth_fill.frag`.
+  That fill is the only new shader. The file is loaded before the tap, so the clock starts at the draw.
 - Top right: the renderer badge (`Skia · OpenGL ES` or `Impeller`). The Impeller note says Flutter uses Vulkan when the driver is valid.
 - The header shows the connected display's refresh rate and frame budget.
 - Centre bottom: **recovery time** in large type (`0.912`): how long until frames stayed within that budget. Under it: **accumulated overrun**, **slowest frame**, and **first − repeat**, each with a one-line explanation. Purple when recovery is 0, then green, yellow, red.

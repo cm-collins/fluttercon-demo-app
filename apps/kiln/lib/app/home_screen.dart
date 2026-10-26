@@ -4,7 +4,7 @@ import 'package:shader_lab/shader_lab.dart';
 import 'kiln_app.dart';
 import 'kiln_runtime.dart';
 
-/// Temporary launcher until Lights Out and Pit Wall exist.
+/// Launcher for the Binance market dashboard.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -20,7 +20,7 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               const Text(
-                'Kiln: Pit Wall',
+                'Kiln Markets',
                 style: TextStyle(
                   color: LabColors.textPrimary,
                   fontSize: 32,
@@ -34,15 +34,10 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               _Entry(
-                title: 'Shader Lab',
-                subtitle: 'First-use shader cost, timed',
+                title: 'Markets',
+                subtitle: 'Binance book, one shader timed',
                 onTap: () =>
                     Navigator.of(context).pushNamed(KilnRoutes.shaderLab),
-              ),
-              const SizedBox(height: 12),
-              const _Entry(
-                title: 'Pit Wall',
-                subtitle: 'Laps 1 to 4 — not built yet',
               ),
             ],
           ),

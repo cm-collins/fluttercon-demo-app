@@ -5,7 +5,7 @@ import 'lab_tokens.dart';
 /// Flat button with no ink effect.
 ///
 /// Material's sparkle splash is a runtime fragment shader; on Skia it would
-/// compile on the very tap being measured and pollute the lap time.
+/// compile on the very tap being measured and pollute the frame.
 class LabButton extends StatelessWidget {
   const LabButton({
     super.key,

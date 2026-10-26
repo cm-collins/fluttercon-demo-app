@@ -41,7 +41,7 @@ flowchart TB
 
 ## Shader Lab: run both flavor APKs for Skia vs Impeller
 
-Same scene in `packages/shader_lab`; compare raster cost on **Lights on** with DevTools,
+Same Binance book in `packages/shader_lab`; compare raster cost on **Draw depth** with DevTools,
 Perfetto, and the on-phone recovery time. Both APKs come from `apps/kiln` and use the same
 Flutter SDK, source, assets and profile build mode.
 

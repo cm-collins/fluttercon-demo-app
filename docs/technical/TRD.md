@@ -103,7 +103,7 @@ apps/
         speed_ribbon/
         race_control/
         engine_room/         # Budget display, pit stops, Rosetta
-        shader_lab/          # shader_lab_route.dart: thin route + process-wide RunBoard
+        markets/             # Binance watchlist, book, and Draw depth timing
     assets/sessions/         # Bundled OpenF1 export
     shaders/                 # Lap shaders (.frag); not used by Shader Lab package
     android/
@@ -121,7 +121,7 @@ packages/
         shader_lab_screen.dart
         lights_on_scene.dart # 16 blend modes, 3 gradient types, AA clips, blurs, ShaderMask, speed_ramp.frag
         budget_readout.dart  # Recovery time, overrun, slowest frame, first-repeat gap
-        run_board.dart       # Last 5 Lights on runs (model)
+        run_board.dart       # Last 5 Draw depth runs (model)
         run_board_view.dart
         frame_window.dart    # Timer window logic (§9.2a); also used by Kiln pit-stop recovery
         frame_timer.dart     # Feeds engine FrameTiming into a FrameWindow
@@ -333,17 +333,17 @@ Shared definitions (budget = `1000 / refreshRate` ms, 8.33 ms at 120 Hz):
 
 **Shader Lab recovery measurement (both flavor APKs, in `packages/shader_lab`):**
 
-- Trigger: the **Lights on** tap. Shows **recovery time** in large type
+- Trigger: the **Draw depth** tap. Shows **recovery time** in large type
   (`0.912`), with **accumulated overrun**, **slowest frame**, and **first − repeat** underneath.
 - The budget comes from the connected display's refresh rate: 8.33 ms at 120 Hz and 16.67 ms at 60 Hz.
 - Colours: purple if time to smooth is 0, green ≤ 0.100 s, yellow ≤ 0.500 s, red above.
 - **Run board:** the last 5 runs in this app process, newest first:
   `Run # · Recovery s · Overrun ms · Slowest ms · FIRST or REPEAT`. The renderer is the app's badge,
   so it is not repeated per row. "First" means the first
-  Lights on since the process started. A **Clear** button empties it. Not persisted:
+  Draw depth since the process started. A **Clear** button empties it. Not persisted:
   `pm clear` and app restarts start a fresh board. This resets the measurement label and
   app-owned state; vendor GPU-driver cache behavior must be verified separately.
-- Spans: `KILN::ShaderLab::lightsOn` (instant, at tap) and `KILN::ShaderLab::smooth`
+- Spans: `KILN::Markets::drawDepth` (instant, at tap) and `KILN::Markets::smooth`
   (instant, when the window closes) so the same interval can be found in DevTools and Perfetto.
 
 **Pit-stop recovery timer (Kiln only, Engine Room):**
@@ -423,7 +423,7 @@ Timeline; search **`KILN::ShaderLab::`**.
 
 **Perfetto:** keep `--trace-systrace` running and capture with the **`record_android_trace`**
 script over **adb** (not WebUSB on stage — WebUSB can stop `adb` and disconnect
-`flutter run`). Compare **main thread** vs **`1.raster`** around **Lights on**; correlate
+`flutter run`). Compare **main thread** vs **`1.raster`** around **Draw depth**; correlate
 with the on-phone **recovery time**.
 
 See [Profiling toolchain](../research/02-profiling-toolchain.md) and
@@ -461,13 +461,14 @@ and first-use costs are represented honestly.
 
 ### 11.2 Shader Lab screen
 
-- One button, **"Lights on"**, that transitions into a scene using many effects for the
-  first time at once: linear, radial and sweep gradients, `BackdropFilter` blur,
-  `ShaderMask`, `ColorFilter` blend modes, anti-aliased clips, and the custom
-  `speed_ramp.frag` fragment shader.
+- A public Binance watchlist and instrument (`https://data-api.binance.vision`, trade stream
+  `wss://data-stream.binance.vision/ws`). Candles and the bid/ask ladder use solid paints.
+- One button, **"Draw depth"**, draws that book with `depth_fill.frag`. The shader file is loaded
+  before the tap. The clock starts when the fill is drawn. No blur, mask, or extra blend mode is
+  introduced on that tap.
 - Shows **recovery time**, accumulated overrun, slowest frame, and the first-minus-repeat gap for the latest
-  Lights on, plus the **run board** (§9.2a). Recovery time is in large type.
-- Emits `KILN::ShaderLab::enter`, `KILN::ShaderLab::lightsOn` and `KILN::ShaderLab::smooth`
+  Draw depth, plus the **run board** (§9.2a). Recovery time is in large type.
+- Emits `KILN::Markets::enter`, `KILN::Markets::drawDepth` and `KILN::Markets::smooth`
   so the interval is easy to find in DevTools and Perfetto.
 - Success criterion (measured in rehearsal on the demo phone): the Skia build's first run
   shows a visibly longer time to smooth than its second run and than the Impeller build. If

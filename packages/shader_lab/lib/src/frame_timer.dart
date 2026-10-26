@@ -44,6 +44,7 @@ class FrameTimer {
       budget: budget,
       triggerMicros: binding.currentSystemFrameTimeStamp.inMicroseconds,
       timeout: timeout,
+      maxFrames: 16,
     );
     _onResult = onResult;
     if (!_listening) {
@@ -79,6 +80,11 @@ class FrameTimer {
         onResult?.call(result);
         return;
       }
+    }
+    // A static depth draw does not schedule further frames by itself. Keep
+    // asking until 12 on-budget frames arrive, or the window times out.
+    if (_window != null) {
+      SchedulerBinding.instance.scheduleFrame();
     }
   }
 }
