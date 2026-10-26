@@ -25,6 +25,10 @@ void main() {
 
     expect(find.text('Skia · OpenGL ES'), findsOneWidget);
     expect(find.text('LIGHTS ON'), findsOneWidget);
+    expect(find.text('RECOVERY TIME · PRESS LIGHTS ON'), findsOneWidget);
+    expect(find.text('ACCUMULATED OVERRUN'), findsOneWidget);
+    expect(find.text('SLOWEST FRAME'), findsOneWidget);
+    expect(find.text('FIRST − REPEAT'), findsOneWidget);
     expect(find.text('–.–––'), findsOneWidget);
   });
 

@@ -48,7 +48,7 @@ class RunBoardView extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               const _Row(
-                cells: <String>['#', 'LAP s', 'STALL ms', 'WORST ms', ''],
+                cells: <String>['#', 'RECOV s', 'OVERRUN', 'SLOW ms', ''],
                 style: LabText.label,
               ),
               for (int i = 0; i < board.capacity; i++)

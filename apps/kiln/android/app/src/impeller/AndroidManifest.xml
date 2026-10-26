@@ -3,6 +3,9 @@
         <meta-data
             android:name="io.flutter.embedding.android.EnableImpeller"
             android:value="true" />
+        <meta-data
+            android:name="dev.fluttercon.kiln.RENDERER_FAMILY"
+            android:value="impeller" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>

@@ -110,8 +110,8 @@ Start at [`docs/README.md`](docs/README.md).
 - A physical Android 10+ (API 29+) device with Vulkan 1.1 and a 120 Hz display
 - Profile mode for every measurement on a **physical device** with **`adb` on PATH**; see
   [How to run (DevTools and Perfetto)](docs/technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything):
-  - **Kiln Impeller:** `cd apps/kiln` → `flutter run --profile --trace-systrace --flavor impeller --dart-define='KILN_RENDERER=Impeller · Vulkan'`
-  - **Kiln Skia:** same directory and SDK → `flutter run --profile --trace-systrace --flavor skia --dart-define='KILN_RENDERER=Skia · OpenGL ES'`
+  - **Kiln Impeller:** `cd apps/kiln` → `flutter run --profile --trace-systrace --flavor impeller`
+  - **Kiln Skia:** same directory and SDK → `flutter run --profile --trace-systrace --flavor skia`
   - Before a verified cold Skia run: `adb shell pm clear dev.fluttercon.kiln.skia`
 - DevTools attaches to whichever app `flutter run` started; switch apps by stopping one run and
   starting the other (or use exported traces / a second laptop)

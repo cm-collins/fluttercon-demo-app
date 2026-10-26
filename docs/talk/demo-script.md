@@ -65,7 +65,7 @@ a terminal tab.
 | # | Screen | Do | Say |
 |---|---|---|---|
 | 5 | Phone | Swipe up the Engine Room. Bars are red and yellow. | "This is the Engine Room. It measures every frame the app draws." |
-| 6 | Phone | Point at the renderer badge. | "The badge says Impeller on Vulkan, 120 hertz. That matters: on some phones Flutter deliberately uses OpenGL ES instead." |
+| 6 | Phone | Point at the renderer badge and refresh line. | "The badge names the renderer, and the line under the title shows this display's actual refresh rate and frame budget. Before a Vulkan recording, I confirm the log says Impeller is using Vulkan." |
 | 7 | Slide 3 | — | "The car data arrives about 3.7 times a second. The screen refreshes 120 times a second. Each frame gets 8.33 milliseconds." |
 | 8 | Slide 3 | Point at the split. | "Flutter spends that frame on two threads. UI is our Dart code. Raster is Impeller. Budget about 4 milliseconds for each, and the whole frame, from vsync to pixels, lands inside one refresh." |
 | 9 | Phone | Point at the 4 ms tick on each bar. | "That's the tick on each bar. Strictly, the threads overlap, so each one can stretch to 8.33 and still hit 120 frames per second. But then you add a frame of latency and you have no headroom left. Four and four is the budget I design for." |
@@ -82,10 +82,10 @@ Source: [History overview](../history/README.md) and [Rendering engine history](
 | 13 | Slide 5 | Point at 2018. | "Flutter 1.0 shipped in December 2018 on Skia, the same 2D engine behind Chrome and Android's own UI." |
 | 14 | Slide 5 | — | "Skia compiled shaders just in time. The first time a new effect appeared, Skia generated a shader and the GPU driver compiled it on the raster thread, in the middle of a frame. That frame was late." |
 | 15a | Phone (Kiln Skia) | Run the rehearsed reset, then launch **Kiln Skia**. Point at the badge "Skia · OpenGL ES". | "Now the real thing, live. This and the Impeller app came from the same Flutter SDK, source code, assets and profile build. The Android flavor changes only the renderer configuration and app identity. I reset this app and verified this is a cold run on this phone." |
-| 15b | Phone (Kiln Skia) | Tap **Lights on**. Point at the lap time, then stall time. | "Gradients, blur, masks, a custom shader: all appearing for the first time. This lap time is how long until every frame was back on budget. That's Skia generating shaders and the driver compiling them, inside the frame." |
-| 15c | Phone (Kiln Skia) | Back, then **Lights on** again. Point at the run board: *First* above *Repeat*. | "Second time, same phone, same effects. Look at the board: the lap time collapses. The shaders are now cached. That's why you never saw this in development: your phone had already paid." |
+| 15b | Phone (Kiln Skia) | Tap **Lights on**. Point at recovery time, then accumulated overrun and slowest frame. | "Gradients, blur, masks, a custom shader: all appearing for the first time. Recovery time is how long until frames stayed within this display's budget. The overrun and slowest frame show how much work landed inside the frames." |
+| 15c | Phone (Kiln Skia) | Tap **Lights on** again. Point at **First − repeat**, then the run board. | "Second time, same phone, same effects. The positive gap is the first-use cost. The repeat is faster because those shaders are now cached." |
 | 15d | Phone (Kiln) | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"`. Badge "Impeller · Vulkan". Tap **Lights on**. | "Now Impeller, first run. The same effects and the same profile build, but with its offline-compiled shader set ready before this frame." |
-| 15e | Phone (Kiln) | Point at the lap time. | "That's the difference: Skia generated shader programs during the user's first run. Impeller's engine shader set was compiled when the Flutter engine was built, and our custom fragment shader was compiled during the app build. Runtime still renders the scene, but it does not do Skia-style shader generation in this frame." |
+| 15e | Phone (Kiln) | Point at **First − repeat**. | "Impeller's gap stays near zero. Its engine shaders were compiled when Flutter was built, and our fragment shader was compiled when the app was built. The scene still renders at runtime, but it does not do Skia's first-use shader generation." |
 | 16 | Slide 5 | Point at 2020. | "In 2020 we got SkSL warm-up: record the shaders on one device, bundle them, and hope they match your user's GPU driver. It helped. It never scaled." |
 | 17 | Slide 5 | Point at 2023 to 2025. | "So the team built a renderer that compiles ahead of time. Impeller became the default on iOS in May 2023, and on Android Vulkan devices in December 2024." |
 | 18 | Slide 5 | — | "Since Flutter 3.29, in February 2025, Skia is gone from iOS. On Android, phones without a working Vulkan driver fall back to Impeller's own OpenGL ES backend, not to Skia." |
@@ -264,7 +264,7 @@ Shader Lab ships as two Android product-flavor APKs from one current-SDK Flutter
    DevTools attaches to whichever app `flutter run` started; switch apps by stopping one run
    and starting the other.
 2. In rehearsal, verify the renderer through logs, validate the cold-reset procedure, then
-   record lap time, stall time and worst frame for Skia cold, Skia repeat and Impeller first
+   record recovery time, accumulated overrun and slowest frame for Skia cold, Skia repeat and Impeller first
    run. Write the numbers in the runbook.
 3. Record the same three runs as a side-by-side video for Slide 6 (the backup).
 4. If the Skia first-entry spike isn't clearly visible from the back of the room, use the

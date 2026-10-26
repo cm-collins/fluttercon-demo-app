@@ -42,13 +42,13 @@ flowchart TB
 ## Shader Lab: run both flavor APKs for Skia vs Impeller
 
 Same scene in `packages/shader_lab`; compare raster cost on **Lights on** with DevTools,
-Perfetto, and the on-phone lap time. Both APKs come from `apps/kiln` and use the same
+Perfetto, and the on-phone recovery time. Both APKs come from `apps/kiln` and use the same
 Flutter SDK, source, assets and profile build mode.
 
 | Flavor | Directory | Command |
 |---|---|---|
-| Kiln Impeller | `apps/kiln` | `flutter run --profile --trace-systrace --flavor impeller --dart-define='KILN_RENDERER=Impeller · Vulkan'` → Home → Shader Lab, or `kiln://scenario/shaderlab` |
-| Kiln Skia | `apps/kiln` | `flutter run --profile --trace-systrace --flavor skia --dart-define='KILN_RENDERER=Skia · OpenGL ES'` |
+| Kiln Impeller | `apps/kiln` | `flutter run --profile --trace-systrace --flavor impeller` → Home → Shader Lab, or `kiln://scenario/shaderlab` |
+| Kiln Skia | `apps/kiln` | `flutter run --profile --trace-systrace --flavor skia` |
 
 Before a candidate Skia **cold-run** demo: `adb shell pm clear dev.fluttercon.kiln.skia`.
 Verify the reset protocol on the target GPU; vendor driver caches may survive app-data clears.

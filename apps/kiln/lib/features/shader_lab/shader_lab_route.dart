@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shader_lab/shader_lab.dart';
 
-import '../../app/kiln_build_config.dart';
+import '../../app/kiln_app.dart';
+import '../../app/kiln_runtime.dart';
 
 /// Lives for the whole process so runs survive leaving and re-entering the screen.
 final RunBoard shaderLabRuns = RunBoard();
@@ -12,9 +13,11 @@ class ShaderLabRoute extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final KilnRuntime runtime = KilnScope.of(context);
     return Scaffold(
       body: ShaderLabScreen(
-        rendererLabel: KilnBuildConfig.rendererLabel,
+        rendererLabel: runtime.label,
+        architectureNote: runtime.architectureNote,
         board: shaderLabRuns,
       ),
     );

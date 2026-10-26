@@ -49,7 +49,7 @@ to confuse), use [Talk vocabulary](../talk/vocabulary.md).
 | **`saveLayer`** | Canvas call that draws a group into an offscreen texture, then composites it. Triggers a render-pass switch. |
 | **Shader Lab** | One Kiln screen built as current-SDK `skia` and `impeller` Android flavors to compare first-use shader compilation live while holding code and build mode constant. |
 | **Stall time** | Kiln timer: total time frames ran over budget after a trigger. See [vocabulary](../talk/vocabulary.md). |
-| **Time to smooth (lap time)** | Kiln timer: from the trigger frame until frames are back on budget, from `FrameTiming` timestamps. |
+| **Recovery time** | Kiln timer: from the trigger frame until frames are back within the display budget, from `FrameTiming` timestamps. |
 | **SkSL** | Skia's shading language; source of runtime shader compilation in the Skia era. |
 | **Thread** | One ordered stream of CPU instructions inside a process. Threads share process memory but have separate call stacks and scheduling state. |
 | **UI (DevTools label)** | Dart animation/build/layout/paint/composite timing (`buildDuration`). In current Flutter this work executes on the platform main thread; “UI” does not name a separate thread. |

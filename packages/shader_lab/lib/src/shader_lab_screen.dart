@@ -14,19 +14,21 @@ import 'run_board_view.dart';
 
 /// Shader Lab: compare first-use shader cost between renderers.
 ///
-/// The same widget runs in Kiln (Impeller) and Kiln Skia. Only [rendererLabel]
-/// differs; it is supplied by each app because neither SDK exposes the active
-/// renderer to Dart.
+/// The same widget runs in both Android flavors. The app supplies the renderer
+/// family, while the frame budget comes from the connected display. Confirm
+/// Impeller's Vulkan or OpenGL ES selection in `adb logcat`.
 class ShaderLabScreen extends StatefulWidget {
   const ShaderLabScreen({
     super.key,
     required this.rendererLabel,
     required this.board,
+    this.architectureNote,
     this.shaderAsset = 'packages/shader_lab/shaders/speed_ramp.frag',
   });
 
   final String rendererLabel;
   final RunBoard board;
+  final String? architectureNote;
 
   /// Asset key of the fragment shader; differs only when this package is the root app.
   final String shaderAsset;
@@ -110,9 +112,14 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              _Header(rendererLabel: widget.rendererLabel, budget: budget),
+              _Header(
+                rendererLabel: widget.rendererLabel,
+                budget: budget,
+                architectureNote: widget.architectureNote,
+              ),
               const SizedBox(height: 12),
               Expanded(
+                flex: 2,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: _lit && program != null
@@ -121,16 +128,30 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              ListenableBuilder(
-                listenable: widget.board,
-                builder: (BuildContext context, Widget? _) => BudgetReadout(
-                  latest: widget.board.latest,
-                  measuring: _measuring,
-                  budget: budget,
+              Expanded(
+                flex: 3,
+                child: ListenableBuilder(
+                  listenable: widget.board,
+                  builder: (BuildContext context, Widget? _) =>
+                      SingleChildScrollView(
+                        child: Column(
+                          children: <Widget>[
+                            BudgetReadout(
+                              latest: widget.board.latest,
+                              measuring: _measuring,
+                              budget: budget,
+                              recoveryGap: widget.board.recoveryGap,
+                            ),
+                            const SizedBox(height: 12),
+                            RunBoardView(
+                              board: widget.board,
+                              onClear: widget.board.clear,
+                            ),
+                          ],
+                        ),
+                      ),
                 ),
               ),
-              const SizedBox(height: 12),
-              RunBoardView(board: widget.board, onClear: widget.board.clear),
               const SizedBox(height: 12),
               LabButton(
                 label: _lit ? 'LIGHTS OFF' : 'LIGHTS ON',
@@ -148,10 +169,15 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.rendererLabel, required this.budget});
+  const _Header({
+    required this.rendererLabel,
+    required this.budget,
+    required this.architectureNote,
+  });
 
   final String rendererLabel;
   final Duration budget;
+  final String? architectureNote;
 
   @override
   Widget build(BuildContext context) {
@@ -169,6 +195,8 @@ class _Header extends StatelessWidget {
                 '${hz.round()} Hz · ${formatMs(budget)} ms budget',
                 style: LabText.label,
               ),
+              if (architectureNote != null)
+                Text(architectureNote!, style: LabText.label),
             ],
           ),
         ),

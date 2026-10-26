@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shader_lab/shader_lab.dart';
 
-import 'kiln_build_config.dart';
 import 'kiln_app.dart';
+import 'kiln_runtime.dart';
 
 /// Temporary launcher until Lights Out and Pit Wall exist.
 class HomeScreen extends StatelessWidget {
@@ -10,6 +10,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final KilnRuntime runtime = KilnScope.of(context);
+    final Duration budget = budgetFor(View.of(context).display.refreshRate);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -26,8 +28,8 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                '${KilnBuildConfig.rendererLabel} · 120 Hz · 8.33 ms',
+              Text(
+                '${runtime.label} · ${View.of(context).display.refreshRate.round()} Hz · ${formatMs(budget)} ms',
                 style: LabText.label,
               ),
               const SizedBox(height: 32),

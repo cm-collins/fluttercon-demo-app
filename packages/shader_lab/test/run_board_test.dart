@@ -29,6 +29,19 @@ void main() {
     expect(board.runs.map((LabRun r) => r.number), <int>[5, 4, 3]);
   });
 
+  test('recovery gap keeps the first run after it leaves the board', () {
+    final RunBoard board = RunBoard(capacity: 2);
+    board.add(result(900));
+    expect(board.recoveryGap, isNull);
+
+    board.add(result(40));
+    expect(board.recoveryGap, const Duration(milliseconds: 860));
+
+    board.add(result(20));
+    expect(board.runs.map((LabRun run) => run.number), <int>[3, 2]);
+    expect(board.recoveryGap, const Duration(milliseconds: 880));
+  });
+
   test('clear empties the board but keeps counting runs', () {
     final RunBoard board = RunBoard();
     board.add(result(900));

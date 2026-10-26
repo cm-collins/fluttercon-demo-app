@@ -45,8 +45,7 @@ Physical device, USB debugging, **`adb` on PATH**. Always **profile** + **`--tra
 
 ```text
 cd apps/kiln
-flutter run --profile --trace-systrace --flavor impeller \
-  --dart-define='KILN_RENDERER=Impeller · Vulkan'
+flutter run --profile --trace-systrace --flavor impeller
 ```
 
 Open Shader Lab: **Home → Shader Lab**, or
@@ -56,8 +55,7 @@ Open Shader Lab: **Home → Shader Lab**, or
 
 ```text
 cd apps/kiln
-flutter run --profile --trace-systrace --flavor skia \
-  --dart-define='KILN_RENDERER=Skia · OpenGL ES'
+flutter run --profile --trace-systrace --flavor skia
 ```
 
 Before a candidate **cold** demo: `adb shell pm clear dev.fluttercon.kiln.skia`. Confirm
@@ -78,8 +76,9 @@ and start the other (or use two laptops / recorded DevTools and Perfetto backups
 
 - [ ] Full 40-minute run with a timer
 - [ ] Each lap: broken state visibly red within 3 seconds
-- [ ] Shader Lab lap time / stall / worst frame — Skia first run TBD s / TBD ms / TBD ms; Skia repeat TBD s / TBD ms / TBD ms; Impeller first TBD s / TBD ms / TBD ms
-- [ ] Shader Lab lap time matches the same interval in DevTools (within one frame)
+- [ ] Shader Lab recovery / accumulated overrun / slowest frame — Skia first run TBD s / TBD ms / TBD ms; Skia repeat TBD s / TBD ms / TBD ms; Impeller first TBD s / TBD ms / TBD ms
+- [ ] Shader Lab recovery time matches the same interval in DevTools (within one frame)
+- [ ] `adb logcat` confirms Impeller selected Vulkan before a Vulkan recording
 - [ ] Each lap's pit stop shows "Recovered in … s" within 5 s (Speed Ribbon at Thrash 8×: ___ s)
 - [ ] Shader Lab gap is readable from the back of the room; if not, plan to use the Slide 6 recording
 - [ ] Thrash: each step (1×, 2×, 4×, 8×) visibly raises the raster bar; 8× does not freeze the phone

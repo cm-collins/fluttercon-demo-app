@@ -120,7 +120,7 @@ packages/
       src/
         shader_lab_screen.dart
         lights_on_scene.dart # 16 blend modes, 3 gradient types, AA clips, blurs, ShaderMask, speed_ramp.frag
-        budget_readout.dart  # Lap time, stall time, worst frame
+        budget_readout.dart  # Recovery time, overrun, slowest frame, first-repeat gap
         run_board.dart       # Last 5 Lights on runs (model)
         run_board_view.dart
         frame_window.dart    # Timer window logic (§9.2a); also used by Kiln pit-stop recovery
@@ -145,15 +145,15 @@ tool/
 | Isolate the renderer variable | Both flavors use the same Flutter 3.47+ SDK, Dart source, assets and profile mode |
 | Fast stage switching | Distinct package IDs allow both APKs to remain installed |
 | Prevent deep-link chooser prompts | Only the `impeller` flavor registers the `kiln://` scheme |
-| Keep labels honest | Build-time `KILN_RENDERER` values match each flavor; `adb logcat` remains the source of truth |
+| Keep labels honest | Each flavor exposes its renderer family to Dart. The display refresh rate sets the budget separately. `adb logcat` confirms whether Impeller selected Vulkan or OpenGL ES |
 | Lap shaders vs Shader Lab shader | Lap `.frag` files stay under `apps/kiln/shaders/`; Shader Lab's `speed_ramp.frag` stays in the package |
 
 ### 4.2 Build entry points
 
 | Flavor | Working directory | Typical command |
 |---|---|---|
-| Kiln Impeller | `apps/kiln` | `flutter run --profile --trace-systrace --flavor impeller --dart-define='KILN_RENDERER=Impeller · Vulkan'` |
-| Kiln Skia | `apps/kiln` | `flutter run --profile --trace-systrace --flavor skia --dart-define='KILN_RENDERER=Skia · OpenGL ES'` |
+| Kiln Impeller | `apps/kiln` | `flutter run --profile --trace-systrace --flavor impeller` |
+| Kiln Skia | `apps/kiln` | `flutter run --profile --trace-systrace --flavor skia` |
 
 Install both APKs on the demo phone before rehearsal. They coexist because package IDs
 differ (`dev.fluttercon.kiln` vs `dev.fluttercon.kiln.skia`).
@@ -326,17 +326,19 @@ Shared definitions (budget = `1000 / refreshRate` ms, 8.33 ms at 120 Hz):
 |---|---|
 | **Over-budget frame** | `max(buildDuration, rasterDuration)` > budget |
 | **Window** | Starts at `vsyncStart` of the first frame after the trigger (tap or pit-stop toggle). Closes after 12 consecutive on-budget frames (~100 ms at 120 Hz) or a 5 s timeout. |
-| **Time to smooth** | `rasterFinish` of the last over-budget frame in the window minus window start. **0.000 s** if no frame went over budget. |
-| **Stall time** | Sum of `max(buildDuration, rasterDuration) − budget` over every over-budget frame in the window. |
-| **Worst frame** | Largest `max(buildDuration, rasterDuration)` in the window. |
+| **Recovery time** | `rasterFinish` of the last over-budget frame in the window minus window start. **0.000 s** if no frame went over budget. Shown on screen as **Recovery time**. |
+| **Accumulated overrun** | Sum of `max(buildDuration, rasterDuration) − budget` over every over-budget frame in the window. |
+| **Slowest frame** | Largest `max(buildDuration, rasterDuration)` in the window. |
+| **First − repeat** | The process's first recovery time minus the latest repeat recovery time. |
 
-**Shader Lab "lap time" (both flavor APKs, in `packages/shader_lab`):**
+**Shader Lab recovery measurement (both flavor APKs, in `packages/shader_lab`):**
 
-- Trigger: the **Lights on** tap. Shows **time to smooth** as an F1-style lap time
-  (`0.912`), with **stall time** and **worst frame** underneath.
+- Trigger: the **Lights on** tap. Shows **recovery time** in large type
+  (`0.912`), with **accumulated overrun**, **slowest frame**, and **first − repeat** underneath.
+- The budget comes from the connected display's refresh rate: 8.33 ms at 120 Hz and 16.67 ms at 60 Hz.
 - Colours: purple if time to smooth is 0, green ≤ 0.100 s, yellow ≤ 0.500 s, red above.
 - **Run board:** the last 5 runs in this app process, newest first:
-  `Run # · Lap s · Stall ms · Worst ms · FIRST or REPEAT`. The renderer is the app's badge,
+  `Run # · Recovery s · Overrun ms · Slowest ms · FIRST or REPEAT`. The renderer is the app's badge,
   so it is not repeated per row. "First" means the first
   Lights on since the process started. A **Clear** button empties it. Not persisted:
   `pm clear` and app restarts start a fresh board. This resets the measurement label and
@@ -375,8 +377,8 @@ startup, or a platform-channel query); if unreliable, verify in rehearsal with
 
 | Purpose | Command |
 |---|---|
-| Stage run, Kiln Impeller | `cd apps/kiln` then `flutter run --profile --trace-systrace --flavor impeller --dart-define='KILN_RENDERER=Impeller · Vulkan'` |
-| Stage run, Kiln Skia | `cd apps/kiln` then `flutter run --profile --trace-systrace --flavor skia --dart-define='KILN_RENDERER=Skia · OpenGL ES'` |
+| Stage run, Kiln Impeller | `cd apps/kiln` then `flutter run --profile --trace-systrace --flavor impeller` |
+| Stage run, Kiln Skia | `cd apps/kiln` then `flutter run --profile --trace-systrace --flavor skia` |
 | Release sanity check | Same directory and flavors; replace `--profile` with `--release` |
 
 Debug mode is never used for measurement: it runs JIT-compiled Dart and extra checks.
@@ -390,8 +392,7 @@ mode is not valid for measurement. **`adb`** must be on PATH (Android SDK `platf
 
 ```text
 cd apps/kiln
-flutter run --profile --trace-systrace --flavor impeller \
-  --dart-define='KILN_RENDERER=Impeller · Vulkan'
+flutter run --profile --trace-systrace --flavor impeller
 ```
 
 Then open Shader Lab: **Home → Shader Lab**, or
@@ -402,8 +403,7 @@ routing from that link is wired in the manifest; confirm in rehearsal).
 
 ```text
 cd apps/kiln
-flutter run --profile --trace-systrace --flavor skia \
-  --dart-define='KILN_RENDERER=Skia · OpenGL ES'
+flutter run --profile --trace-systrace --flavor skia
 ```
 
 Before a candidate **cold** Shader Lab demo:
@@ -424,7 +424,7 @@ Timeline; search **`KILN::ShaderLab::`**.
 **Perfetto:** keep `--trace-systrace` running and capture with the **`record_android_trace`**
 script over **adb** (not WebUSB on stage — WebUSB can stop `adb` and disconnect
 `flutter run`). Compare **main thread** vs **`1.raster`** around **Lights on**; correlate
-with the on-phone **lap time**.
+with the on-phone **recovery time**.
 
 See [Profiling toolchain](../research/02-profiling-toolchain.md) and
 [Stage runbook](../talk/stage-runbook.md).
@@ -438,7 +438,7 @@ variable.
 
 | Flavor | SDK | Package ID | Renderer | Launcher label |
 |---|---|---|---|---|
-| `impeller` | Current stable (3.47+) | `dev.fluttercon.kiln` | Impeller on Vulkan | Kiln Impeller |
+| `impeller` | Current stable (3.47+) | `dev.fluttercon.kiln` | Impeller; Vulkan when valid, otherwise OpenGL ES | Kiln Impeller |
 | `skia` | Same current stable SDK | `dev.fluttercon.kiln.skia` | Skia on OpenGL ES | Kiln Skia |
 
 - Renderer metadata lives in `android/app/src/impeller/AndroidManifest.xml` and
@@ -446,8 +446,7 @@ variable.
 - Shader Lab UI lives in **`packages/shader_lab`** (TR-13, TR-14). The app's
   `features/shader_lab/` route is a thin wrapper for deep links and navigation only.
 - Both builds run in **profile** mode for comparable numbers.
-- The renderer badge is supplied at build time for the audience; confirm the actual backend
-  with `adb logcat` during rehearsal.
+- The flavor tells Dart whether this process is Impeller or Skia. The display refresh rate is read live and sets the budget. Confirm Impeller's Vulkan or OpenGL ES choice with `adb logcat` before recording.
 - Before every comparison, reset and verify the candidate cold state:
 
 | Action | Command |
@@ -466,8 +465,8 @@ and first-use costs are represented honestly.
   first time at once: linear, radial and sweep gradients, `BackdropFilter` blur,
   `ShaderMask`, `ColorFilter` blend modes, anti-aliased clips, and the custom
   `speed_ramp.frag` fragment shader.
-- Shows the **lap time** (time to smooth), stall time and worst frame for the latest
-  Lights on, plus the **run board** (§9.2a). Lap time is in large type.
+- Shows **recovery time**, accumulated overrun, slowest frame, and the first-minus-repeat gap for the latest
+  Lights on, plus the **run board** (§9.2a). Recovery time is in large type.
 - Emits `KILN::ShaderLab::enter`, `KILN::ShaderLab::lightsOn` and `KILN::ShaderLab::smooth`
   so the interval is easy to find in DevTools and Perfetto.
 - Success criterion (measured in rehearsal on the demo phone): the Skia build's first run

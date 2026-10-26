@@ -126,9 +126,10 @@ historical, before Flutter 3.29.
 | **`KILN::<Scenario>::<phase>`** | Custom timeline spans from `dart:developer` `Timeline`. | e.g. `KILN::TelemetryDuel::paint`. |
 | **Expected / Actual timeline** | SurfaceFlinger's view of whether the app frame landed on time. | Lap 2 line 47. |
 | **UI bar / Raster bar** | DevTools frame chart metrics, not two generic OS names. UI = `buildDuration` for Dart work on main; Raster = `rasterDuration` on `1.raster`. | "Read the bars first." |
-| **Lap time (time to smooth)** | From the trigger frame until the last over-budget frame finished; 0 if nothing went over. Measured from engine `FrameTiming` timestamps, not an on-screen stopwatch. | Shader Lab, lines 15b–15e. |
-| **Stall time** | Total time frames spent over budget in that window: how long the user actually saw stutter. | Shader Lab, under the lap time. |
-| **Recovery time** | Lap time after turning a pit stop on: how fast frames got back on budget. | Engine Room, line 49. |
+| **Recovery time** | From the trigger frame until the last over-budget frame finished; 0 if nothing went over. Measured from engine `FrameTiming` timestamps, not an on-screen stopwatch. | Shader Lab and pit-stop recovery. |
+| **Accumulated overrun** | Total time frames spent beyond the display budget in that window. | Shader Lab, beneath recovery time. |
+| **Slowest frame** | Longest single UI or raster duration in the measured window. | Shader Lab, beneath accumulated overrun. |
+| **First − repeat** | First recovery time minus the latest repeat recovery time. A large positive gap indicates first-use shader work. | Shader Lab comparison. |
 
 ---
 
@@ -152,7 +153,7 @@ historical, before Flutter 3.29.
 
 | Term | Best moment |
 |---|---|
-| Shader compilation jank | Concept video, then live Shader Lab lap times: Skia first run vs repeat run vs Impeller (lines 11–15e) |
+| Shader compilation jank | Concept video, then live Shader Lab recovery times: Skia first run vs repeat run vs Impeller (lines 11–15e) |
 | AOT / pipeline | One frame on Vulkan (lines 20–24) |
 | Tessellation / path | Lap 1 (lines 37–41) |
 | Command buffer / draw volume | Lap 2 thrash + Perfetto (lines 44–52) |

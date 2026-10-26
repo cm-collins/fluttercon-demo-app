@@ -59,11 +59,6 @@ jobs:
         working-directory: ${{ matrix.working-directory }}
         run: flutter test
 
-      - name: Run Kiln tests with the Skia label
-        if: matrix.package == 'kiln'
-        working-directory: apps/kiln
-        run: flutter test --dart-define="KILN_RENDERER=Skia · OpenGL ES"
-
   android-profile-build:
     name: Android profile APK (${{ matrix.flavor }})
     needs: flutter-quality
@@ -74,9 +69,7 @@ jobs:
       matrix:
         include:
           - flavor: impeller
-            renderer: Impeller · Vulkan
           - flavor: skia
-            renderer: Skia · OpenGL ES
 
     steps:
       - name: Check out repository
@@ -110,7 +103,6 @@ jobs:
           flutter build apk
           --profile
           --flavor "${{ matrix.flavor }}"
-          --dart-define="KILN_RENDERER=${{ matrix.renderer }}"
 
       - name: Upload profile APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

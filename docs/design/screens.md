@@ -116,11 +116,9 @@ on first use versus Impeller's offline-compiled shader set. UI lives in
 - Pressing it reveals a scene that uses many effects for the first time at once: gradients,
   a frosted blur panel, a `ShaderMask` title, blend-mode colour filters, anti-aliased clips
   and the `speed_ramp.frag` shader.
-- Top right: the renderer badge ("Skia · OpenGL ES" or "Impeller · Vulkan") so the audience
-  always knows which build is on screen.
-- Centre bottom: the **lap time** in large type, F1 timing-screen style (`0.912`): how long
-  until frames were back on budget after Lights on. Under it, smaller: **stall time** and
-  **worst frame**. Purple when the lap time is 0, then green, yellow, red.
+- Top right: the renderer badge (`Skia · OpenGL ES` or `Impeller`). The Impeller note says Flutter uses Vulkan when the driver is valid.
+- The header shows the connected display's refresh rate and frame budget.
+- Centre bottom: **recovery time** in large type (`0.912`): how long until frames stayed within that budget. Under it: **accumulated overrun**, **slowest frame**, and **first − repeat**, each with a one-line explanation. Purple when recovery is 0, then green, yellow, red.
 - Right side: the **run board**, last 5 runs, newest first, each tagged *First* or *Repeat*.
   The Skia first and repeat runs sit one above the other, so the drop is visible without
   remembering numbers. **Clear** empties it.
@@ -128,8 +126,8 @@ on first use versus Impeller's offline-compiled shader set. UI lives in
 
 | Run | What the audience should see |
 |---|---|
-| Skia, verified cold run after reset | Long lap time, red; DevTools shows long raster frames |
-| Skia, repeat run | Lap time drops sharply: shaders are now cached on the device |
+| Skia, verified cold run after reset | Long recovery time, red; DevTools shows long raster frames |
+| Skia, repeat run | Recovery time and the first-minus-repeat gap show the cached-shader improvement |
 | Impeller, first run | Close to its repeat run; no Skia-style shader generation occurs mid-frame |
 
 ## Anti-pattern coverage

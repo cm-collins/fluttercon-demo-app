@@ -18,8 +18,7 @@ they appear in Perfetto next to system events. DevTools keeps working.
 
 ```text
 cd apps/kiln
-flutter run --profile --trace-systrace --flavor impeller \
-  --dart-define='KILN_RENDERER=Impeller · Vulkan'
+flutter run --profile --trace-systrace --flavor impeller
 ```
 
 Open Shader Lab from the home screen, or
@@ -29,8 +28,7 @@ Open Shader Lab from the home screen, or
 
 ```text
 cd apps/kiln
-flutter run --profile --trace-systrace --flavor skia \
-  --dart-define='KILN_RENDERER=Skia · OpenGL ES'
+flutter run --profile --trace-systrace --flavor skia
 ```
 
 Before a candidate Skia **cold-run** demo:
