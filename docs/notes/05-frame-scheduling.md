@@ -24,6 +24,20 @@ The Kiln monitor that reads these is in
 The engine delivers timings in batches (roughly once per second), so on-screen readouts
 update at that rate.
 
+## How the profiler names map to threads
+
+| DevTools / `FrameTiming` | Actual execution | Typical causes when high |
+|---|---|---|
+| **UI** / `buildDuration` | Dart frame phases on the platform **main thread** | Expensive `build`, layout or paint recording; synchronous JSON work; too many rebuilds |
+| **Raster** / `rasterDuration` | Impeller engine work on **`1.raster`**, a CPU thread | Path tessellation, draw volume, render passes, blur, resource work, waiting for GPU/surface |
+| **Total span** / `totalSpan` | Vsync start through raster finish across the pipeline | End-to-end frame latency; not a third thread and not simply UI + raster because frames pipeline |
+| **Expected vs Actual** | SurfaceFlinger frame timeline | Whether the buffer reached Android's compositor on time |
+
+The GPU is downstream of `1.raster`. A long Raster bar can be CPU-bound or can include
+waiting caused by GPU/back-pressure; DevTools alone cannot distinguish those. In Perfetto,
+inspect whether `1.raster` is running, runnable, sleeping or waiting, then correlate GPU
+tracks when the device exposes them.
+
 ## Pipelining
 
 ```mermaid

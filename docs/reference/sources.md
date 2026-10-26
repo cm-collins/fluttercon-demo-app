@@ -17,6 +17,13 @@ Primary sources used in the research. Checked October 2026 against Flutter 3.47.
 - [Backdrop blur cost and grouping caveats — flutter#191207](https://github.com/flutter/flutter/issues/191207)
 - [SnapshotWidget class](https://api.flutter.dev/flutter/widgets/SnapshotWidget-class.html)
 - [RepaintBoundary class](https://api.flutter.dev/flutter/widgets/RepaintBoundary-class.html)
+- [CustomPainter class and repaint Listenable](https://api.flutter.dev/flutter/rendering/CustomPainter-class.html)
+- [CustomPainter.shouldRepaint](https://api.flutter.dev/flutter/rendering/CustomPainter/shouldRepaint.html)
+- [Canvas.saveLayer performance considerations](https://api.flutter.dev/flutter/dart-ui/Canvas/saveLayer.html)
+- [Canvas.drawVertices](https://api.flutter.dev/flutter/dart-ui/Canvas/drawVertices.html)
+- [Canvas.drawRawAtlas](https://api.flutter.dev/flutter/dart-ui/Canvas/drawRawAtlas.html)
+- [Writing and using fragment shaders](https://docs.flutter.dev/ui/design/graphics/fragment-shaders)
+- [Impeller does not plan to port the legacy raster cache — flutter#32662](https://github.com/flutter/flutter/issues/32662)
 
 ## Flutter architecture and the Skia era
 

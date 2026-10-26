@@ -77,15 +77,15 @@ Source: [History overview](../history/README.md) and [Rendering engine history](
 
 | # | Screen | Do | Say |
 |---|---|---|---|
-| 11 | Slide 4 (concept video) | Play [`skia-to-impeller-concept.mp4`](../media/skia-to-impeller-concept.mp4), full screen, ~15 s. Optional: dim lights. | *(Mostly silence; let the metaphor land.)* Then: "That's not Flutter yet. That's the idea. Skia forged parts mid-race. Impeller fires them in the kiln first." |
+| 11 | Slide 4 (concept video) | Play [`skia-to-impeller-concept.mp4`](media/skia-to-impeller-concept.mp4), full screen, ~15 s. Optional: dim lights. | *(Mostly silence; let the metaphor land.)* Then: "That's not Flutter yet. That's the idea. Skia forged parts mid-race. Impeller fires them in the kiln first." |
 | 12 | Slide 5 (timeline) | — | "The title says 'Beyond Skia', so: what are we beyond?" |
 | 13 | Slide 5 | Point at 2018. | "Flutter 1.0 shipped in December 2018 on Skia, the same 2D engine behind Chrome and Android's own UI." |
 | 14 | Slide 5 | — | "Skia compiled shaders just in time. The first time a new effect appeared, Skia generated a shader and the GPU driver compiled it on the raster thread, in the middle of a frame. That frame was late." |
-| 15a | Phone (Kiln Skia) | `adb shell pm clear dev.fluttercon.kiln.skia`, then launch **Kiln Skia**. Point at the badge "Skia · OpenGL ES". | "Now the real thing, live. Skia can't be switched on in today's Flutter any more, so this is the same screen built with Flutter 3.24. I've just wiped its shader cache, so this is a fresh install." |
+| 15a | Phone (Kiln Skia) | Run the rehearsed reset, then launch **Kiln Skia**. Point at the badge "Skia · OpenGL ES". | "Now the real thing, live. This and the Impeller app came from the same Flutter SDK, source code, assets and profile build. The Android flavor changes only the renderer configuration and app identity. I reset this app and verified this is a cold run on this phone." |
 | 15b | Phone (Kiln Skia) | Tap **Lights on**. Point at the lap time, then stall time. | "Gradients, blur, masks, a custom shader: all appearing for the first time. This lap time is how long until every frame was back on budget. That's Skia generating shaders and the driver compiling them, inside the frame." |
 | 15c | Phone (Kiln Skia) | Back, then **Lights on** again. Point at the run board: *First* above *Repeat*. | "Second time, same phone, same effects. Look at the board: the lap time collapses. The shaders are now cached. That's why you never saw this in development: your phone had already paid." |
-| 15d | Phone (Kiln) | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"`. Badge "Impeller · Vulkan". Tap **Lights on**. | "Now Impeller, first run. The same effects. Those shaders were compiled before the app was ever installed." |
-| 15e | Phone (Kiln) | Point at the lap time. | "That's the difference: Skia paid for compilation on your user's first run. Impeller paid on our build machine." |
+| 15d | Phone (Kiln) | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"`. Badge "Impeller · Vulkan". Tap **Lights on**. | "Now Impeller, first run. The same effects and the same profile build, but with its offline-compiled shader set ready before this frame." |
+| 15e | Phone (Kiln) | Point at the lap time. | "That's the difference: Skia generated shader programs during the user's first run. Impeller's engine shader set was compiled when the Flutter engine was built, and our custom fragment shader was compiled during the app build. Runtime still renders the scene, but it does not do Skia-style shader generation in this frame." |
 | 16 | Slide 5 | Point at 2020. | "In 2020 we got SkSL warm-up: record the shaders on one device, bundle them, and hope they match your user's GPU driver. It helped. It never scaled." |
 | 17 | Slide 5 | Point at 2023 to 2025. | "So the team built a renderer that compiles ahead of time. Impeller became the default on iOS in May 2023, and on Android Vulkan devices in December 2024." |
 | 18 | Slide 5 | — | "Since Flutter 3.29, in February 2025, Skia is gone from iOS. On Android, phones without a working Vulkan driver fall back to Impeller's own OpenGL ES backend, not to Skia." |
@@ -107,13 +107,16 @@ Source: [Impeller internals](../notes/03-impeller-internals.md) and [Vulkan prim
 
 ## 09:00 — Threads and tools in 2026 (2:00)
 
-Source: [Profiling tools history](../history/03-profiling-tools.md) and [Graphics APIs history](../history/02-graphics-apis.md).
+Source: [How Flutter runs](../notes/01-how-flutter-runs.md),
+[Frame scheduling](../notes/05-frame-scheduling.md),
+[Profiling tools history](../history/03-profiling-tools.md) and
+[Graphics APIs history](../history/02-graphics-apis.md).
 
 | # | Screen | Do | Say |
 |---|---|---|---|
-| 27 | Slide 9 (threads) | — | "Since 3.29, your Dart code runs on the platform main thread. DevTools still calls it 'UI'. Impeller runs on the raster thread. Those are our two four-millisecond budgets." |
-| 28 | Slide 9 | — | "Vulkan isn't just Flutter's choice. Since March 2025 it's Android's official graphics API, and Impeller speaks it directly." |
-| 29 | Slide 10 (tools) | — | "The tools grew up too. Systrace became Perfetto in Android 10; Perfetto still opens Systrace files, and `flutter run --trace-systrace` still sends our events there. Observatory became DevTools, and since 2023 the DevTools timeline *is* Perfetto." |
+| 27 | Slide 9 (threads) | — | "Three names, two CPU threads. Since 3.29, Dart animation, build, layout and paint run on the platform main thread; DevTools labels that work 'UI'. Impeller prepares GPU work on the separate raster thread, named `1.raster` in Perfetto. The GPU is hardware downstream, not a third Flutter thread. UI and Raster are our two frame-chart budgets." |
+| 28 | Slide 9 | — | "Vulkan is Android's modern low-level graphics API for high-performance rendering, and Impeller targets it directly on supported devices." |
+| 29 | Slide 10 (tools) | — | "The tools grew up too. Perfetto replaced Systrace in Android 10; Perfetto still opens Systrace files, and `flutter run --trace-systrace` still sends our events there. Observatory became DevTools, and DevTools now embeds a Perfetto trace viewer for the timeline." |
 | 30 | Slide 11 (method) | — | "One method for every lap: which thread is over budget, which event, which code. Then one surgical fix, and measure again." |
 
 ⏱ **11:00.** If late, say line R3 only and go straight to Lap 1.
@@ -123,7 +126,7 @@ Source: [Profiling tools history](../history/03-profiling-tools.md) and [Graphic
 | # | Screen | Do | Say |
 |---|---|---|---|
 | R1 | Phone | Engine Room → Rosetta tab. | "Kotlin and iOS friends, this tab is for you." |
-| R2 | Phone | Point at each row. | "The main thread is the main thread. Our raster thread is your RenderThread on Android, or the render server on iOS. A Flutter `saveLayer` is your offscreen pass." |
+| R2 | Phone | Point at each row. | "Main-thread UI work maps directly. Flutter's raster thread is closest in role to Android's RenderThread or Core Animation's render preparation, but they are not the same implementation. A Flutter `saveLayer` is your offscreen pass." |
 | R3 | Phone | — | "Everything you're about to see applies to Compose and SwiftUI too. Only the tool names change." |
 
 ## 12:00 — Lap 1: Telemetry Duel (5:00)
@@ -152,7 +155,7 @@ Promise: intentionally thrash a real-time canvas, read Systrace/Perfetto, comman
 | 43 | Phone | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/ribbon"` | "At 1× this is about a thousand segments. Raster is already near its budget." |
 | 44 | Phone | Thrash 2×, then 4×, then 8× (or `kiln://thrash/8`). Pause on each step. | "2×… 4×… 8×. Speed trails for all twenty cars. Watch the raster bar climb past four, past eight, into red. That's a stressed canvas." |
 | 45 | Perfetto | Start `record_android_trace` (10 s). Run the replay deep link. | "Now the whole system. Perfetto, the successor to Systrace." |
-| 46 | Perfetto | Show the app's main thread and `1.raster`. | "Main thread, short slices: UI is inside its four milliseconds. Raster thread: long slices, back to back. It never rests." |
+| 46 | Perfetto | Show the app's main thread and `1.raster`. | "The main-thread slices are the Dart work DevTools labels UI; they are inside the target. `1.raster` has long slices back to back. It never rests." |
 | 47 | Perfetto | Show Expected vs Actual timeline. | "This is SurfaceFlinger's verdict: expected frame, actual frame. Every red one is a dropped frame the user saw." |
 | 48 | Perfetto | — | "Thousands of `drawPath` calls means thousands of tessellations, pipeline binds, buffer binds and draws recorded into the command buffer, every frame. On Vulkan the cost is volume. The engine team's own issue measured about 1,800 Vulkan calls for 285 draws." |
 | 49 | Phone | Engine Room → **One-draw speed ribbon** on. Keep Thrash at 8×. Point at "Recovered in … s". | "Pit stop: the whole ribbon as one triangle mesh, a colour per vertex, one draw call. Still at 8×, and back on budget in that many seconds." |
@@ -194,7 +197,7 @@ Promise: the UI half of the ~4 ms / ~4 ms budget.
 | # | Screen | Do | Say |
 |---|---|---|---|
 | 66 | Phone | `kiln://scenario/pitwall`, then `kiln://pitstop/all/on`, then `kiln://thrash/4`, then `kiln://replay` | "Every pit stop on. And let's leave the stress at 4×." |
-| 67 | Phone | Engine Room: both bars inside their ticks, green and purple. | "Same app. Same data. Same phone. Under stress, both threads inside their budget. Every frame on time." |
+| 67 | Phone | Engine Room: both bars inside their ticks, green and purple; measured replay shows zero missed frames. | "Same app. Same data. Same phone. Under stress, both threads inside their budget, with zero missed frames in this replay." |
 | 68 | Slide 15 (before / after) | — | "Here's the before and after in Perfetto, if you want the proof without trusting my app." |
 
 ## 35:00 — Takeaways (1:00)
@@ -204,7 +207,7 @@ Promise: the UI half of the ~4 ms / ~4 ms budget.
 | 69 | Slide 17 | — | "One: demystify the engine. Skia compiled shaders just in time; Impeller compiles ahead of time and turns your paths into triangles and explicit Vulkan command buffers." |
 | 70 | Slide 17 | — | "Two: profile low-level. Read the budget as about four milliseconds UI and four raster. DevTools for the frame, Systrace and Perfetto for the system." |
 | 71 | Slide 17 | — | "Three: tame your custom painters. Use the precompiled pathways, cut draw calls, isolate repaints precisely, and avoid `saveLayer`." |
-| 72 | Slide 18 | — | "Impeller made performance predictable. It didn't make overdraw free. Thank you." |
+| 72 | Slide 18 | — | "Impeller made performance predictable. It didn't make expensive work free. Thread, event, code, fix, measure: that's the method you can take into production. Thank you." |
 
 ## 36:00 — Q&A (4:00)
 
@@ -227,12 +230,13 @@ challenged.
 | "Command buffers are recorded on the raster thread and executed by the GPU asynchronously" | "Impeller renders on the GPU thread" | Flutter has no GPU thread; the raster thread records and submits |
 | "Without working Vulkan, Flutter uses Impeller's OpenGL ES backend" | "It falls back to Skia" | Skia is no longer the Android fallback since 3.29 |
 | "Dart runs on the platform main thread since 3.29; DevTools calls it UI" | "The UI thread" as a separate thread | The threads were merged in 3.29 |
+| "The DevTools UI bar measures Dart work on main; Raster measures `1.raster`" | "Main, UI and raster are three current Flutter threads" | UI is a profiler phase label; main and raster are the two CPU threads discussed in this talk |
 | "BackdropGroup works when blurs are identical and cards don't overlap" | "BackdropGroup makes blur cheap" | Grouping has strict conditions |
 | "Impeller is more predictable" | "Impeller is always faster" | Some effects measured slower than on Skia |
 | "Vulkan cost is the volume of calls" | "Vulkan is slow" | Vulkan removes hidden driver work and exposes your call count instead |
 | "SkSL warm-up helped but didn't scale" | "Warm-up never worked" | It gave real 2 to 5 times improvements in 2020 |
-| "The Skia build uses Flutter 3.24, because current Flutter no longer offers Skia on Android" | "I just turned Impeller off" | The opt-out is deprecated or removed; the audience may try it and fail |
-| "Skia compiles on first use, so I cleared its cache" | Presenting the spike without the reset | Without `pm clear`, the cached run looks smooth and the comparison is unfair in the other direction |
+| "Both APKs use the same current Flutter SDK; the Skia flavor disables Impeller for this controlled comparison" | "The Skia app needs an old Flutter version" | Current Flutter supports the Android opt-out, and using one SDK removes a major confounder |
+| "I reset the Skia app and verified a cold run on this phone" | "`pm clear` definitely erased every GPU-driver cache" | Vendor driver caches vary; rehearse the reset and use reinstall/fresh package identity if needed |
 
 ## Fallback cues
 
@@ -249,17 +253,19 @@ challenged.
 
 ## Note on Shader Lab
 
-Skia can't be enabled in current Flutter on Android 10+, so the Skia side is a separate
-app (`dev.fluttercon.kiln.skia`) built with a pinned Flutter 3.24 (see
-[TRD §11.1](../technical/TRD.md#111-shader-lab-two-apks-two-renderers)). Before the event:
+Shader Lab ships as two Android product-flavor APKs from one current-SDK Flutter project:
+`dev.fluttercon.kiln` (Impeller) and `dev.fluttercon.kiln.skia` (Skia). See
+[TRD §11.1](../technical/TRD.md#111-shader-lab-one-project-two-flavor-apks). Before the event:
 
-1. Install both apps on the demo phone and the spare phone. For live DevTools or Perfetto
+1. Install both flavor APKs on the demo phone and the spare phone. For live DevTools or Perfetto
    during rehearsal, run each build with **`--profile --trace-systrace`** from
-   `apps/kiln` or `apps/kiln_skia` (see [TRD §11.0](../technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything)).
+   `apps/kiln` using its matching flavor and renderer label (see
+   [TRD §11.0](../technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything)).
    DevTools attaches to whichever app `flutter run` started; switch apps by stopping one run
    and starting the other.
-2. In rehearsal, record the lap time, stall time and worst frame for three runs: Skia first
-   run (after `pm clear`), Skia repeat run, Impeller first run. Write the numbers in the runbook.
+2. In rehearsal, verify the renderer through logs, validate the cold-reset procedure, then
+   record lap time, stall time and worst frame for Skia cold, Skia repeat and Impeller first
+   run. Write the numbers in the runbook.
 3. Record the same three runs as a side-by-side video for Slide 6 (the backup).
 4. If the Skia first-entry spike isn't clearly visible from the back of the room, use the
    recording on stage and say so honestly.

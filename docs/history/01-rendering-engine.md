@@ -108,6 +108,8 @@ flowchart LR
 
 - "Skia was not slow. It was **unpredictable**, and unpredictable is worse at 120 Hz."
 - "Warm-up was the community trying to fix a renderer from the outside."
-- "Impeller moved the cost from the user's first frame to our build machine."
+- "Impeller moved shader compilation offline: engine shaders are compiled when Flutter's
+  engine is built, and app fragment shaders are compiled during the app build, instead of
+  Skia generating new shader programs inside a user's first-use frame."
 - "Impeller removed the raster cache, so some old 'fast' code is now honestly slow. That is
   what we profile today."

@@ -99,7 +99,7 @@ flowchart LR
 | FR-2 | Interpolate car position and telemetry so motion is smooth at 120 Hz. | Must |
 | FR-3 | Provide the five screens described in [Screens](../design/screens.md). | Must |
 | FR-4 | Each anti-pattern has a broken and a fixed implementation, switchable at runtime without restarting. | Must |
-| FR-5 | Engine Room shows live UI and raster time, each against a 4.17 ms target tick and an 8.33 ms limit, plus total frame time, jank count and p90/p99. | Must |
+| FR-5 | Engine Room shows live **UI** time (Dart frame work on the platform main thread) and **Raster** time (`1.raster`), each against a 4.17 ms target tick and an 8.33 ms limit, plus total frame time, jank count and p90/p99. | Must |
 | FR-6 | Engine Room shows the active renderer (Impeller on Vulkan, or Impeller on OpenGL ES) and refresh rate. | Must |
 | FR-7 | "Replay 5s" re-runs an identical five-second workload for comparable traces. | Must |
 | FR-8 | Every scenario emits a named timeline span (`KILN::<Scenario>::<phase>`) visible in DevTools and Perfetto. | Must |
@@ -108,7 +108,7 @@ flowchart LR
 | FR-11 | A "Box all" control applies every fix at once for the finale. | Should |
 | FR-12 | Lights Out start sequence creates a clean "frame zero" marker in the trace. | Could |
 | FR-13 | A **Thrash** control (1×, 2×, 4×, 8×) multiplies Speed Ribbon work live, and is also settable with `kiln://thrash/<n>`, so the audience watches the canvas being stressed. | Must |
-| FR-14 | A **Shader Lab** screen in `packages/shader_lab` ships in two apps (`apps/kiln` Impeller, `apps/kiln_skia` Skia on pinned Flutter 3.24) so first-use shader compilation can be compared live (timers in FR-15). | Must |
+| FR-14 | A **Shader Lab** screen in `packages/shader_lab` ships in two separately installable APKs built from `apps/kiln`: an `impeller` flavor and a `skia` flavor. Both use the same Flutter SDK, Dart code, assets and profile build mode so first-use shader compilation can be compared live (timers in FR-15). | Must |
 | FR-15 | Shader Lab shows a **lap time** after each Lights on: time until frames are back on budget, plus stall time and worst frame, all from engine frame timestamps. A **run board** lists the last 5 runs so first and repeat runs can be compared on one screen. | Must |
 | FR-16 | Turning a pit stop on shows a **recovery time** in the Engine Room ("Recovered in 0.42 s" or "Not recovered"). | Should |
 
@@ -116,7 +116,7 @@ flowchart LR
 
 | ID | Requirement |
 |---|---|
-| NFR-1 | With all fixes applied and Thrash at 4×, the target device holds 120 Hz: p90 UI and raster times under 8.33 ms, with a target of about 4 ms each, during the 5 s replay (measured in profile mode). |
+| NFR-1 | With all fixes applied and Thrash at 4×, the target device holds 120 Hz during the deterministic 5 s replay after one warm-up: zero missed frames, p90 UI and raster under 8.33 ms, with a target of about 4 ms each (measured in profile mode). |
 | NFR-2 | With all anti-patterns active, jank is clearly visible: red frames in DevTools and on the Engine Room display. |
 | NFR-3 | Fully offline. No network calls at runtime. |
 | NFR-4 | Deterministic. The same replay produces comparable traces run to run. |
@@ -145,7 +145,13 @@ Each "lap" of the talk is one row. Details in [Screens](../design/screens.md).
 |---|---|
 | Fixed-state p90 raster time on the demo device (Thrash 4×) | < 8.33 ms, target ≈ 4 ms |
 | Fixed-state p90 UI time | < 8.33 ms, target ≈ 4 ms |
+| Fixed-state missed frames during the measured 5 s replay | 0 after one warm-up |
 | Every promise in the registered abstract delivered on stage ([Abstract alignment](../talk/abstract-alignment.md)) | 100% |
+| Speed Ribbon Thrash proof | 1× → 8× produces visible raster jank and a `KILN::Thrash::level` marker; fixed state recovers under the same workload |
+| DevTools diagnosis proof | At least one live lap identifies the over-budget thread, matching `KILN::` event and responsible code before applying its fix |
+| Perfetto proof | Main thread, `1.raster`, and Expected vs Actual frame timeline are shown for the same deterministic workload |
+| Repaint-isolation proof | Track Paints shows the static circuit repaint before `map-layers` and no circuit repaint after it |
+| Layer and `saveLayer` proof | Checkerboarded offscreen layers decrease after fixes; `car-glow` removes explicit `canvas.saveLayer` from the painter |
 | Broken-state jank visible within 3 s of opening each scenario | 100% of scenarios |
 | Live demo segments completed without falling back to recorded traces | ≥ 4 of 5 |
 | Rehearsals completed end-to-end on the stage setup | ≥ 3 |
@@ -158,8 +164,8 @@ gantt
     title Kiln build and rehearsal plan
     dateFormat YYYY-MM-DD
     section Shader Lab first
-    Shader Lab package and Kiln Skia        :s1, 2026-10-26, 3d
-    Measure Skia vs Impeller on the phone   :s2, after s1, 1d
+    Shader Lab package and renderer flavors :s1, 2026-10-26, 3d
+    Measure Skia vs Impeller on the phone   :s2, 2026-10-29, 1d
     section Foundations
     Data export and replay engine           :a1, 2026-10-26, 4d
     Design system and shell                 :a2, 2026-10-26, 4d

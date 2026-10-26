@@ -84,8 +84,8 @@ If time runs short, cut Lap 4 first, then shorten the Rosetta segment.
 | 6 | Shader Lab backup (hidden) | Pre-recorded side-by-side of the live Shader Lab runs; shown only if the live comparison fails (see [Demo script](demo-script.md#note-on-shader-lab)) |
 | 7 | Shaders to pipelines to triangles | Build-time shaders, pipelines built mostly at startup, DisplayList, CPU tessellation |
 | 8 | Explicit command buffers | Three lanes: raster thread records, Vulkan queue submits with a fence, GPU executes while the next frame records; no raster cache |
-| 9 | Threads in 2026 | Dart on the main thread since 3.29; raster thread for Impeller; the two 4 ms budgets; Vulkan official on Android since 2025 |
-| 10 | Tools then and now | Systrace to Perfetto, Observatory to DevTools, DevTools timeline is Perfetto since 2023 ([Profiling tools history](../history/03-profiling-tools.md)) |
+| 9 | Threads in 2026 | DevTools UI = Dart work on main; Raster = Impeller on `1.raster`; GPU is downstream; the two 4 ms targets; Vulkan as Android's modern low-level graphics API |
+| 10 | Tools then and now | Systrace to Perfetto, Observatory to DevTools, and DevTools embedding a Perfetto trace viewer ([Profiling tools history](../history/03-profiling-tools.md)) |
 | 11 | Diagnosis method | Flowchart from [Profiling toolchain](../research/02-profiling-toolchain.md) |
 | 12–14 | Lap title cards | Laps 1 to 3: symptom, thread, fix (Lap 4 runs without a card) |
 | 15 | Before / after | Side-by-side Perfetto screenshots |
@@ -99,7 +99,7 @@ If time runs short, cut Lap 4 first, then shorten the Rosetta segment.
 | Question | Short answer |
 |---|---|
 | "Is 4 ms UI / 4 ms raster a hard rule?" | No. The threads pipeline, so each can reach 8.33 ms at 120 Hz without dropping. Four and four keeps the frame within one refresh and leaves headroom. |
-| "Why is the Skia app on an old Flutter?" | Current Flutter no longer offers Skia on Android 10+; the opt-out was deprecated in 2025. Same screen, same phone, pinned SDK. |
+| "Are these different Flutter versions?" | No. They are two Android flavors of the same current-SDK app: identical Dart code, assets and profile mode; only renderer configuration and app identity differ. |
 | "Does Impeller compile anything at runtime?" | No new shaders. The Vulkan driver still builds pipeline objects from the precompiled shaders, mostly at startup and outside the frame. |
 | "Is Impeller always faster than Skia?" | No. It is more predictable. Some effects (certain blurs) measured slower; fixes are in progress upstream. |
 | "Does RepaintBoundary cache on Impeller?" | It isolates repaints but there is no raster cache. Use `SnapshotWidget` deliberately. |

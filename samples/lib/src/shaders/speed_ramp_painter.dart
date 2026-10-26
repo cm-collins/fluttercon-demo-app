@@ -5,8 +5,10 @@ import 'package:flutter/widgets.dart';
 
 /// Loads `shaders/speed_ramp.frag`.
 ///
-/// The shader is compiled by `impellerc` when the app is built, so loading it
-/// never triggers shader compilation on the device.
+/// Flutter compiles the declared shader asset into backend artifacts during
+/// the app build. Impeller uses the precompiled pipeline; Skia can still do
+/// platform shader compilation while loading, so load it before animation.
+/// The returned shader is retained and only its uniforms change per frame.
 Future<ui.FragmentShader> loadSpeedRampShader({
   String assetKey = 'packages/kiln_samples/shaders/speed_ramp.frag',
 }) async {

@@ -66,7 +66,7 @@ flowchart TB
 |---|---|
 | TR-1 | No third-party state management. Use `ValueNotifier` / `ChangeNotifier` / `Listenable` so the framework overhead in traces is minimal and recognisable. |
 | TR-2 | Telemetry stored in typed arrays (`Float32List`, `Int32List`) per car and channel, not lists of objects. |
-| TR-3 | Session JSON decoded once at startup on a background isolate (`Isolate.run`). Only the Race Control scenario decodes on the UI thread, and only in its broken mode. |
+| TR-3 | Session JSON decoded once at startup on a background isolate (`Isolate.run`). Only the Race Control scenario decodes during Dart UI work on the platform main thread, and only in its broken mode. |
 | TR-4 | The replay clock is driven by a `Ticker` and a fixed start offset, so every replay renders the same timestamps. |
 | TR-5 | Every scenario has exactly two implementations (`broken`, `fixed`) behind one interface; the toggle swaps the implementation, nothing else. |
 | TR-6 | Each scenario paint is wrapped in a `Timeline` span named `KILN::<Scenario>::<Phase>`. |
@@ -74,16 +74,16 @@ flowchart TB
 | TR-8 | Deep links via the `kiln://` scheme using Flutter's built-in deep linking and the Router API. |
 | TR-9 | Fragment shaders declared under `flutter: shaders:` in `pubspec.yaml` and loaded with `FragmentProgram.fromAsset`. |
 | TR-10 | Builds for the stage use `--profile`; DevTools and `--trace-systrace` are supported in that mode. |
-| TR-11 | Minimum SDK 29; the manifest must not disable Impeller. |
+| TR-11 | Minimum SDK 29. The `impeller` flavor explicitly enables Impeller; the `skia` flavor disables it only for the controlled Shader Lab comparison. |
 | TR-12 | No network permission requirement at runtime for the demo flavour. |
-| TR-13 | The repo is a **monorepo**: main app `apps/kiln`, Skia helper app `apps/kiln_skia`, and shared `packages/shader_lab`. Shader Lab UI and shaders live only in `shader_lab`; both apps depend on it via path. |
-| TR-14 | `packages/shader_lab` must compile on **Flutter 3.24** (Skia build) and current stable (Impeller build). No APIs or packages newer than 3.24 inside that package. |
+| TR-13 | The repo is a **monorepo** with one Flutter application, `apps/kiln`, and shared `packages/shader_lab`. Android product flavors `impeller` and `skia` produce two installable APKs from the same Dart code and current Flutter SDK. |
+| TR-14 | Renderer comparison builds must hold Flutter SDK, Dart code, assets, build mode and workload constant. Flavor-specific configuration is limited to package ID, launcher label, deep-link ownership, renderer metadata and the matching display label. |
 
 ## 4. Repository layout (monorepo)
 
-Two installable APKs share one Shader Lab implementation. Only the main app carries the
-full Pit Wall demo; the Skia app exists because one Flutter SDK cannot produce both
-renderers on current Android.
+One Flutter application produces two installable APKs from Android product flavors. Both
+carry the same Dart code and Shader Lab workload. The Impeller flavor owns the full stage
+deep links; the Skia flavor exists only as the comparison launcher.
 
 ```text
 apps/
@@ -106,15 +106,12 @@ apps/
         shader_lab/          # shader_lab_route.dart: thin route + process-wide RunBoard
     assets/sessions/         # Bundled OpenF1 export
     shaders/                 # Lap shaders (.frag); not used by Shader Lab package
-    android/                 # Impeller on (default); do not disable
+    android/
+      app/src/main/          # Shared activity and Android configuration
+      app/src/impeller/      # EnableImpeller=true; owns kiln:// deep links
+      app/src/skia/          # EnableImpeller=false
+      app/build.gradle.kts   # renderer dimension; impeller + skia flavors
     pubspec.yaml             # path: ../../packages/shader_lab
-
-  kiln_skia/                 # Shader Lab only — package dev.fluttercon.kiln.skia
-    lib/
-      main.dart              # Single route: Shader Lab + minimal budget chrome
-    android/                 # Impeller disabled in manifest (Skia on OpenGL ES)
-    pubspec.yaml             # path: ../../packages/shader_lab
-    .fvmrc                   # Pins 3.24.x for this app only (FVM)
 
 packages/
   shader_lab/                # Shared Shader Lab screen (both APKs)
@@ -133,7 +130,7 @@ packages/
     shaders/
       speed_ramp.frag
     test/                    # Window logic, run board, screen smoke test
-    pubspec.yaml             # sdk >=3.5.0, flutter >=3.24.0
+    pubspec.yaml             # Uses the same current SDK constraints as apps/kiln
 
 docs/                        # PRD, TRD, talk, design (unchanged)
 samples/                     # Reference broken/fixed widgets for notes 06–07
@@ -141,21 +138,22 @@ tool/
   export_session.dart        # One-off OpenF1 export before bundling session.json
 ```
 
-### 4.1 Why split apps instead of one repo root
+### 4.1 Why two flavors in one Flutter app
 
 | Concern | Approach |
 |---|---|
-| Impeller vs Skia on Android 10+ | `apps/kiln` uses current stable; `apps/kiln_skia` uses FVM-pinned 3.24 with Skia |
-| Same pixels on stage | One `packages/shader_lab`; both apps show identical Shader Lab UI |
-| Avoid dragging 3.24 into the main app | Main app never pins an old SDK; only `kiln_skia` carries `.fvmrc` |
-| Lap shaders vs Shader Lab shader | Lap `.frag` files stay under `apps/kiln/shaders/`; Shader Lab's `speed_ramp.frag` lives in the package so Skia can compile it too |
+| Isolate the renderer variable | Both flavors use the same Flutter 3.47+ SDK, Dart source, assets and profile mode |
+| Fast stage switching | Distinct package IDs allow both APKs to remain installed |
+| Prevent deep-link chooser prompts | Only the `impeller` flavor registers the `kiln://` scheme |
+| Keep labels honest | Build-time `KILN_RENDERER` values match each flavor; `adb logcat` remains the source of truth |
+| Lap shaders vs Shader Lab shader | Lap `.frag` files stay under `apps/kiln/shaders/`; Shader Lab's `speed_ramp.frag` stays in the package |
 
 ### 4.2 Build entry points
 
-| App | Working directory | Typical command |
+| Flavor | Working directory | Typical command |
 |---|---|---|
-| Kiln (Impeller) | `apps/kiln` | `flutter run --profile --trace-systrace` |
-| Kiln Skia | `apps/kiln_skia` | `fvm flutter pub get` then `fvm flutter run --profile --trace-systrace` |
+| Kiln Impeller | `apps/kiln` | `flutter run --profile --trace-systrace --flavor impeller --dart-define='KILN_RENDERER=Impeller · Vulkan'` |
+| Kiln Skia | `apps/kiln` | `flutter run --profile --trace-systrace --flavor skia --dart-define='KILN_RENDERER=Skia · OpenGL ES'` |
 
 Install both APKs on the demo phone before rehearsal. They coexist because package IDs
 differ (`dev.fluttercon.kiln` vs `dev.fluttercon.kiln.skia`).
@@ -251,6 +249,16 @@ Since Flutter 3.29, Dart code on Android and iOS runs on the platform **main thr
 is no separate UI thread. DevTools still labels this work "UI". The raster thread is
 unchanged and is where Impeller runs.
 
+Terminology in this document:
+
+- **Main thread** = actual platform thread; it runs Dart animation, build, layout, paint and
+  compositing in current Flutter.
+- **UI** = DevTools / `FrameTiming` label for that Dart frame work (`buildDuration`), not a
+  third current thread.
+- **Raster thread** = actual engine CPU thread `1.raster`; Impeller prepares and submits GPU
+  work here (`rasterDuration`).
+- **GPU** = asynchronous hardware downstream of the raster thread, not a Flutter thread.
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -274,7 +282,8 @@ sequenceDiagram
 ### 9.1 Frame budget monitor
 
 - Source: `SchedulerBinding.instance.addTimingsCallback`.
-- Per frame: `buildDuration` (UI), `rasterDuration` (raster), `totalSpan` (vsync to raster finish).
+- Per frame: `buildDuration` (DevTools UI metric; Dart on main), `rasterDuration`
+  (`1.raster`), `totalSpan` (vsync to raster finish; not a thread).
 - Rolling window of 240 frames (2 s at 120 Hz) for p50, p90, p99 and jank count.
 - Colour rule for the total (F1 timing colours): purple ≤ 6.0 ms, green ≤ 8.33 ms, yellow ≤ 12 ms, red above.
 - Per-thread bars (UI and raster): a tick at **4.17 ms** (half the frame, the single-frame-latency
@@ -321,7 +330,7 @@ Shared definitions (budget = `1000 / refreshRate` ms, 8.33 ms at 120 Hz):
 | **Stall time** | Sum of `max(buildDuration, rasterDuration) − budget` over every over-budget frame in the window. |
 | **Worst frame** | Largest `max(buildDuration, rasterDuration)` in the window. |
 
-**Shader Lab "lap time" (both apps, in `packages/shader_lab`):**
+**Shader Lab "lap time" (both flavor APKs, in `packages/shader_lab`):**
 
 - Trigger: the **Lights on** tap. Shows **time to smooth** as an F1-style lap time
   (`0.912`), with **stall time** and **worst frame** underneath.
@@ -330,7 +339,8 @@ Shared definitions (budget = `1000 / refreshRate` ms, 8.33 ms at 120 Hz):
   `Run # · Lap s · Stall ms · Worst ms · FIRST or REPEAT`. The renderer is the app's badge,
   so it is not repeated per row. "First" means the first
   Lights on since the process started. A **Clear** button empties it. Not persisted:
-  `pm clear` and app restarts start a fresh board, which matches the cache reset.
+  `pm clear` and app restarts start a fresh board. This resets the measurement label and
+  app-owned state; vendor GPU-driver cache behavior must be verified separately.
 - Spans: `KILN::ShaderLab::lightsOn` (instant, at tap) and `KILN::ShaderLab::smooth`
   (instant, when the window closes) so the same interval can be found in DevTools and Perfetto.
 
@@ -365,9 +375,9 @@ startup, or a platform-channel query); if unreliable, verify in rehearsal with
 
 | Purpose | Command |
 |---|---|
-| Stage run, Kiln (Impeller) | `cd apps/kiln` then `flutter run --profile --trace-systrace` |
-| Stage run, Kiln Skia | `cd apps/kiln_skia` then `fvm flutter run --profile --trace-systrace` |
-| Release sanity check | Same directories; `flutter run --release` / `fvm flutter run --release` |
+| Stage run, Kiln Impeller | `cd apps/kiln` then `flutter run --profile --trace-systrace --flavor impeller --dart-define='KILN_RENDERER=Impeller · Vulkan'` |
+| Stage run, Kiln Skia | `cd apps/kiln` then `flutter run --profile --trace-systrace --flavor skia --dart-define='KILN_RENDERER=Skia · OpenGL ES'` |
+| Release sanity check | Same directory and flavors; replace `--profile` with `--release` |
 
 Debug mode is never used for measurement: it runs JIT-compiled Dart and extra checks.
 
@@ -376,30 +386,35 @@ Debug mode is never used for measurement: it runs JIT-compiled Dart and extra ch
 Use **profile** mode and **`--trace-systrace`** on a **physical device** over USB. Debug
 mode is not valid for measurement. **`adb`** must be on PATH (Android SDK `platform-tools`).
 
-**Kiln (Impeller)** — from `apps/kiln`:
+**Kiln Impeller** — from `apps/kiln`:
 
 ```text
 cd apps/kiln
-flutter run --profile --trace-systrace
+flutter run --profile --trace-systrace --flavor impeller \
+  --dart-define='KILN_RENDERER=Impeller · Vulkan'
 ```
 
 Then open Shader Lab: **Home → Shader Lab**, or
 `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"` (cold-start
 routing from that link is wired in the manifest; confirm in rehearsal).
 
-**Kiln Skia** — from `apps/kiln_skia`:
+**Kiln Skia** — from the same directory and Flutter SDK:
 
 ```text
-cd apps/kiln_skia
-fvm flutter pub get
-fvm flutter run --profile --trace-systrace
+cd apps/kiln
+flutter run --profile --trace-systrace --flavor skia \
+  --dart-define='KILN_RENDERER=Skia · OpenGL ES'
 ```
 
-Before a **first-run** Shader Lab demo (Skia shader cache empty):
+Before a candidate **cold** Shader Lab demo:
 
 ```text
 adb shell pm clear dev.fluttercon.kiln.skia
 ```
+
+`pm clear` resets app-owned state. It does not prove that every vendor GPU-driver cache was
+discarded, so verify the first-use spike on the target phone during rehearsal. If the cache
+survives, uninstall/reinstall the flavor or use a fresh package ID for the recorded proof.
 
 **DevTools** attaches to whichever app **`flutter run`** started. To compare Skia and
 Impeller in DevTools, stop one run and start the other (or use a second laptop / exported
@@ -414,35 +429,36 @@ with the on-phone **lap time**.
 See [Profiling toolchain](../research/02-profiling-toolchain.md) and
 [Stage runbook](../talk/stage-runbook.md).
 
-### 11.1 Shader Lab: two APKs, two renderers
+### 11.1 Shader Lab: one project, two flavor APKs
 
-Skia can no longer be selected on Android 10+ with current Flutter: the opt-out was
-deprecated in August 2025 ([flutter#173375](https://github.com/flutter/flutter/pull/173375))
-and is reported removed for Android 10+ from 3.44. The Skia side of the comparison is
-therefore a **separate build with a pinned older SDK**.
+[Current Flutter supports disabling Impeller on Android](https://docs.flutter.dev/perf/impeller#android)
+for debugging and deployment. Kiln uses that opt-out only for this controlled comparison.
+Both APKs come from `apps/kiln` and the same current SDK, making the renderer the meaningful
+variable.
 
-| Build | SDK | Package ID | Renderer | Launcher label |
+| Flavor | SDK | Package ID | Renderer | Launcher label |
 |---|---|---|---|---|
-| Main Kiln app | Current stable (3.47) | `dev.fluttercon.kiln` | Impeller on Vulkan | Kiln |
-| Shader Lab, Impeller | Current stable (3.47) | `dev.fluttercon.kiln` (same app, `kiln://scenario/shaderlab`) | Impeller on Vulkan | Kiln |
-| Shader Lab, Skia | Pinned **3.24.x** via FVM, built with `--no-enable-impeller` baked into the manifest | `dev.fluttercon.kiln.skia` | Skia on OpenGL ES | Kiln Skia |
+| `impeller` | Current stable (3.47+) | `dev.fluttercon.kiln` | Impeller on Vulkan | Kiln Impeller |
+| `skia` | Same current stable SDK | `dev.fluttercon.kiln.skia` | Skia on OpenGL ES | Kiln Skia |
 
-- The Skia build is **`apps/kiln_skia`**: Shader Lab plus the shared budget readout from
-  `packages/shader_lab`. It does not bundle Pit Wall, laps or session data.
-- Shader Lab UI lives in **`packages/shader_lab`** (TR-13, TR-14). The main app's
+- Renderer metadata lives in `android/app/src/impeller/AndroidManifest.xml` and
+  `android/app/src/skia/AndroidManifest.xml`.
+- Shader Lab UI lives in **`packages/shader_lab`** (TR-13, TR-14). The app's
   `features/shader_lab/` route is a thin wrapper for deep links and navigation only.
 - Both builds run in **profile** mode for comparable numbers.
-- Before every run, reset caches so the "first use" is real:
+- The renderer badge is supplied at build time for the audience; confirm the actual backend
+  with `adb logcat` during rehearsal.
+- Before every comparison, reset and verify the candidate cold state:
 
 | Action | Command |
 |---|---|
-| Reset Skia build (clears its persistent shader cache) | `adb shell pm clear dev.fluttercon.kiln.skia` |
+| Reset Skia app-owned state | `adb shell pm clear dev.fluttercon.kiln.skia` |
 | Launch Skia Shader Lab | `adb shell am start -n dev.fluttercon.kiln.skia/.MainActivity` |
 | Open Impeller Shader Lab | `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"` |
 
 Clearing the main Kiln app's data is **not** needed for the comparison and would reset
-stage state; Impeller has no runtime shader generation to reset. Measure Impeller's first
-entry after a fresh launch anyway, so the number shown is honest.
+stage state. Measure Impeller's first entry after a fresh process launch anyway, so startup
+and first-use costs are represented honestly.
 
 ### 11.2 Shader Lab screen
 
@@ -471,6 +487,13 @@ entry after a fresh launch anyway, so the number shown is honest.
 | Backend | Renderer badge plus `adb logcat` during rehearsal |
 | Thermal stability | 10-minute soak run; note raster drift |
 | Timer correctness | Unit tests feed synthetic `FrameTiming`-shaped data to the window logic (no jank → 0; one spike; timeout); on device, compare one Shader Lab run against the same interval in DevTools |
+| Thrash evidence | At 1×, 2×, 4× and 8×, capture `KILN::Thrash::level`, frame timings and raster trend; verify the one-draw fix under the identical 8× replay |
+| DevTools teaching path | Rehearse red frame → UI/raster bar → matching `KILN::` span → source code → pit stop → before/after snapshot |
+| Perfetto teaching path | Rehearse main thread, `1.raster`, Expected vs Actual frame timeline and the same `KILN::` marker in one capture |
+| Repaint isolation | Enable Track Paints; verify static circuit paint events stop after `map-layers` while car paint events continue |
+| Layer complexity | Enable offscreen-layer checkerboarding; verify tower, glass and car-glow fixes reduce the highlighted layers |
+| CustomPainter `saveLayer` | Code and trace review confirm the broken car painter calls `canvas.saveLayer` with blur and the fixed painter uses a radial gradient without a layer |
+| Build-time shader proof | A clean verbose build records `impellerc` processing the app fragment shader; the fixed ribbon uses that artifact in one draw |
 
 ## 13. Risks and constraints
 
@@ -482,7 +505,9 @@ entry after a fresh launch anyway, so the number shown is honest.
   guarantee a cached texture. `SnapshotWidget` is the explicit alternative.
 - Backdrop blur on Impeller can cost more than on Skia in some cases; the grouped fix
   only helps when filters are identical and non-overlapping.
-- Shader Lab depends on a pinned old SDK for the Skia build. On a fast flagship phone, Skia's
-  first-use compile spike may be small; it must be measured before the talk. Impeller can
-  also show a small first-entry cost while the driver creates pipeline objects from the
-  precompiled shaders; report it as measured.
+- Shader Lab cold-state behavior varies by vendor GPU driver. `pm clear` resets app-owned
+  state but may not erase every driver cache, so rehearse and verify the reset on both stage
+  phones. Use uninstall/reinstall, a fresh package identity or the recorded proof if needed.
+- On a fast flagship phone, Skia's first-use compile spike may be small. Impeller can also
+  show a first-entry cost while resources and pipeline state are prepared; report both as
+  measured instead of promising a predetermined gap.

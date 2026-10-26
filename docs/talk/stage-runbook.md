@@ -30,8 +30,9 @@ flowchart LR
 - [ ] Developer options: USB debugging on, stay awake on
 - [ ] Device cool before the talk (no charging or heavy use in the last 10 minutes)
 - [ ] Renderer badge shows **Impeller · Vulkan**
-- [ ] **Kiln Skia** (`dev.fluttercon.kiln.skia`, pinned Flutter 3.24) installed; its badge shows **Skia · OpenGL ES**
-- [ ] Shader Lab reset command ready: `adb shell pm clear dev.fluttercon.kiln.skia`
+- [ ] Both current-SDK flavor APKs installed: **Kiln Impeller** (`dev.fluttercon.kiln`) and **Kiln Skia** (`dev.fluttercon.kiln.skia`)
+- [ ] Badges and `adb logcat` agree: **Impeller · Vulkan** and **Skia · OpenGL ES**
+- [ ] Shader Lab reset command ready and cold behavior verified: `adb shell pm clear dev.fluttercon.kiln.skia`
 
 ## Laptop preparation
 
@@ -40,30 +41,33 @@ flowchart LR
 Physical device, USB debugging, **`adb` on PATH**. Always **profile** + **`--trace-systrace`**
 (never debug for numbers). Full detail: [TRD §11.0](../technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything).
 
-**Kiln (Impeller)** — from `apps/kiln`:
+**Kiln Impeller** — from `apps/kiln`:
 
 ```text
 cd apps/kiln
-flutter run --profile --trace-systrace
+flutter run --profile --trace-systrace --flavor impeller \
+  --dart-define='KILN_RENDERER=Impeller · Vulkan'
 ```
 
 Open Shader Lab: **Home → Shader Lab**, or
 `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"`.
 
-**Kiln Skia** — from `apps/kiln_skia`:
+**Kiln Skia** — from the same directory and Flutter SDK:
 
 ```text
-cd apps/kiln_skia
-fvm flutter pub get
-fvm flutter run --profile --trace-systrace
+cd apps/kiln
+flutter run --profile --trace-systrace --flavor skia \
+  --dart-define='KILN_RENDERER=Skia · OpenGL ES'
 ```
 
-Before a **first-run** demo: `adb shell pm clear dev.fluttercon.kiln.skia`.
+Before a candidate **cold** demo: `adb shell pm clear dev.fluttercon.kiln.skia`. Confirm
+during rehearsal that this produces the expected cold/warm gap on the target GPU; use a
+reinstall or fresh package ID for the recording if the driver cache survives `pm clear`.
 
 **DevTools** attaches to whichever app **`flutter run`** started. Switch apps = stop one run
 and start the other (or use two laptops / recorded DevTools and Perfetto backups).
 
-- [ ] Kiln Skia build prerequisites: FVM (`dart pub global activate fvm`, add `%LOCALAPPDATA%\Pub\Cache\bin` to PATH), Flutter 3.24.5 (`fvm install 3.24.5`), and a **JDK 17** whose path matches `org.gradle.java.home` in `apps/kiln_skia/android/gradle.properties` (Gradle 8.3 cannot run on Android Studio's Java 25)
+- [ ] Both flavor builds use the same recorded Flutter version, JDK, dependencies and profile mode
 - [ ] DevTools open on the Performance page, frames chart visible
 - [ ] Perfetto `record_android_trace` script tested with the phone (do **not** use WebUSB recording — it stops `adb` and disconnects `flutter run`)
 - [ ] Hidden browser tabs: one exported DevTools snapshot and one Perfetto trace per lap
@@ -79,7 +83,14 @@ and start the other (or use two laptops / recorded DevTools and Perfetto backups
 - [ ] Each lap's pit stop shows "Recovered in … s" within 5 s (Speed Ribbon at Thrash 8×: ___ s)
 - [ ] Shader Lab gap is readable from the back of the room; if not, plan to use the Slide 6 recording
 - [ ] Thrash: each step (1×, 2×, 4×, 8×) visibly raises the raster bar; 8× does not freeze the phone
-- [ ] Finale at Thrash 4× with all pit stops on: both thread bars near their 4 ms ticks
+- [ ] Thrash trace contains `KILN::Thrash::level`; fixed one-draw ribbon recovers under the identical 8× replay
+- [ ] DevTools teaching path rehearsed aloud: red frame → UI/raster → `KILN::` span → source → fix → comparison
+- [ ] Perfetto teaching path rehearsed aloud: main thread → `1.raster` → Expected vs Actual → same `KILN::` marker
+- [ ] Track Paints proves the static circuit stops repainting after `map-layers`
+- [ ] Offscreen-layer checkerboarding decreases after tower, glass and car-glow fixes
+- [ ] Broken car painter visibly contains `canvas.saveLayer`; fixed painter uses a radial gradient with no layer
+- [ ] Verbose build proof for `ribbon-shader` saved offline, including the `impellerc` step
+- [ ] Finale at Thrash 4× with all pit stops on: both thread bars near their 4 ms ticks and zero missed frames in the measured 5 s replay after one warm-up
 - [ ] Every row of [Abstract alignment](abstract-alignment.md) delivered in the run
 - [ ] Each lap: fixed state measurably better; finale green or purple
 - [ ] Measure with mirroring on and off; note the difference

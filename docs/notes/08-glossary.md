@@ -13,6 +13,7 @@ to confuse), use [Talk vocabulary](../talk/vocabulary.md).
 | **Build (frame phase)** | Dart widget rebuild and layout; part of `buildDuration` in `FrameTiming`. |
 | **Composite (frame phase)** | Building the layer tree after paint; layers are sent toward the engine. |
 | **Compilation jank (shader)** | Frame stutter when a new GPU shader is compiled during rasterization (Skia era); distinct from general "jank". |
+| **CPU core** | Hardware capable of executing a thread. Different threads can run simultaneously when separate cores are available. |
 | **Decimation (paths)** | Reducing path point count (e.g. min/max per pixel column) before tessellation. |
 | **Draw (overload)** | Either recording ops in `paint()`, issuing GPU draw commands on the raster thread, or colloquial "drawing the UI". Prefer the specific term. |
 | **Paint (frame phase)** | Recording draw operations into a `DisplayList` on the main thread; does not execute on the GPU yet. |
@@ -29,14 +30,16 @@ to confuse), use [Talk vocabulary](../talk/vocabulary.md).
 | **Thrash** | Kiln demo control that multiplies Speed Ribbon (and related) workload to stress the raster path (1×–8×). |
 | **FrameTiming** | Per-frame timings from the engine: build, raster, total span. |
 | **impellerc** | Impeller's shader compiler: GLSL → SPIR-V → backend formats, at build time. |
+| **Isolate (Dart)** | Independent Dart heap and event loop. Isolates communicate with messages; an isolate is a language/runtime concurrency unit, not a guaranteed permanent OS thread. |
 | **Jank** | A frame that misses its display deadline, visible as a stutter. |
 | **JIT** | Just-in-time compilation. Dart in debug mode; Skia's shaders at runtime. |
 | **Load / store op** | Vulkan render-pass settings that decide whether attachments are read from or written to main memory. |
-| **Main thread** | The Android/iOS UI thread. Runs Flutter's Dart code since Flutter 3.29 (DevTools "UI"). |
+| **Main thread** | The platform's actual main thread (often called the UI thread by Android/iOS developers). Runs Flutter's Dart code since Flutter 3.29; DevTools labels that Dart frame work "UI". |
 | **MSAA** | Multisample antialiasing. Impeller uses 4× on mobile, resolved in tile memory. |
 | **Opacity peephole** | Engine optimisation that applies group opacity per draw when children don't overlap, avoiding `saveLayer`. |
 | **Perfetto** | Android's system tracing tool and trace viewer (successor to Systrace on Android 10+). |
 | **Pipeline (PSO)** | Compiled shaders plus fixed GPU state. Impeller builds them ahead of time. |
+| **Process** | OS container for a running application, its memory and resources. A process contains one or more threads. |
 | **Profile mode** | AOT-compiled build with tracing hooks. The only mode for performance measurement. |
 | **Raster cache** | Skia-era cache of complex layers as images. Impeller has none. |
 | **Raster thread** | Engine thread (`1.raster`) where Impeller turns layer trees into GPU commands. Runs on the CPU. |
@@ -44,10 +47,13 @@ to confuse), use [Talk vocabulary](../talk/vocabulary.md).
 | **Render target cache** | Impeller's reuse of offscreen textures across frames. |
 | **`RepaintBoundary`** | Widget that gives its subtree its own layer so repaints don't spread. Not a cache on Impeller. |
 | **`saveLayer`** | Canvas call that draws a group into an offscreen texture, then composites it. Triggers a render-pass switch. |
-| **Shader Lab** | Kiln screen built twice (Skia on pinned Flutter 3.24, Impeller on current Flutter) to compare first-use shader compilation live. |
+| **Shader Lab** | One Kiln screen built as current-SDK `skia` and `impeller` Android flavors to compare first-use shader compilation live while holding code and build mode constant. |
 | **Stall time** | Kiln timer: total time frames ran over budget after a trigger. See [vocabulary](../talk/vocabulary.md). |
 | **Time to smooth (lap time)** | Kiln timer: from the trigger frame until frames are back on budget, from `FrameTiming` timestamps. |
 | **SkSL** | Skia's shading language; source of runtime shader compilation in the Skia era. |
+| **Thread** | One ordered stream of CPU instructions inside a process. Threads share process memory but have separate call stacks and scheduling state. |
+| **UI (DevTools label)** | Dart animation/build/layout/paint/composite timing (`buildDuration`). In current Flutter this work executes on the platform main thread; “UI” does not name a separate thread. |
+| **UI thread (`1.ui`, historical)** | Flutter's former dedicated Dart thread before platform/UI thread merging in 3.29. Older traces and documentation can correctly show it. |
 | **SnapshotWidget** | Widget that replaces its child with a cached image while snapshotting is enabled. |
 | **SPIR-V** | Vulkan's intermediate shader format. |
 | **Stencil-then-cover** | GPU path-filling technique using the stencil buffer; Impeller chose CPU triangulation instead. |

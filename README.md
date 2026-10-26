@@ -37,10 +37,12 @@ flowchart LR
 | 3 | Pit Wall | `canvas.saveLayer` per car glow, hidden `saveLayer` in the tower, one blur per card, static map repainting | Gradient glows, leaf fades, `RepaintBoundary`, `BackdropGroup` |
 | 4 | Race Control | JSON decoded in `build()` on the main thread | `Isolate.run` |
 
-Before the laps, a **Shader Lab** screen shows why Impeller exists. The same screen is
-built twice: **Kiln Skia** (Flutter 3.24, Skia) and **Kiln** (current Flutter, Impeller).
-On a fresh install, Skia's worst frame spikes while shaders compile mid-frame, the second
-Skia run is smooth, and Impeller is flat from the first frame. A short
+Before the laps, a **Shader Lab** screen shows why Impeller exists. One Flutter project
+builds the same screen as two Android product flavors: **Kiln Skia** and **Kiln Impeller**.
+Both use the same Flutter SDK, Dart code, assets and profile build mode; only the renderer
+configuration, package ID and launcher label differ. On a verified cold run, Skia's
+first-use frames can spike while shader programs are generated and compiled; its repeat
+run is smoother, while Impeller avoids Skia-style shader generation during the frame. A short
 [concept video](docs/talk/media/README.md) introduces the idea before the live run.
 
 Every promise in the registered abstract is mapped to a demo moment in
@@ -48,18 +50,17 @@ Every promise in the registered abstract is mapped to a demo moment in
 
 ## Status
 
-**Building.** Shader Lab is built: `packages/shader_lab` (with its timers and run board),
-`apps/kiln_skia`, and an `apps/kiln` shell that opens it. Lights Out, Pit Wall and the four
-laps are next.
+**Building.** Shader Lab, its timers and run board are built. The next foundation change is
+to migrate the existing Skia helper into `impeller` and `skia` Android product flavors under
+`apps/kiln`, then continue with Lights Out, Pit Wall and the four laps.
 
 ## Repository layout
 
 ```text
 apps/
-  kiln/           Main demo (Impeller, current Flutter) — dev.fluttercon.kiln
-  kiln_skia/      Shader Lab only (Skia, Flutter 3.24 via FVM) — dev.fluttercon.kiln.skia
+  kiln/           One Flutter app; builds Impeller and Skia Android flavors
 packages/
-  shader_lab/     Shared Shader Lab screen, compiled into both APKs
+  shader_lab/     Shared Shader Lab screen used by both flavor APKs
 docs/             PRD, TRD, research, design, talk, reference, history and deep-dive notes
 samples/          kiln_samples: broken and fixed reference code for the deep-dive notes
 tool/             OpenF1 session export script
@@ -110,12 +111,12 @@ Start at [`docs/README.md`](docs/README.md).
 - A physical Android 10+ (API 29+) device with Vulkan 1.1 and a 120 Hz display
 - Profile mode for every measurement on a **physical device** with **`adb` on PATH**; see
   [How to run (DevTools and Perfetto)](docs/technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything):
-  - **Kiln (Impeller):** `cd apps/kiln` → `flutter run --profile --trace-systrace` → Shader Lab
-  - **Kiln Skia:** `cd apps/kiln_skia` → `fvm flutter run --profile --trace-systrace`; before a
-    first-run demo: `adb shell pm clear dev.fluttercon.kiln.skia`
+  - **Kiln Impeller:** `cd apps/kiln` → `flutter run --profile --trace-systrace --flavor impeller --dart-define='KILN_RENDERER=Impeller · Vulkan'`
+  - **Kiln Skia:** same directory and SDK → `flutter run --profile --trace-systrace --flavor skia --dart-define='KILN_RENDERER=Skia · OpenGL ES'`
+  - Before a verified cold Skia run: `adb shell pm clear dev.fluttercon.kiln.skia`
 - DevTools attaches to whichever app `flutter run` started; switch apps by stopping one run and
   starting the other (or use exported traces / a second laptop)
-- Kiln Skia also needs Flutter 3.24 via [FVM](https://fvm.app) and JDK 17 for Gradle — [TRD §11.1](docs/technical/TRD.md)
+- Both flavors use Flutter 3.47+ and the same Android/JDK toolchain — [TRD §11.1](docs/technical/TRD.md)
 
 ## Data and trademarks
 

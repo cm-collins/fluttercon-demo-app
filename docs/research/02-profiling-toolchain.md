@@ -39,17 +39,19 @@ flowchart TB
     cpu --> backup
 ```
 
-## Shader Lab: run both apps for Skia vs Impeller
+## Shader Lab: run both flavor APKs for Skia vs Impeller
 
 Same scene in `packages/shader_lab`; compare raster cost on **Lights on** with DevTools,
-Perfetto, and the on-phone lap time.
+Perfetto, and the on-phone lap time. Both APKs come from `apps/kiln` and use the same
+Flutter SDK, source, assets and profile build mode.
 
-| App | Directory | Command |
+| Flavor | Directory | Command |
 |---|---|---|
-| Kiln (Impeller) | `apps/kiln` | `flutter run --profile --trace-systrace` → Home → Shader Lab, or `kiln://scenario/shaderlab` |
-| Kiln Skia | `apps/kiln_skia` | `fvm flutter run --profile --trace-systrace` |
+| Kiln Impeller | `apps/kiln` | `flutter run --profile --trace-systrace --flavor impeller --dart-define='KILN_RENDERER=Impeller · Vulkan'` → Home → Shader Lab, or `kiln://scenario/shaderlab` |
+| Kiln Skia | `apps/kiln` | `flutter run --profile --trace-systrace --flavor skia --dart-define='KILN_RENDERER=Skia · OpenGL ES'` |
 
-Before a Skia **first-run** demo: `adb shell pm clear dev.fluttercon.kiln.skia`.
+Before a candidate Skia **cold-run** demo: `adb shell pm clear dev.fluttercon.kiln.skia`.
+Verify the reset protocol on the target GPU; vendor driver caches may survive app-data clears.
 
 DevTools attaches to the app started by **`flutter run`**. To compare renderers, stop one run
 and start the other, or use exported snapshots / a second laptop.
@@ -61,6 +63,10 @@ Step-by-step: [TRD §11.0](../technical/TRD.md#110-how-to-run-so-devtools-and-pe
 Run: `flutter run --profile --trace-systrace` on a physical device (never debug mode for
 measurement). For Shader Lab, use the monorepo commands in the table above.
 
+- **Naming:** DevTools **UI** is `buildDuration` for Dart frame work executing on the
+  platform main thread. DevTools **Raster** is `rasterDuration` on the separate
+  **`1.raster`** engine CPU thread. The GPU is downstream and needs Perfetto GPU tracks or
+  AGI for direct inspection.
 - **Flutter frames chart:** one bar pair per frame; red means over budget.
 - **Frame analysis:** hints for the selected frame (for example expensive `saveLayer`).
 - **Timeline events:** the full trace for the selected frame, including our `KILN::` spans.

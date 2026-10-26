@@ -16,7 +16,7 @@ flowchart LR
     ribbon -.-> room
     control -.-> room
     room --> rosetta["6 · Rosetta tab"]
-    pitwall -.-> lab["7 · Shader Lab<br/>(also in the separate Skia build)"]
+    pitwall -.-> lab["7 · Shader Lab<br/>(also in the Skia flavor APK)"]
 ```
 
 Every screen can also be opened with a `kiln://scenario/<id>` deep link.
@@ -106,10 +106,11 @@ Translation table for Kotlin and iOS engineers. Content: [Rosetta](../reference/
 
 ## 7 · Shader Lab
 
-**Purpose:** show shader compilation jank live: Skia compiling on first use versus Impeller's
-ahead-of-time shaders. UI lives in `packages/shader_lab` and ships in both
-`apps/kiln` and `apps/kiln_skia` (see [TRD §4](../technical/TRD.md#4-repository-layout-monorepo) and
-[§11.1](../technical/TRD.md#111-shader-lab-two-apks-two-renderers)).
+**Purpose:** show shader compilation jank live: Skia generating and compiling shader programs
+on first use versus Impeller's offline-compiled shader set. UI lives in
+`packages/shader_lab` and ships in the `impeller` and `skia` Android flavors of
+`apps/kiln` (see [TRD §4](../technical/TRD.md#4-repository-layout-monorepo) and
+[§11.1](../technical/TRD.md#111-shader-lab-one-project-two-flavor-apks)).
 
 - A dark, empty stage with one button: **Lights on**.
 - Pressing it reveals a scene that uses many effects for the first time at once: gradients,
@@ -127,9 +128,9 @@ ahead-of-time shaders. UI lives in `packages/shader_lab` and ships in both
 
 | Run | What the audience should see |
 |---|---|
-| Skia, first run after `pm clear` | Long lap time, red; DevTools shows long raster frames |
+| Skia, verified cold run after reset | Long lap time, red; DevTools shows long raster frames |
 | Skia, repeat run | Lap time drops sharply: shaders are now cached on the device |
-| Impeller, first run | Lap time at or near 0.000, purple or green; nothing generated mid-frame |
+| Impeller, first run | Close to its repeat run; no Skia-style shader generation occurs mid-frame |
 
 ## Anti-pattern coverage
 
@@ -146,7 +147,7 @@ flowchart LR
     subgraph both["UI and raster"]
         a5["map-layers"]
     end
-    subgraph ui["UI (main thread)"]
+    subgraph ui["Dart UI work (main thread)"]
         a6["feed-isolate"]
     end
 ```

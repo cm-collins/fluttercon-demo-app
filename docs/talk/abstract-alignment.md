@@ -54,7 +54,8 @@ Line numbers refer to the [Demo script](demo-script.md).
 | P10 | Interpret Systrace / Perfetto metrics | Line 28; Lap 2 lines 45–47 | Main and raster thread slices, Expected vs Actual frame timeline | [Profiling tools history](../history/03-profiling-tools.md) |
 | P11 | Precise repaint boundary isolation | Lap 3 line 58 | Track Paints: circuit paint events disappear, only cars repaint | [Optimisation patterns](../notes/07-optimization-patterns.md) |
 | P12 | Layer complexity reduction | Lap 3 lines 55–59 | Offscreen-layer checkerboard disappears | [Optimisation patterns](../notes/07-optimization-patterns.md) |
-| T1 | Skia JIT vs Impeller AOT pipeline mechanics on Vulkan | Lines 14, 15a–15e, 21, 69 | Live Shader Lab (two builds), pipeline slide | [Skia era](../notes/02-skia-era.md) |
+| P13 | Confidence to apply the method in production | Every lap; rehearsal and fallback workflow | Deterministic replay, before/after evidence, repeatable diagnosis method and exported backup traces | [Stage runbook](stage-runbook.md), [Profiling playbook](../notes/06-profiling-playbook.md) |
+| T1 | Skia JIT vs Impeller AOT pipeline mechanics on Vulkan | Lines 14, 15a–15e, 21, 69 | Live Shader Lab (two renderer flavors from one build setup), pipeline slide | [Skia era](../notes/02-skia-era.md) |
 | T2 | Read ~4 ms UI / ~4 ms raster allocations | Lines 8–9, 26, 35, 46, 64, 70 | Engine Room bars with a 4.17 ms tick per thread | [Frame scheduling](../notes/05-frame-scheduling.md) |
 | T3 | Custom painter patterns using precompiled pathways, avoiding `saveLayer()` | Lap 1 line 38; Lap 2 lines 49–52; Lap 3 line 56 | `drawVertices`, build-time fragment shader, gradient glow instead of `canvas.saveLayer` | [Optimisation patterns](../notes/07-optimization-patterns.md) |
 
@@ -90,6 +91,25 @@ flowchart LR
     lap4["Lap 4 Race Control"] --> t2
 ```
 
+## Delivery contract
+
+This map is the talk's acceptance contract, not a claim that every feature is implemented.
+The current first version proves Shader Lab and its timing model; the full talk is not
+demo-ready until every gate below passes on the stage phone:
+
+| Submission promise | Required proof before rehearsal sign-off |
+|---|---|
+| Thrash a real-time canvas | Move Speed Ribbon from 1× to 8× live; `KILN::Thrash::level` appears in the trace and broken raster frames turn red within 3 seconds |
+| Advanced DevTools Timeline | Select a red frame, identify UI or raster, find the relevant `KILN::` span, apply one fix and show the before/after frame |
+| Systrace / Perfetto metrics | Show main and `1.raster` slices plus Expected vs Actual frame timeline around the same workload; keep an exported trace as backup |
+| Skia JIT vs Impeller AOT | Run the identical Shader Lab workload from same-SDK Skia and Impeller flavors; show verified Skia cold vs repeat and Impeller first-entry measurements |
+| ~4 ms UI / ~4 ms raster | Engine Room shows a 4.17 ms target tick and 8.33 ms deadline; narration explains pipelining and the finale reports p90 for both threads |
+| Precise repaint isolation | With Track Paints enabled, the circuit paint event is present before `map-layers` and absent after it while car dots continue moving |
+| Layer complexity reduction | Offscreen-layer checkerboarding visibly decreases after tower, glass and car-glow fixes |
+| Tame CustomPainters / avoid `saveLayer()` | Show explicit `canvas.saveLayer` plus blur inside the broken car painter, then a radial-gradient fixed painter with no layer |
+| Precompiled rendering pathway | Show `ribbon-shader` declared as a Flutter shader, compiled during the app build and used in the one-draw fixed ribbon |
+| Enterprise-grade confidence | Three deterministic rehearsals, measured before/after evidence for every lap, and offline DevTools/Perfetto/video fallbacks |
+
 ## Gaps found and how they were closed
 
 | Gap in the earlier plan | Fix | Where it is specified |
@@ -107,9 +127,11 @@ The abstract uses some shorthand. These are the precise versions to say on stage
 
 | Abstract says | Say on stage | Why |
 |---|---|---|
-| "~4ms UI / ~4ms Raster" | "Budget about 4 ms each so the frame lands within one refresh. Each thread can stretch to 8.33 ms without dropping, but you lose latency and headroom." | UI and raster threads pipeline frames ([Frame scheduling](../notes/05-frame-scheduling.md)) |
+| "~4ms UI / ~4ms Raster" | "UI means Dart frame work on the platform main thread; Raster means Impeller work on `1.raster`. Target about 4 ms each so the frame lands within one refresh. Each can stretch to 8.33 ms without dropping, but you lose latency and headroom." | DevTools labels phases as UI/Raster; main and raster are the actual CPU threads, and consecutive frames pipeline ([Frame scheduling](../notes/05-frame-scheduling.md)) |
 | "Skia's JIT shader compilation" | "Skia generated and compiled shaders just in time, during frames" | Skia generated SkSL at runtime; the driver compiled it on first use |
 | "Impeller's AOT pipeline mechanics" | "Shaders compiled at engine build time; pipelines built from them mostly at startup" | The driver still creates pipeline objects at runtime, outside the frame |
+| "Skia JIT versus Impeller AOT on Vulkan" | "The Skia comparison demonstrates first-use generation on OpenGL ES; the following segment explains Impeller's AOT pipeline mechanics on Vulkan" | Do not imply that both comparison APKs use the same graphics backend |
 | "Prevent frame drops under heavy stress" | "Keep the recorded work small enough that the raster thread finishes inside its budget" | Command buffers don't prevent drops by themselves; less recorded work does |
 | "Android Systrace" | "Systrace, now Perfetto" | Perfetto replaced Systrace in Android 10 and opens Systrace files |
 | "Precise repaint boundary isolation" | "Isolate what repaints; Impeller still rasterizes the frame" | Impeller has no raster cache |
+| "Maximize pre-compiled rendering pathways" | "Use offline-compiled shaders where they replace many draws or layers, but still measure geometry, draw count and render passes" | Precompiled shaders remove runtime shader generation; they do not make expensive canvas work free |

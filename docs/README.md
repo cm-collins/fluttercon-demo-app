@@ -80,7 +80,7 @@ are not pasted into the notes; they link to the maintained sample package in
 
 | # | Note | Covers |
 |---|---|---|
-| 01 | [How Flutter runs](notes/01-how-flutter-runs.md) | Layers, AOT, trees, frame pipeline, merged threads |
+| 01 | [How Flutter runs](notes/01-how-flutter-runs.md) | Processes, threads, CPU cores, isolates, frame pipeline and the Kiln lap-to-thread map |
 | 02 | [The Skia era](notes/02-skia-era.md) | Runtime shader compilation, warm-up attempts, why Impeller exists |
 | 03 | [Impeller internals](notes/03-impeller-internals.md) | Modules, life of a `drawPath`, tessellation, MSAA, offscreen passes |
 | 04 | [Vulkan primer](notes/04-vulkan-primer.md) | Command buffers, render passes, pipelines, tile-based GPUs, load/store ops |

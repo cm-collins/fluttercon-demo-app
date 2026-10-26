@@ -28,6 +28,16 @@ flowchart TB
 
 ---
 
+## One naming rule for the whole talk
+
+> **UI = the Dart frame phase shown by DevTools. Main = the actual platform thread that
+> runs that phase in current Flutter. Raster = the separate `1.raster` engine CPU thread.
+> GPU = hardware, not a Flutter thread.**
+
+Use **“Dart UI work on the main thread”** when both viewpoints matter. Never introduce a
+current “UI thread” as a third thread beside main and raster. A separate `1.ui` thread is
+historical, before Flutter 3.29.
+
 ## Frame pipeline (say these in order)
 
 | Term | Aligned meaning | In Kiln / on stage |
@@ -68,6 +78,7 @@ flowchart TB
 | **`impellerc`** | Offline compiler: GLSL 4.60 → SPIR-V and backend formats. Same path for engine and app `.frag` files in `pubspec.yaml`. | `ribbon-shader` pit stop. |
 | **Pipeline (PSO)** | **Pipeline state object**: shader + fixed GPU state (blend, depth, formats). Impeller selects a **pre-built** pipeline per draw type. Vulkan may still **create** the PSO on first use, but **no new shader source** mid-frame. | Slide 7; say "pick a pipeline," not "compile a shader in the frame." |
 | **Runtime compilation (careful)** | Do **not** claim zero driver work. Do claim: **no Skia-style shader generation during `paint()`**. | See [Say it precisely](demo-script.md#say-it-precisely). |
+| **Custom fragment shader lifecycle** | Flutter compiles a declared `.frag` asset during the app build. Retain its `FragmentShader` and change only uniforms per frame. Skia can still compile the platform shader while loading, so preload before animation. | Precompiled removes shader generation; it does **not** make extra draws, geometry, layers, blur or asset loading free. |
 
 ---
 
@@ -99,7 +110,7 @@ flowchart TB
 | **Render pass** | A bounded stretch of drawing to specific attachments (colour, depth, MSAA). Each `saveLayer` and backdrop blur tends to add passes. | Tile GPU store/load story in Lap 3. |
 | **Draw call** | One `draw` command with current pipeline and geometry. **Volume** matters on Vulkan. | ~5k broken ribbon; 1 fixed. |
 | **Raster thread** | Engine thread `1.raster`. Runs Impeller on the **CPU**; submits work to the **GPU**. DevTools label **Raster**. | Red bar = here. |
-| **Main thread** | Platform UI thread; Dart since 3.29. DevTools label **UI**. | Lap 4 JSON decode. |
+| **Main thread** | Actual platform main thread (the OS UI thread); Dart runs here since 3.29. DevTools labels its Dart frame work **UI**. | Lap 4 JSON decode. |
 | **Thrash** | Demo control: multiply canvas workload (ribbon segments + car trails) to **stress** the raster path under Impeller. | Lap 2; finale at 4×. |
 | **Pit stop** | Toggle one broken → fixed implementation for a scenario. One change, then replay 5 s. | Engine Room switches. |
 
@@ -114,7 +125,7 @@ flowchart TB
 | **Perfetto** | System trace: threads, scheduling, **frame timeline**, GPU stages when available. | Lap 2; finale slide. |
 | **`KILN::<Scenario>::<phase>`** | Custom timeline spans from `dart:developer` `Timeline`. | e.g. `KILN::TelemetryDuel::paint`. |
 | **Expected / Actual timeline** | SurfaceFlinger's view of whether the app frame landed on time. | Lap 2 line 47. |
-| **UI bar / Raster bar** | DevTools frame chart: which part of the budget was exceeded. | "Read the bars first." |
+| **UI bar / Raster bar** | DevTools frame chart metrics, not two generic OS names. UI = `buildDuration` for Dart work on main; Raster = `rasterDuration` on `1.raster`. | "Read the bars first." |
 | **Lap time (time to smooth)** | From the trigger frame until the last over-budget frame finished; 0 if nothing went over. Measured from engine `FrameTiming` timestamps, not an on-screen stopwatch. | Shader Lab, lines 15b–15e. |
 | **Stall time** | Total time frames spent over budget in that window: how long the user actually saw stutter. | Shader Lab, under the lap time. |
 | **Recovery time** | Lap time after turning a pit stop on: how fast frames got back on budget. | Engine Room, line 49. |

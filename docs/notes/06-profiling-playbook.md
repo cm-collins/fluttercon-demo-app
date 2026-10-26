@@ -14,25 +14,28 @@ Hands-on steps for every tool used in the talk. The higher-level tool map is in
 `--trace-systrace` sends Flutter and Dart timeline events into Android's trace buffer, so
 they appear in Perfetto next to system events. DevTools keeps working.
 
-**Kiln (Impeller)** — from `apps/kiln`:
+**Kiln Impeller** — from `apps/kiln`:
 
 ```text
 cd apps/kiln
-flutter run --profile --trace-systrace
+flutter run --profile --trace-systrace --flavor impeller \
+  --dart-define='KILN_RENDERER=Impeller · Vulkan'
 ```
 
 Open Shader Lab from the home screen, or
 `adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"`.
 
-**Kiln Skia (Shader Lab only)** — from `apps/kiln_skia`:
+**Kiln Skia** — from the same project and Flutter SDK:
 
 ```text
-cd apps/kiln_skia
-fvm flutter pub get
-fvm flutter run --profile --trace-systrace
+cd apps/kiln
+flutter run --profile --trace-systrace --flavor skia \
+  --dart-define='KILN_RENDERER=Skia · OpenGL ES'
 ```
 
-Before a Skia **first-run** demo: `adb shell pm clear dev.fluttercon.kiln.skia`.
+Before a candidate Skia **cold-run** demo:
+`adb shell pm clear dev.fluttercon.kiln.skia`. Verify the cold/warm gap on the target
+phone; `pm clear` does not guarantee removal of every vendor GPU-driver cache.
 
 DevTools attaches to whichever app **`flutter run`** started. Switch apps = stop one run and
 start the other (or use exported snapshots). See [TRD §11.0](../technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything).
@@ -48,6 +51,14 @@ Wrap scenario work in named spans so anyone can find it in a trace:
 - Example use: [`telemetry_duel_broken.dart`](../../samples/lib/src/telemetry_duel/telemetry_duel_broken.dart)
 
 ## 3. Flutter DevTools
+
+Keep the names straight before reading a trace:
+
+- **UI bar** = Dart frame phases measured by `buildDuration`; in current Flutter they run
+  on the platform **main thread**.
+- **Raster bar** = Impeller work measured by `rasterDuration` on **`1.raster`**.
+- **GPU** = hardware downstream from `1.raster`; a long Raster bar is not automatically
+  proof that GPU execution itself was slow.
 
 ```mermaid
 flowchart LR
