@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kiln/features/markets/binance_gateway.dart';
+import 'package:kiln/features/markets/logic/market_parse.dart';
 import 'package:shader_lab/shader_lab.dart';
 
 void main() {

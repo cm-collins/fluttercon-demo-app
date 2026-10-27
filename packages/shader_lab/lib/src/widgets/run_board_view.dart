@@ -1,8 +1,9 @@
 import 'package:flutter/widgets.dart';
 
+import '../logic/durations.dart';
+import '../logic/run_board.dart';
 import 'lab_chrome.dart';
 import 'lab_tokens.dart';
-import 'run_board.dart';
 
 /// The last runs, newest first, so first and repeat runs sit one above the other.
 class RunBoardView extends StatelessWidget {

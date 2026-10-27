@@ -2,8 +2,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 
+import '../logic/market.dart';
 import 'lab_tokens.dart';
-import 'market.dart';
 
 /// Depth fill drawn with one fragment shader.
 ///

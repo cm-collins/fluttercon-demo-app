@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shader_lab/shader_lab.dart';
 
-import '../features/markets/binance_gateway.dart';
-import '../features/markets/markets_route.dart';
+import '../features/markets/data/binance_gateway.dart';
+import '../features/markets/logic/market_gateway.dart';
+import '../features/markets/presentation/markets_route.dart';
 import 'home_screen.dart';
 import 'kiln_runtime.dart';
 
@@ -41,7 +42,10 @@ class KilnApp extends StatelessWidget {
       },
       onGenerateRoute: (RouteSettings settings) {
         final Widget page = switch (settings.name) {
-          KilnRoutes.shaderLab => const MarketsRoute(),
+          KilnRoutes.shaderLab => MarketsRoute(
+            runtime: runtime,
+            gateway: gateway,
+          ),
           _ => const HomeScreen(),
         };
         return MaterialPageRoute<void>(

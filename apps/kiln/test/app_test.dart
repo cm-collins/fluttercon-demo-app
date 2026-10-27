@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiln/app/kiln_app.dart';
 import 'package:kiln/app/kiln_runtime.dart';
-import 'package:kiln/features/markets/binance_gateway.dart';
+import 'package:kiln/features/markets/logic/market_gateway.dart';
 import 'package:shader_lab/shader_lab.dart';
 
 class FakeGateway extends MarketGateway {

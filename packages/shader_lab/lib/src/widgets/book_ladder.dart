@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../logic/market.dart';
 import 'lab_tokens.dart';
-import 'market.dart';
 
 /// Visible bid and ask prices. Text and solid colour only.
 class BookLadder extends StatelessWidget {

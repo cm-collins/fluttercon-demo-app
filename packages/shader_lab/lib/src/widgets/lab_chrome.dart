@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../logic/market.dart';
 import 'lab_tokens.dart';
-import 'market.dart';
 
 /// Shared surface. Every panel in Markets uses this radius, border, and padding.
 class LabCard extends StatelessWidget {

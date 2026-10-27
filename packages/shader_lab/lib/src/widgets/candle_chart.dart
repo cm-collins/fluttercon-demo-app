@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../logic/market.dart';
 import 'lab_tokens.dart';
-import 'market.dart';
 
 /// Solid candle bodies and wicks. No fragment shader, blur, or save layer.
 class CandleChart extends StatelessWidget {

@@ -1,20 +1,18 @@
-import 'dart:developer' show Timeline;
-import 'dart:ui' as ui;
-
 import 'package:flutter/widgets.dart';
 
-import 'book_ladder.dart';
-import 'budget_readout.dart';
-import 'candle_chart.dart';
-import 'depth_chart.dart';
-import 'lab_chrome.dart';
-import 'frame_timer.dart';
-import 'frame_window.dart';
-import 'lab_button.dart';
-import 'lab_tokens.dart';
-import 'market.dart';
-import 'run_board.dart';
-import 'run_board_view.dart';
+import '../logic/depth_session.dart';
+import '../logic/durations.dart';
+import '../logic/frame_timer.dart';
+import '../logic/market.dart';
+import '../logic/run_board.dart';
+import '../widgets/book_ladder.dart';
+import '../widgets/budget_readout.dart';
+import '../widgets/candle_chart.dart';
+import '../widgets/depth_chart.dart';
+import '../widgets/lab_button.dart';
+import '../widgets/lab_chrome.dart';
+import '../widgets/lab_tokens.dart';
+import '../widgets/run_board_view.dart';
 
 /// Market dashboard used to time the first draw of one fragment shader.
 ///
@@ -53,70 +51,43 @@ class ShaderLabScreen extends StatefulWidget {
 }
 
 class _ShaderLabScreenState extends State<ShaderLabScreen> {
-  final FrameTimer _timer = FrameTimer();
-  ui.FragmentProgram? _program;
-  int _generation = 0;
-  bool _measuring = false;
+  late final DepthSession _session;
 
   @override
   void initState() {
     super.initState();
-    Timeline.instantSync('KILN::Markets::enter');
-    ui.FragmentProgram.fromAsset(widget.shaderAsset)
-        .then((ui.FragmentProgram program) {
-          if (mounted) {
-            setState(() => _program = program);
-          }
-        });
+    _session = DepthSession(
+      shaderAsset: widget.shaderAsset,
+      board: widget.board,
+      rendererLabel: widget.rendererLabel,
+      onMeasuring: widget.onMeasuring,
+    );
+    _session.enter();
   }
 
   @override
   void dispose() {
-    _timer.dispose();
+    _session.dispose();
     super.dispose();
   }
 
   Duration get _budget => budgetFor(View.of(context).display.refreshRate);
 
-  void _drawDepth() {
-    Timeline.instantSync(
-      'KILN::Markets::drawDepth',
-      arguments: <String, String>{'renderer': widget.rendererLabel},
-    );
-    _timer.arm(budget: _budget, onResult: _onResult);
-    widget.onMeasuring?.call(true);
-    setState(() {
-      _generation += 1;
-      _measuring = true;
-    });
-  }
-
-  void _onResult(FrameWindowResult result) {
-    final LabRun run = widget.board.add(result);
-    Timeline.instantSync(
-      'KILN::Markets::smooth',
-      arguments: <String, String>{
-        'renderer': widget.rendererLabel,
-        'run': '${run.number}',
-        'timeToSmoothMs': formatMs(result.timeToSmooth),
-        'stallMs': formatMs(result.stall),
-        'worstMs': formatMs(result.worst),
-      },
-    );
-    if (mounted) {
-      setState(() => _measuring = false);
-    }
-    widget.onMeasuring?.call(false);
-  }
-
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: _session,
+      builder: (BuildContext context, Widget? _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final MarketSnapshot? snapshot = widget.snapshot;
-    final ui.FragmentProgram? program = _program;
+    final program = _session.program;
     final Duration budget = _budget;
     final bool ready = snapshot != null && program != null;
     final bool showDepth =
-        snapshot != null && program != null && _generation > 0;
+        snapshot != null && program != null && _session.generation > 0;
     return ColoredBox(
       color: LabColors.bg,
       child: SafeArea(
@@ -160,7 +131,7 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
                         height: 148,
                         child: showDepth
                             ? DepthChart(
-                                key: ValueKey<int>(_generation),
+                                key: ValueKey<int>(_session.generation),
                                 program: program,
                                 bids: snapshot.bids,
                                 asks: snapshot.asks,
@@ -189,7 +160,7 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
                       builder: (BuildContext context, Widget? _) =>
                           BudgetReadout(
                             latest: widget.board.latest,
-                            measuring: _measuring,
+                            measuring: _session.measuring,
                             budget: budget,
                             recoveryGap: widget.board.recoveryGap,
                           ),
@@ -212,7 +183,7 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
               child: LabButton(
                 label: 'DRAW DEPTH',
                 primary: true,
-                onPressed: ready ? _drawDepth : null,
+                onPressed: ready ? () => _session.draw(_budget) : null,
               ),
             ),
           ],

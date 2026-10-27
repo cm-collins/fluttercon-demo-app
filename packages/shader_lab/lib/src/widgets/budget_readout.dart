@@ -1,9 +1,10 @@
 import 'package:flutter/widgets.dart';
 
-import 'frame_window.dart';
+import '../logic/durations.dart';
+import '../logic/frame_window.dart';
+import '../logic/run_board.dart';
 import 'lab_chrome.dart';
 import 'lab_tokens.dart';
-import 'run_board.dart';
 
 /// Recovery time in large type, with the measurements that explain it.
 class BudgetReadout extends StatelessWidget {
