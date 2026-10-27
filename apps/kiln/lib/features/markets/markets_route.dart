@@ -224,11 +224,6 @@ class _Watchlist extends StatelessWidget {
               '${View.of(context).display.refreshRate.round()} Hz · ${formatMs(budget)} ms budget',
               style: LabText.label,
             ),
-            const SizedBox(height: 4),
-            const Text(
-              'Public Binance prices. Open a book, then draw depth.',
-              style: LabText.label,
-            ),
             const SizedBox(height: 16),
             if (error != null) ...<Widget>[
               Text(error!, style: LabText.body),
@@ -241,56 +236,81 @@ class _Watchlist extends StatelessWidget {
               const Text('Loading the Binance book…', style: LabText.body)
             else
               Expanded(
-                child: ListView.separated(
-                  itemCount: quotes!.length,
-                  separatorBuilder: (BuildContext context, int index) =>
-                      const SizedBox(height: 8),
-                  itemBuilder: (BuildContext context, int index) {
-                    final MarketQuote quote = quotes![index];
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => onOpen(quote),
-                      child: LabCard(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: LabColors.hairline),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: ColoredBox(
+                      color: LabColors.surface,
+                      child: ListView.separated(
+                        itemCount: quotes!.length,
+                        separatorBuilder: (BuildContext context, int index) =>
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: ColoredBox(
+                                color: LabColors.hairline,
+                                child: SizedBox(
+                                  height: 1,
+                                  width: double.infinity,
+                                ),
+                              ),
+                            ),
+                        itemBuilder: (BuildContext context, int index) {
+                          final MarketQuote quote = quotes![index];
+                          return GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => onOpen(quote),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              child: Row(
                                 children: <Widget>[
-                                  Text(
-                                    quote.pair,
-                                    style: LabText.body.copyWith(
-                                      fontWeight: FontWeight.w600,
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Text(
+                                          quote.pair,
+                                          style: LabText.body.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Vol ${formatVolume(quote.quoteVolume)}',
+                                          style: LabText.label,
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Vol ${formatVolume(quote.quoteVolume)}',
-                                    style: LabText.label,
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: <Widget>[
+                                      Text(
+                                        formatQuote(quote.last),
+                                        style: LabText.number,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      LabPercent(
+                                        changePercent: quote.changePercent,
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: <Widget>[
-                                Text(
-                                  formatQuote(quote.last),
-                                  style: LabText.number,
-                                ),
-                                const SizedBox(height: 6),
-                                LabPercent(changePercent: quote.changePercent),
-                              ],
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ),
           ],

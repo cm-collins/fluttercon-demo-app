@@ -4,18 +4,6 @@ import 'dart:io';
 
 import 'package:shader_lab/shader_lab.dart';
 
-/// Symbols on the watchlist. All are USDT pairs on the public market API.
-const List<String> binanceSymbols = <String>[
-  'BTCUSDT',
-  'ETHUSDT',
-  'SOLUSDT',
-  'BNBUSDT',
-  'XRPUSDT',
-  'DOGEUSDT',
-  'ADAUSDT',
-  'AVAXUSDT',
-];
-
 /// Public market data. No API key and no trading endpoints.
 abstract class MarketGateway {
   const MarketGateway();
@@ -49,9 +37,8 @@ class BinanceGateway extends MarketGateway {
 
   @override
   Future<List<MarketQuote>> watchlist() async {
-    final String symbols = Uri.encodeQueryComponent(jsonEncode(binanceSymbols));
-    final Object? decoded = await _get('/api/v3/ticker/24hr?symbols=$symbols');
-    return parseTickers(decoded);
+    final Object? decoded = await _get('/api/v3/ticker/24hr');
+    return usdtWatchlist(decoded);
   }
 
   @override
@@ -136,6 +123,22 @@ class BinanceGateway extends MarketGateway {
       client.close();
     }
   }
+}
+
+/// Spot USDT markets from a full 24-hour ticker payload, busiest first.
+List<MarketQuote> usdtWatchlist(Object? decoded) {
+  final List<MarketQuote> quotes = <MarketQuote>[
+    for (final MarketQuote quote in parseTickers(decoded))
+      if (_isUsdtPair(quote.symbol)) quote,
+  ];
+  quotes.sort(
+    (MarketQuote a, MarketQuote b) => b.quoteVolume.compareTo(a.quoteVolume),
+  );
+  return quotes;
+}
+
+bool _isUsdtPair(String symbol) {
+  return symbol.endsWith('USDT') && symbol.length > 4;
 }
 
 List<MarketQuote> parseTickers(Object? decoded) {

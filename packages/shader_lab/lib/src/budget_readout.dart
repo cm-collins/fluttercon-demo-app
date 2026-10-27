@@ -23,7 +23,6 @@ class BudgetReadout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final FrameWindowResult? result = measuring ? null : latest?.result;
-    final String budgetMs = formatMs(budget);
 
     final String recovery;
     final Color recoveryTint;
@@ -74,23 +73,14 @@ class BudgetReadout extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Time from Draw depth until frames stay within $budgetMs ms.',
-            style: LabText.label,
-          ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           _Metric(
             label: 'ACCUMULATED OVERRUN',
             value: result == null ? '–' : '${formatMs(result.stall)} ms',
-            detail:
-                'Extra time late frames spent beyond $budgetMs ms, added together.',
           ),
           _Metric(
             label: 'SLOWEST FRAME',
             value: result == null ? '–' : '${formatMs(result.worst)} ms',
-            detail:
-                'Longest single UI or raster duration. The budget is $budgetMs ms.',
             valueColor: result == null
                 ? null
                 : frameColor(result.worst, budget),
@@ -100,9 +90,6 @@ class BudgetReadout extends StatelessWidget {
             value: recoveryGap == null
                 ? '–'
                 : '${formatSignedLap(recoveryGap!)} s',
-            detail: recoveryGap == null
-                ? 'Draw depth again to compare the first recovery with a repeat.'
-                : 'First recovery minus the latest repeat. A large positive gap means first-use shader work.',
             valueColor: recoveryGap == null ? null : _gapColor(recoveryGap!),
           ),
           if (result != null)
@@ -125,33 +112,21 @@ class BudgetReadout extends StatelessWidget {
 }
 
 class _Metric extends StatelessWidget {
-  const _Metric({
-    required this.label,
-    required this.value,
-    required this.detail,
-    this.valueColor,
-  });
+  const _Metric({required this.label, required this.value, this.valueColor});
 
   final String label;
   final String value;
-  final String detail;
   final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(child: Text(label, style: LabText.label)),
-              Text(value, style: LabText.number.copyWith(color: valueColor)),
-            ],
-          ),
-          const SizedBox(height: 2),
-          Text(detail, style: LabText.label),
+          Expanded(child: Text(label, style: LabText.label)),
+          const SizedBox(width: 12),
+          Text(value, style: LabText.number.copyWith(color: valueColor)),
         ],
       ),
     );

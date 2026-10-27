@@ -25,4 +25,21 @@ void main() {
     );
     expect(bids.single.quantity, 0.91);
   });
+
+  test('keeps USDT pairs and ranks them by quote volume', () {
+    final List<MarketQuote> quotes = usdtWatchlist(
+      jsonDecode(
+        '[{"symbol":"ETHBTC","lastPrice":"0.02","priceChangePercent":"1",'
+        '"highPrice":"0.03","lowPrice":"0.01","quoteVolume":"999"},'
+        '{"symbol":"ADAUSDT","lastPrice":"0.20","priceChangePercent":"1",'
+        '"highPrice":"0.30","lowPrice":"0.10","quoteVolume":"10"},'
+        '{"symbol":"BTCUSDT","lastPrice":"80000","priceChangePercent":"1",'
+        '"highPrice":"81000","lowPrice":"79000","quoteVolume":"50"}]',
+      ),
+    );
+    expect(quotes.map((MarketQuote quote) => quote.symbol), <String>[
+      'BTCUSDT',
+      'ADAUSDT',
+    ]);
+  });
 }

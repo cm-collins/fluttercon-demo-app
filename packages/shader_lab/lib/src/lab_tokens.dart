@@ -26,38 +26,53 @@ abstract final class LabText {
     FontFeature.tabularFigures(),
   ];
 
+  // inherit: false so MaterialApp's fallback style cannot leak through.
+  // That fallback is a yellow double underline on purpose, to mark text that
+  // never set its own style. These screens are not inside a Material widget.
   static const TextStyle title = TextStyle(
+    inherit: false,
     color: LabColors.textPrimary,
     fontSize: 24,
     fontWeight: FontWeight.w600,
+    decoration: TextDecoration.none,
   );
 
   static const TextStyle label = TextStyle(
+    inherit: false,
     color: LabColors.textSecondary,
     fontSize: 13,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.4,
+    decoration: TextDecoration.none,
   );
 
   static const TextStyle body = TextStyle(
+    inherit: false,
     color: LabColors.textPrimary,
     fontSize: 16,
+    fontWeight: FontWeight.w400,
+    decoration: TextDecoration.none,
   );
 
   static const TextStyle number = TextStyle(
+    inherit: false,
     color: LabColors.textPrimary,
     fontFamily: 'monospace',
     fontSize: 18,
     fontWeight: FontWeight.w600,
     fontFeatures: _tabular,
+    decoration: TextDecoration.none,
   );
 
   static const TextStyle lapTime = TextStyle(
+    inherit: false,
+    color: LabColors.textPrimary,
     fontFamily: 'monospace',
     fontSize: 56,
     fontWeight: FontWeight.w700,
     height: 1.0,
     fontFeatures: _tabular,
+    decoration: TextDecoration.none,
   );
 }
 

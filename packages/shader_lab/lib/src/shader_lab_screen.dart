@@ -152,11 +152,6 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
                       padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
                       child: CandleChart(candles: snapshot.candles),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Candles and the ladder use solid paints already on screen.',
-                      style: LabText.label,
-                    ),
                     const SizedBox(height: 20),
                     const LabSectionTitle('Depth'),
                     LabCard(
@@ -178,11 +173,6 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
                                 ),
                               ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Draw depth times the first use of one fragment shader. The file is already loaded.',
-                      style: LabText.label,
                     ),
                     const SizedBox(height: 20),
                     const LabSectionTitle('Book'),
@@ -221,7 +211,7 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               child: LabButton(
                 label: 'DRAW DEPTH',
-                primary: _generation == 0,
+                primary: true,
                 onPressed: ready ? _drawDepth : null,
               ),
             ),
