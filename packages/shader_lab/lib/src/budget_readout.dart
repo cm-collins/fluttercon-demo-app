@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'frame_window.dart';
+import 'lab_chrome.dart';
 import 'lab_tokens.dart';
 import 'run_board.dart';
 
@@ -49,13 +50,7 @@ class BudgetReadout extends StatelessWidget {
           : 'DRAW DEPTH → SMOOTH';
     }
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      decoration: BoxDecoration(
-        color: LabColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: LabColors.hairline),
-      ),
+    return LabCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -67,7 +62,10 @@ class BudgetReadout extends StatelessWidget {
             children: <Widget>[
               Text(
                 recovery,
-                style: LabText.lapTime.copyWith(color: recoveryTint),
+                style: LabText.lapTime.copyWith(
+                  color: recoveryTint,
+                  fontSize: 40,
+                ),
               ),
               const SizedBox(width: 8),
               Text(

@@ -151,41 +151,37 @@ class _MarketsRouteState extends State<MarketsRoute> {
             bids: snapshot.bids,
             asks: snapshot.asks,
           );
-    return ColoredBox(
-      color: LabColors.bg,
-      child: Column(
-        children: <Widget>[
-          SafeArea(
-            bottom: false,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _back,
-                child: const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  child: Text('WATCHLIST', style: LabText.label),
+    if (_error != null) {
+      return ColoredBox(
+        color: LabColors.bg,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _back,
+                  child: const Padding(
+                    padding: EdgeInsets.only(bottom: 16),
+                    child: Text('Markets', style: LabText.label),
+                  ),
                 ),
-              ),
+                Text(_error!, style: LabText.body),
+              ],
             ),
           ),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(_error!, style: LabText.body),
-            )
-          else
-            Expanded(
-              child: ShaderLabScreen(
-                rendererLabel: runtime.label,
-                architectureNote: runtime.architectureNote,
-                board: marketRuns,
-                snapshot: _loading ? null : shown,
-                onMeasuring: _onMeasuring,
-              ),
-            ),
-        ],
-      ),
+        ),
+      );
+    }
+    return ShaderLabScreen(
+      rendererLabel: runtime.label,
+      architectureNote: runtime.architectureNote,
+      board: marketRuns,
+      snapshot: _loading ? null : shown,
+      onMeasuring: _onMeasuring,
+      onBack: _back,
     );
   }
 }
@@ -215,15 +211,22 @@ class _Watchlist extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            const Text('Markets', style: LabText.title),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const Expanded(child: Text('Markets', style: LabText.title)),
+                const SizedBox(width: 12),
+                LabBadge(label: runtime.label),
+              ],
+            ),
             const SizedBox(height: 4),
             Text(
-              '${runtime.label} · ${View.of(context).display.refreshRate.round()} Hz · ${formatMs(budget)} ms',
+              '${View.of(context).display.refreshRate.round()} Hz · ${formatMs(budget)} ms budget',
               style: LabText.label,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             const Text(
-              'Public Binance prices. Open a book, then draw depth to time one shader.',
+              'Public Binance prices. Open a book, then draw depth.',
               style: LabText.label,
             ),
             const SizedBox(height: 16),
@@ -244,19 +247,13 @@ class _Watchlist extends StatelessWidget {
                       const SizedBox(height: 8),
                   itemBuilder: (BuildContext context, int index) {
                     final MarketQuote quote = quotes![index];
-                    final bool up = quote.changePercent >= 0;
                     return GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () => onOpen(quote),
-                      child: Container(
+                      child: LabCard(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          color: LabColors.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: LabColors.hairline),
                         ),
                         child: Row(
                           children: <Widget>[
@@ -264,7 +261,12 @@ class _Watchlist extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                                  Text(quote.pair, style: LabText.body),
+                                  Text(
+                                    quote.pair,
+                                    style: LabText.body.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                   const SizedBox(height: 4),
                                   Text(
                                     'Vol ${formatVolume(quote.quoteVolume)}',
@@ -280,12 +282,8 @@ class _Watchlist extends StatelessWidget {
                                   formatQuote(quote.last),
                                   style: LabText.number,
                                 ),
-                                Text(
-                                  formatPercent(quote.changePercent),
-                                  style: LabText.label.copyWith(
-                                    color: up ? LabColors.green : LabColors.red,
-                                  ),
-                                ),
+                                const SizedBox(height: 6),
+                                LabPercent(changePercent: quote.changePercent),
                               ],
                             ),
                           ],

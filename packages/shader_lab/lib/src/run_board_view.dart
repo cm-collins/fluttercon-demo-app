@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import 'lab_chrome.dart';
 import 'lab_tokens.dart';
 import 'run_board.dart';
 
@@ -12,13 +13,8 @@ class RunBoardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-      decoration: BoxDecoration(
-        color: LabColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: LabColors.hairline),
-      ),
+    return LabCard(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: ListenableBuilder(
         listenable: board,
         builder: (BuildContext context, Widget? _) {
@@ -46,19 +42,19 @@ class RunBoardView extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
-              const _Row(
-                cells: <String>['#', 'RECOV s', 'OVERRUN', 'SLOW ms', ''],
-                style: LabText.label,
-              ),
-              for (int i = 0; i < board.capacity; i++)
-                if (i < runs.length)
-                  _RunRow(run: runs[i])
-                else
-                  const _Row(
-                    cells: <String>['', '', '', '', ''],
-                    style: LabText.number,
-                  ),
+              const SizedBox(height: 8),
+              if (runs.isEmpty)
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('No draws yet.', style: LabText.body),
+                )
+              else ...<Widget>[
+                const _Row(
+                  cells: <String>['#', 'RECOV s', 'OVERRUN', 'SLOW ms', ''],
+                  style: LabText.label,
+                ),
+                for (final LabRun run in runs) _RunRow(run: run),
+              ],
             ],
           );
         },
@@ -84,7 +80,7 @@ class _RunRow extends StatelessWidget {
         formatMs(r.worst),
         run.first ? 'FIRST' : 'REPEAT',
       ],
-      style: LabText.number,
+      style: LabText.number.copyWith(fontSize: 14),
       tints: <int, Color>{
         1: lapTint,
         4: run.first ? LabColors.ember : LabColors.textSecondary,

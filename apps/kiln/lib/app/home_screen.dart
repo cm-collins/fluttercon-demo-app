@@ -15,24 +15,26 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              const Text(
-                'Kiln Markets',
-                style: TextStyle(
-                  color: LabColors.textPrimary,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Expanded(
+                    child: Text('Kiln Markets', style: LabText.title),
+                  ),
+                  const SizedBox(width: 12),
+                  LabBadge(label: runtime.label),
+                ],
               ),
               const SizedBox(height: 4),
               Text(
-                '${runtime.label} · ${View.of(context).display.refreshRate.round()} Hz · ${formatMs(budget)} ms',
+                '${View.of(context).display.refreshRate.round()} Hz · ${formatMs(budget)} ms budget',
                 style: LabText.label,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               _Entry(
                 title: 'Markets',
                 subtitle: 'Binance book, one shader timed',
@@ -60,15 +62,7 @@ class _Entry extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: LabColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: enabled ? LabColors.violet : LabColors.hairline,
-          ),
-        ),
+      child: LabCard(
         child: Row(
           children: <Widget>[
             Expanded(
@@ -77,26 +71,27 @@ class _Entry extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     title,
-                    style: LabText.title.copyWith(
-                      fontSize: 20,
+                    style: LabText.body.copyWith(
+                      fontWeight: FontWeight.w600,
                       color: enabled
                           ? LabColors.textPrimary
                           : LabColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      color: LabColors.textSecondary,
-                      fontSize: 16,
-                    ),
-                  ),
+                  Text(subtitle, style: LabText.label),
                 ],
               ),
             ),
             if (enabled)
-              const Icon(Icons.chevron_right, color: LabColors.violet),
+              const Text(
+                '›',
+                style: TextStyle(
+                  color: LabColors.violet,
+                  fontSize: 28,
+                  height: 1,
+                ),
+              ),
           ],
         ),
       ),

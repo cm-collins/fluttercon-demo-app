@@ -36,7 +36,7 @@ abstract final class LabText {
     color: LabColors.textSecondary,
     fontSize: 13,
     fontWeight: FontWeight.w500,
-    letterSpacing: 1.0,
+    letterSpacing: 0.4,
   );
 
   static const TextStyle body = TextStyle(

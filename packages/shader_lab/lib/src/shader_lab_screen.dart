@@ -7,6 +7,7 @@ import 'book_ladder.dart';
 import 'budget_readout.dart';
 import 'candle_chart.dart';
 import 'depth_chart.dart';
+import 'lab_chrome.dart';
 import 'frame_timer.dart';
 import 'frame_window.dart';
 import 'lab_button.dart';
@@ -30,6 +31,7 @@ class ShaderLabScreen extends StatefulWidget {
     this.snapshot,
     this.shaderAsset = 'packages/shader_lab/shaders/depth_fill.frag',
     this.onMeasuring,
+    this.onBack,
   });
 
   final String rendererLabel;
@@ -42,6 +44,9 @@ class ShaderLabScreen extends StatefulWidget {
 
   /// Fired when a measured draw starts or finishes, so a live price socket can pause.
   final ValueChanged<bool>? onMeasuring;
+
+  /// Returns to the watchlist. Omitted when this screen is the root of a test.
+  final VoidCallback? onBack;
 
   @override
   State<ShaderLabScreen> createState() => _ShaderLabScreenState();
@@ -110,102 +115,117 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
     final ui.FragmentProgram? program = _program;
     final Duration budget = _budget;
     final bool ready = snapshot != null && program != null;
+    final bool showDepth =
+        snapshot != null && program != null && _generation > 0;
     return ColoredBox(
       color: LabColors.bg,
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              _Header(
+        child: Column(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: _Header(
                 rendererLabel: widget.rendererLabel,
                 budget: budget,
                 pair: snapshot?.quote.pair,
+                onBack: widget.onBack,
               ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: ListView(
-                  children: <Widget>[
-                    if (widget.architectureNote != null) ...<Widget>[
-                      Text(widget.architectureNote!, style: LabText.label),
-                      const SizedBox(height: 12),
-                    ],
-                    if (snapshot == null)
-                      const Text(
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                children: <Widget>[
+                  if (snapshot == null)
+                    const LabCard(
+                      child: Text(
                         'Waiting for the Binance book.',
                         style: LabText.body,
-                      )
-                    else ...<Widget>[
-                      _QuoteHeader(quote: snapshot.quote),
-                      const SizedBox(height: 12),
-                      CandleChart(candles: snapshot.candles),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Candles and the ladder use solid paints already on screen.',
-                        style: LabText.label,
                       ),
-                      const SizedBox(height: 16),
-                      BookLadder(bids: snapshot.bids, asks: snapshot.asks),
-                      const SizedBox(height: 16),
-                      RunBoardView(
-                        board: widget.board,
-                        onClear: widget.board.clear,
+                    )
+                  else ...<Widget>[
+                    _QuoteHeader(quote: snapshot.quote),
+                    const SizedBox(height: 16),
+                    _StatRow(quote: snapshot.quote),
+                    const SizedBox(height: 20),
+                    const LabSectionTitle('1 minute'),
+                    LabCard(
+                      padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+                      child: CandleChart(candles: snapshot.candles),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Candles and the ladder use solid paints already on screen.',
+                      style: LabText.label,
+                    ),
+                    const SizedBox(height: 20),
+                    const LabSectionTitle('Depth'),
+                    LabCard(
+                      padding: const EdgeInsets.all(12),
+                      child: SizedBox(
+                        height: 148,
+                        child: showDepth
+                            ? DepthChart(
+                                key: ValueKey<int>(_generation),
+                                program: program,
+                                bids: snapshot.bids,
+                                asks: snapshot.asks,
+                              )
+                            : const Center(
+                                child: Text(
+                                  'Depth shader has not been drawn.',
+                                  textAlign: TextAlign.center,
+                                  style: LabText.body,
+                                ),
+                              ),
                       ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 120,
-                child: snapshot == null || _generation == 0 || program == null
-                    ? const DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: LabColors.surface,
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                        child: Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Text(
-                              'Depth shader has not been drawn.',
-                              textAlign: TextAlign.center,
-                              style: LabText.body,
-                            ),
-                          ),
-                        ),
-                      )
-                    : DepthChart(
-                        key: ValueKey<int>(_generation),
-                        program: program,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Draw depth times the first use of one fragment shader. The file is already loaded.',
+                      style: LabText.label,
+                    ),
+                    const SizedBox(height: 20),
+                    const LabSectionTitle('Book'),
+                    LabCard(
+                      child: BookLadder(
                         bids: snapshot.bids,
                         asks: snapshot.asks,
                       ),
+                    ),
+                    const SizedBox(height: 20),
+                    const LabSectionTitle('Timing'),
+                    ListenableBuilder(
+                      listenable: widget.board,
+                      builder: (BuildContext context, Widget? _) =>
+                          BudgetReadout(
+                            latest: widget.board.latest,
+                            measuring: _measuring,
+                            budget: budget,
+                            recoveryGap: widget.board.recoveryGap,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    RunBoardView(
+                      board: widget.board,
+                      onClear: widget.board.clear,
+                    ),
+                    if (widget.architectureNote != null) ...<Widget>[
+                      const SizedBox(height: 16),
+                      Text(widget.architectureNote!, style: LabText.label),
+                    ],
+                  ],
+                ],
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Draw depth times the first use of one fragment shader. The file is already loaded.',
-                style: LabText.label,
-              ),
-              const SizedBox(height: 12),
-              ListenableBuilder(
-                listenable: widget.board,
-                builder: (BuildContext context, Widget? _) => BudgetReadout(
-                  latest: widget.board.latest,
-                  measuring: _measuring,
-                  budget: budget,
-                  recoveryGap: widget.board.recoveryGap,
-                ),
-              ),
-              const SizedBox(height: 12),
-              LabButton(
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: LabButton(
                 label: 'DRAW DEPTH',
                 primary: _generation == 0,
                 onPressed: ready ? _drawDepth : null,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -217,24 +237,33 @@ class _Header extends StatelessWidget {
     required this.rendererLabel,
     required this.budget,
     required this.pair,
+    required this.onBack,
   });
 
   final String rendererLabel;
   final Duration budget;
   final String? pair;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
-    final bool skia = rendererLabel.toLowerCase().contains('skia');
-    final Color accent = skia ? LabColors.ember : LabColors.violet;
     final double hz = 1000000 / budget.inMicroseconds;
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              if (onBack != null)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onBack,
+                  child: const Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Text('Markets', style: LabText.label),
+                  ),
+                ),
               Text(pair ?? 'Markets', style: LabText.title),
               Text(
                 '${hz.round()} Hz · ${formatMs(budget)} ms budget',
@@ -243,21 +272,8 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: LabColors.surfaceElevated,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: accent, width: 1.5),
-          ),
-          child: Text(
-            rendererLabel,
-            style: LabText.body.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
+        const SizedBox(width: 12),
+        LabBadge(label: rendererLabel),
       ],
     );
   }
@@ -270,32 +286,66 @@ class _QuoteHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool up = quote.changePercent >= 0;
-    final Color tint = up ? LabColors.green : LabColors.red;
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                formatQuote(quote.last),
-                style: LabText.lapTime.copyWith(fontSize: 36),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'H ${formatQuote(quote.high)}   L ${formatQuote(quote.low)}   Vol ${formatVolume(quote.quoteVolume)}',
-                style: LabText.label,
-              ),
-            ],
+          child: Text(
+            formatQuote(quote.last),
+            style: LabText.lapTime.copyWith(
+              fontSize: 36,
+              color: LabColors.textPrimary,
+            ),
           ),
         ),
-        Text(
-          formatPercent(quote.changePercent),
-          style: LabText.number.copyWith(color: tint),
-        ),
+        LabPercent(changePercent: quote.changePercent),
       ],
+    );
+  }
+}
+
+class _StatRow extends StatelessWidget {
+  const _StatRow({required this.quote});
+
+  final MarketQuote quote;
+
+  @override
+  Widget build(BuildContext context) {
+    return LabCard(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Row(
+        children: <Widget>[
+          _Stat(label: 'High', value: formatQuote(quote.high)),
+          _Stat(label: 'Low', value: formatQuote(quote.low)),
+          _Stat(label: 'Volume', value: formatVolume(quote.quoteVolume)),
+        ],
+      ),
+    );
+  }
+}
+
+class _Stat extends StatelessWidget {
+  const _Stat({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(label, style: LabText.label),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: LabText.number.copyWith(fontSize: 16),
+          ),
+        ],
+      ),
     );
   }
 }

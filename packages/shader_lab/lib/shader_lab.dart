@@ -3,6 +3,7 @@ library;
 
 export 'src/frame_timer.dart';
 export 'src/frame_window.dart';
+export 'src/lab_chrome.dart';
 export 'src/lab_tokens.dart';
 export 'src/market.dart';
 export 'src/run_board.dart';

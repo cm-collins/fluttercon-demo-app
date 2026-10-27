@@ -27,7 +27,15 @@ void main() {
     expect(find.text('BTC/USDT'), findsOneWidget);
     expect(find.text('Skia · OpenGL ES'), findsOneWidget);
     expect(find.text('DRAW DEPTH'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Depth shader has not been drawn.'),
+      200,
+    );
     expect(find.text('Depth shader has not been drawn.'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('RECOVERY TIME · PRESS DRAW DEPTH'),
+      200,
+    );
     expect(find.text('RECOVERY TIME · PRESS DRAW DEPTH'), findsOneWidget);
     expect(find.text('ACCUMULATED OVERRUN'), findsOneWidget);
     expect(find.text('SLOWEST FRAME'), findsOneWidget);
@@ -49,8 +57,9 @@ void main() {
 
     await tester.tap(find.text('DRAW DEPTH'));
     await tester.pump();
-
+    await tester.scrollUntilVisible(find.text('Depth'), 200);
     expect(find.text('Depth shader has not been drawn.'), findsNothing);
-    expect(find.text('·.···'), findsOneWidget);
+    await tester.scrollUntilVisible(find.textContaining('RECOVERY TIME'), 200);
+    expect(find.text('RECOVERY TIME · PRESS DRAW DEPTH'), findsNothing);
   });
 }

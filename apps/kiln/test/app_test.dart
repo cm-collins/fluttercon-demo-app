@@ -31,7 +31,8 @@ void main() {
       const KilnApp(runtime: KilnRuntime.impeller, gateway: FakeGateway()),
     );
     expect(find.text('Kiln Markets'), findsOneWidget);
-    expect(find.textContaining('Impeller ·'), findsOneWidget);
+    expect(find.text('Impeller'), findsOneWidget);
+    expect(find.textContaining('Hz ·'), findsOneWidget);
 
     await tester.tap(find.text('Markets'));
     await tester.pumpAndSettle();
@@ -39,13 +40,25 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Impeller'), findsWidgets);
+    expect(find.text('DRAW DEPTH'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Depth shader has not been drawn.'),
+      200,
+    );
+    expect(find.text('Depth shader has not been drawn.'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('RECOVERY TIME · PRESS DRAW DEPTH'),
+      200,
+    );
+    expect(find.text('RECOVERY TIME · PRESS DRAW DEPTH'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.textContaining('Flutter uses Vulkan when this phone'),
+      200,
+    );
     expect(
       find.textContaining('Flutter uses Vulkan when this phone'),
       findsOneWidget,
     );
-    expect(find.text('RECOVERY TIME · PRESS DRAW DEPTH'), findsOneWidget);
-    expect(find.text('DRAW DEPTH'), findsOneWidget);
-    expect(find.text('Depth shader has not been drawn.'), findsOneWidget);
   });
 
   testWidgets('skia flavor identifies Skia on OpenGL ES', (
@@ -63,6 +76,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Skia · OpenGL ES'), findsWidgets);
+    await tester.scrollUntilVisible(
+      find.textContaining('Skia on OpenGL ES'),
+      200,
+    );
     expect(find.textContaining('Skia on OpenGL ES'), findsOneWidget);
   });
 }

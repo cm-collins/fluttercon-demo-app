@@ -12,7 +12,8 @@ class BookLadder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int rows = bids.length > asks.length ? bids.length : asks.length;
+    final int available = bids.length > asks.length ? bids.length : asks.length;
+    final int rows = available > 8 ? 8 : available;
     return Column(
       children: <Widget>[
         const Row(
@@ -42,13 +43,20 @@ class BookLadder extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 3),
             child: Row(
               children: <Widget>[
-                Expanded(child: _qty(i, bids, LabColors.green)),
+                Expanded(child: _qty(i, bids, LabColors.textSecondary)),
                 Expanded(
                   child: _price(i, bids, LabColors.green, TextAlign.right),
                 ),
                 const SizedBox(width: 12),
                 Expanded(child: _price(i, asks, LabColors.red, TextAlign.left)),
-                Expanded(child: _qty(i, asks, LabColors.red, TextAlign.right)),
+                Expanded(
+                  child: _qty(
+                    i,
+                    asks,
+                    LabColors.textSecondary,
+                    TextAlign.right,
+                  ),
+                ),
               ],
             ),
           ),
@@ -68,7 +76,7 @@ class BookLadder extends StatelessWidget {
     return Text(
       text,
       textAlign: align,
-      style: LabText.number.copyWith(color: color, fontSize: 13),
+      style: LabText.number.copyWith(color: color, fontSize: 14),
     );
   }
 
@@ -84,7 +92,7 @@ class BookLadder extends StatelessWidget {
     return Text(
       text,
       textAlign: align,
-      style: LabText.number.copyWith(color: color, fontSize: 13),
+      style: LabText.number.copyWith(color: color, fontSize: 14),
     );
   }
 }

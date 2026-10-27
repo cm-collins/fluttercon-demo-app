@@ -21,8 +21,8 @@ class LabButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool enabled = onPressed != null;
-    final Color fill = primary ? LabColors.red : LabColors.surfaceElevated;
-    final Color text = primary ? LabColors.bg : LabColors.textPrimary;
+    final Color fill = primary ? LabColors.violet : LabColors.surfaceElevated;
+    final Color text = LabColors.textPrimary;
     return Semantics(
       button: true,
       enabled: enabled,
@@ -33,7 +33,7 @@ class LabButton extends StatelessWidget {
         child: Opacity(
           opacity: enabled ? 1 : 0.4,
           child: Container(
-            height: 56,
+            height: 52,
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
@@ -46,7 +46,7 @@ class LabButton extends StatelessWidget {
               style: LabText.body.copyWith(
                 color: text,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
+                letterSpacing: 0.6,
               ),
             ),
           ),
