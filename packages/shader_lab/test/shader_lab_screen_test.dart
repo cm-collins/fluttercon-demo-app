@@ -7,6 +7,7 @@ Widget host(RunBoard board) => Directionality(
   child: MediaQuery(
     data: const MediaQueryData(size: Size(412, 915)),
     child: ShaderLabScreen(
+      key: const ValueKey<String>('lab'),
       rendererLabel: 'Skia · OpenGL ES',
       board: board,
       snapshot: MarketSnapshot.sample,
@@ -62,4 +63,78 @@ void main() {
     await tester.scrollUntilVisible(find.textContaining('RECOVERY TIME'), 200);
     expect(find.text('RECOVERY TIME · PRESS DRAW DEPTH'), findsNothing);
   });
+
+  testWidgets(
+    'an isolated chart does not repaint when only the price changes',
+    (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(412, 915));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final RunBoard board = RunBoard();
+      await tester.pumpWidget(host(board));
+      await tester.pump();
+      expect(find.text('Candle paints 1'), findsOneWidget);
+
+      await tester.pumpWidget(
+        _host(board, _priced(MarketSnapshot.sample, 80000)),
+      );
+      await tester.pump();
+      expect(find.text('Candle paints 1'), findsOneWidget);
+    },
+  );
+
+  testWidgets('a coupled chart repaints when only the price changes', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 915));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final RunBoard board = RunBoard();
+    await tester.pumpWidget(host(board));
+    await tester.pump();
+    await tester.scrollUntilVisible(find.text('Coupled'), 200);
+    await tester.tap(find.text('Coupled'));
+    await tester.pump();
+    await tester.pump();
+    final int afterToggle = _paintCount(tester);
+
+    await tester.pumpWidget(
+      _host(board, _priced(MarketSnapshot.sample, 81000)),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(_paintCount(tester), greaterThan(afterToggle));
+  });
+}
+
+Widget _host(RunBoard board, MarketSnapshot snapshot) {
+  return Directionality(
+    textDirection: TextDirection.ltr,
+    child: MediaQuery(
+      data: const MediaQueryData(size: Size(412, 915)),
+      child: ShaderLabScreen(
+        key: const ValueKey<String>('lab'),
+        rendererLabel: 'Skia · OpenGL ES',
+        board: board,
+        snapshot: snapshot,
+        shaderAsset: 'shaders/depth_fill.frag',
+      ),
+    ),
+  );
+}
+
+MarketSnapshot _priced(MarketSnapshot snapshot, double last) {
+  return MarketSnapshot(
+    quote: snapshot.quote.withLast(last),
+    candles: snapshot.candles,
+    bids: snapshot.bids,
+    asks: snapshot.asks,
+  );
+}
+
+int _paintCount(WidgetTester tester) {
+  final String text = tester
+      .widget<Text>(find.textContaining('Candle paints'))
+      .data!;
+  return int.parse(text.replaceAll('Candle paints ', ''));
 }

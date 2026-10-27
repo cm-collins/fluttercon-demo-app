@@ -1,9 +1,12 @@
+import 'dart:developer' show Timeline;
+
 import 'package:flutter/widgets.dart';
 
 import '../logic/depth_session.dart';
 import '../logic/durations.dart';
 import '../logic/frame_timer.dart';
 import '../logic/market.dart';
+import '../logic/paint_ledger.dart';
 import '../logic/run_board.dart';
 import '../widgets/book_ladder.dart';
 import '../widgets/budget_readout.dart';
@@ -11,6 +14,7 @@ import '../widgets/candle_chart.dart';
 import '../widgets/depth_chart.dart';
 import '../widgets/lab_button.dart';
 import '../widgets/lab_chrome.dart';
+import '../widgets/layer_frame.dart';
 import '../widgets/lab_tokens.dart';
 import '../widgets/run_board_view.dart';
 
@@ -52,6 +56,8 @@ class ShaderLabScreen extends StatefulWidget {
 
 class _ShaderLabScreenState extends State<ShaderLabScreen> {
   late final DepthSession _session;
+  final PaintLedger _ledger = PaintLedger();
+  LayerMode _layers = LayerMode.isolated;
 
   @override
   void initState() {
@@ -68,6 +74,7 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
   @override
   void dispose() {
     _session.dispose();
+    _ledger.dispose();
     super.dispose();
   }
 
@@ -119,9 +126,31 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
                     _StatRow(quote: snapshot.quote),
                     const SizedBox(height: 20),
                     const LabSectionTitle('1 minute'),
-                    LabCard(
-                      padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
-                      child: CandleChart(candles: snapshot.candles),
+                    _LayerSwitch(
+                      mode: _layers,
+                      onChanged: (LayerMode mode) {
+                        setState(() => _layers = mode);
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    LayerFrame(
+                      mode: _layers,
+                      child: LabCard(
+                        padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+                        child: CandleChart(
+                          candles: snapshot.candles,
+                          mode: _layers,
+                          ledger: _ledger,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ListenableBuilder(
+                      listenable: _ledger,
+                      builder: (BuildContext context, Widget? _) => Text(
+                        'Candle paints ${_ledger.candlePaints}',
+                        style: LabText.label,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     const LabSectionTitle('Depth'),
@@ -247,20 +276,86 @@ class _QuoteHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Timeline.timeSync('KILN::Markets::quote', () {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              formatQuote(quote.last),
+              style: LabText.lapTime.copyWith(
+                fontSize: 36,
+                color: LabColors.textPrimary,
+              ),
+            ),
+          ),
+          LabPercent(changePercent: quote.changePercent),
+        ],
+      );
+    });
+  }
+}
+
+class _LayerSwitch extends StatelessWidget {
+  const _LayerSwitch({required this.mode, required this.onChanged});
+
+  final LayerMode mode;
+  final ValueChanged<LayerMode> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        Expanded(
+        _ModeChip(
+          label: 'Coupled',
+          selected: mode == LayerMode.coupled,
+          onTap: () => onChanged(LayerMode.coupled),
+        ),
+        const SizedBox(width: 8),
+        _ModeChip(
+          label: 'Isolated',
+          selected: mode == LayerMode.isolated,
+          onTap: () => onChanged(LayerMode.isolated),
+        ),
+      ],
+    );
+  }
+}
+
+class _ModeChip extends StatelessWidget {
+  const _ModeChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color accent = selected ? LabColors.violet : LabColors.textSecondary;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: selected ? LabColors.surfaceElevated : LabColors.surface,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: selected ? accent : LabColors.hairline),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Text(
-            formatQuote(quote.last),
-            style: LabText.lapTime.copyWith(
-              fontSize: 36,
-              color: LabColors.textPrimary,
+            label,
+            style: LabText.body.copyWith(
+              color: accent,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
-        LabPercent(changePercent: quote.changePercent),
-      ],
+      ),
     );
   }
 }

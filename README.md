@@ -1,16 +1,16 @@
-# Kiln: Pit Wall
+# Kiln: Shader Lab
 
-**The live demo app for "Beyond Skia: Deep-Dive GPU Scheduling and Profiling with Impeller on Android 10+"**
-Droidcon / FlutterCon KE 2026
+**A Flutter rendering and profiling demo for "Beyond Skia: Deep-Dive GPU Scheduling and Profiling with Impeller on Android 10+"**
 
-Kiln is an F1 race-replay dashboard built with Flutter. It looks like a premium product,
-but every component hides a realistic rendering anti-pattern. On stage, each one is
-profiled live with Flutter DevTools and Perfetto, explained at the Impeller and Vulkan
-level, and fixed with a "pit stop" toggle until every frame fits the 8.33 ms budget of a
-120 Hz display: about 4 ms for the UI thread and 4 ms for the raster thread.
+Kiln is currently a live Binance markets dashboard. It loads a USDT watchlist, opens a
+market snapshot with candles and an order book, and measures the first draw of a fragment
+shader used for the depth chart. The same Dart source can be built as two Android product
+flavors: **Kiln Impeller** and **Kiln Skia**.
 
-> OpenF1 car data arrives about 3.7 times per second. The screen refreshes 120 times per
-> second. That is about 32 frames between data points, and every frame has 8.33 ms.
+The app reads the display refresh rate at runtime and reports the corresponding frame
+budget. On a 120 Hz display that budget is 8.33 ms per frame. The dashboard records the
+measured draw and recovery window in a shared run board so the comparison can be repeated
+on the same device.
 
 ## Why "Kiln"
 
@@ -18,66 +18,93 @@ A kiln fires pottery before it is used. Impeller does the same with shaders: the
 compiled when the engine is built, not while your app runs. That is the difference from
 Skia, and the starting point of the talk.
 
-## What the demo shows
+## What the app shows
 
 ```mermaid
 flowchart LR
-    broken["Beautiful dashboard,<br/>red frames"] --> diagnose["Diagnose live:<br/>DevTools + Perfetto"]
-    diagnose --> explain["Explain the engine:<br/>tessellation, draw calls,<br/>offscreen passes"]
-    explain --> fix["Pit stop:<br/>one surgical fix"]
-    fix --> verify["Verify:<br/>replay 5 s, compare p90"]
-    verify -->|next lap| diagnose
-    verify --> finish["All fixes on:<br/>every frame on time"]
+    home["Kiln Markets"] --> list["Binance USDT watchlist"]
+    list --> book["Select a market"]
+    book --> snapshot["Candles + depth + order book"]
+    snapshot --> draw["Draw depth shader"]
+    draw --> timing["Record draw and recovery timing"]
 ```
 
-| Lap | Screen | Anti-pattern | Fix |
-|---|---|---|---|
-| 1 | Telemetry Duel | Rebuilding thousands of path segments every frame | Reduce to screen resolution, build once, separate cursor layer |
-| 2 | Speed Ribbon, thrashed live (1× to 8×) | Thousands of `drawPath` calls | One `drawVertices` call, then a build-time fragment shader in the same draw |
-| 3 | Pit Wall | `canvas.saveLayer` per car glow, hidden `saveLayer` in the tower, one blur per card, static map repainting | Gradient glows, leaf fades, `RepaintBoundary`, `BackdropGroup` |
-| 4 | Race Control | JSON decoded in `build()` on the main thread | `Isolate.run` |
+The dashboard uses public Binance market-data endpoints and a public trade WebSocket. It
+does not contain trading or account functionality. During a measured draw, live price
+notifications are held until the timing window closes so incoming data does not dirty the
+frame being measured.
 
-Before the laps, a **Shader Lab** screen shows why Impeller exists. One Flutter project
-builds the same screen as two Android product flavors: **Kiln Skia** and **Kiln Impeller**.
-Both use the same Flutter SDK, Dart code, assets and profile build mode; only the renderer
-configuration, package ID and launcher label differ. On a verified cold run, Skia's
-first-use frames can spike while shader programs are generated and compiled; its repeat
-run is smoother, while Impeller avoids Skia-style shader generation during the frame. A short
-[concept video](docs/talk/media/README.md) introduces the idea before the live run.
+Both flavors use the same Flutter SDK, Dart code, assets and profile build mode. The
+`impeller` flavor enables Impeller and reports the selected backend; Flutter uses Vulkan
+when the device driver is valid and otherwise falls back to OpenGL ES. The `skia` flavor
+disables Impeller for a controlled comparison and uses Skia on OpenGL ES.
 
-Every promise in the registered abstract is mapped to a demo moment in
-[Abstract alignment](docs/talk/abstract-alignment.md).
+The talk material documents both the current Shader Lab run and the earlier F1 replay
+concept. The [abstract alignment](docs/talk/abstract-alignment.md) and stage documents are
+useful for the talk, but are not a description of the current launcher surface.
 
 ## Status
 
-**Building.** Shader Lab, its timers, run board and the same-source `impeller` and `skia`
-Android product flavors are built. Lights Out, Pit Wall and the four laps are next.
+**Implemented.** The markets watchlist, Binance REST/WebSocket gateway, candle chart,
+order-book ladder, depth-fill shader, frame timer, run board, and Android `impeller` and
+`skia` flavors are implemented and covered by package/app tests. The F1 replay scenarios
+remain in `samples/` as reference material for the broader talk narrative; they are not
+currently wired into the launcher.
 
 ## Repository layout
 
 ```text
 apps/
-  kiln/           One Flutter app; builds Impeller and Skia Android flavors
+  kiln/           Flutter app; Binance dashboard and Android renderer flavors
 packages/
-  shader_lab/     Shared Shader Lab screen used by both flavor APKs
+  shader_lab/     Shared dashboard, shader, timing and presentation package
 docs/             PRD, TRD, research, design, talk, reference, history and deep-dive notes
-samples/          kiln_samples: broken and fixed reference code for the deep-dive notes
-tool/             OpenF1 session export script
+samples/          kiln_samples: broken and fixed rendering reference examples
+tool/             Documentation and profiling support tools
 ```
 
-See [TRD §4](docs/technical/TRD.md) for the full monorepo tree.
+See [TRD §4](docs/technical/TRD.md) for the original deep-dive architecture and full
+monorepo tree. Some planning documents still describe the earlier F1 replay concept.
 
 ## Sample code
 
-[`samples/`](samples/README.md) is a small Flutter package. Every scenario has a
-`...Broken` and a `...Fixed` widget with the same constructor, so the demo app can swap
-them with one toggle.
+[`samples/`](samples/README.md) is a small Flutter package of standalone rendering examples.
+Every scenario has a `...Broken` and a `...Fixed` widget with the same constructor. These
+examples support the deep-dive notes and tests; they are not currently reachable from the
+Kiln launcher.
 
 ```text
 cd samples
 flutter pub get
 flutter analyze
 flutter test
+```
+
+## Run the app
+
+Use a physical Android 10+ device for renderer and frame-timing comparisons. From the app
+directory:
+
+```bash
+cd apps/kiln
+flutter pub get
+flutter run --profile --trace-systrace --flavor impeller
+```
+
+To run the controlled Skia comparison, use the same command with `--flavor skia`. The
+flavors install side by side as `dev.fluttercon.kiln` and `dev.fluttercon.kiln.skia`.
+
+For a cold Skia shader run, clear only that app's data before launching it:
+
+```bash
+adb shell pm clear dev.fluttercon.kiln.skia
+```
+
+Run the automated checks from each package when changing code:
+
+```bash
+cd packages/shader_lab && flutter test
+cd ../../apps/kiln && flutter test
 ```
 
 ## Documentation
@@ -90,9 +117,9 @@ Start at [`docs/README.md`](docs/README.md).
 | [TRD](docs/technical/TRD.md) | Technical requirements: architecture, instrumentation, build modes |
 | [Impeller architecture](docs/research/01-impeller-architecture.md) | How Impeller turns paint calls into Vulkan work |
 | [Profiling toolchain](docs/research/02-profiling-toolchain.md) | DevTools, Perfetto, AGI and the diagnosis method |
-| [OpenF1 data](docs/research/03-openf1-data.md) | Telemetry source, limits and licence |
+| [OpenF1 data](docs/research/03-openf1-data.md) | Historical F1 telemetry research used by the talk concept |
 | [Design system](docs/design/design-system.md) | "Obsidian & Aurora" palette, typography, motion |
-| [Screens](docs/design/screens.md) | Every screen with its anti-pattern and fix |
+| [Screens](docs/design/screens.md) | Planned F1 screens and their anti-patterns |
 | [Talk outline](docs/talk/talk-outline.md) | 40-minute narrative and slide list |
 | [Demo script](docs/talk/demo-script.md) | What to click and say, minute by minute |
 | [Stage runbook](docs/talk/stage-runbook.md) | Setup, rehearsal and failure recovery |
@@ -119,9 +146,10 @@ Start at [`docs/README.md`](docs/README.md).
 
 ## Data and trademarks
 
-Telemetry comes from [OpenF1](https://openf1.org), an independent, community-run API, and is
-used here for a non-commercial, educational demo. Kiln is not affiliated with Formula 1, the
-FIA, Formula One Management or any team, and uses none of their logos or liveries.
+Market data comes from [Binance public market-data endpoints](https://data.binance.vision/).
+The app uses read-only public data and does not send orders. The F1/OpenF1 references in
+the talk and research documents describe planned or illustrative material and are not the
+source of data for the current app.
 
 ## License
 

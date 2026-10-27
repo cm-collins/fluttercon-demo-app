@@ -1,0 +1,68 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "samples",
+            "cwd": "samples",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "samples (profile mode)",
+            "cwd": "samples",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "samples (release mode)",
+            "cwd": "samples",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "kiln",
+            "cwd": "apps/kiln",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "kiln (profile mode)",
+            "cwd": "apps/kiln",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "kiln (release mode)",
+            "cwd": "apps/kiln",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "shader_lab",
+            "cwd": "packages/shader_lab",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "shader_lab (profile mode)",
+            "cwd": "packages/shader_lab",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "shader_lab (release mode)",
+            "cwd": "packages/shader_lab",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

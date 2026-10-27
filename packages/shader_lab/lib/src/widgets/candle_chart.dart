@@ -1,20 +1,38 @@
+import 'dart:developer' show Timeline;
+
 import 'package:flutter/widgets.dart';
 
 import '../logic/market.dart';
+import '../logic/paint_ledger.dart';
 import 'lab_tokens.dart';
 
-/// Solid candle bodies and wicks. No fragment shader, blur, or save layer.
+/// Solid candle bodies and wicks. No fragment shader and no blur.
+///
+/// [mode] decides whether a parent rebuild records this picture again.
+/// The paint is wrapped in `KILN::Markets::candles` so DevTools and Perfetto
+/// show the slice only when the chart actually paints.
 class CandleChart extends StatelessWidget {
-  const CandleChart({super.key, required this.candles});
+  const CandleChart({
+    super.key,
+    required this.candles,
+    required this.mode,
+    required this.ledger,
+  });
 
   final List<Candle> candles;
+  final LayerMode mode;
+  final PaintLedger ledger;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 168,
       child: CustomPaint(
-        painter: _CandlePainter(candles),
+        painter: _CandlePainter(
+          candles: candles,
+          coupled: mode == LayerMode.coupled,
+          ledger: ledger,
+        ),
         child: const SizedBox.expand(),
       ),
     );
@@ -22,12 +40,25 @@ class CandleChart extends StatelessWidget {
 }
 
 class _CandlePainter extends CustomPainter {
-  const _CandlePainter(this.candles);
+  const _CandlePainter({
+    required this.candles,
+    required this.coupled,
+    required this.ledger,
+  });
 
   final List<Candle> candles;
+  final bool coupled;
+  final PaintLedger ledger;
 
   @override
   void paint(Canvas canvas, Size size) {
+    Timeline.timeSync('KILN::Markets::candles', () {
+      ledger.noteCandlePaint();
+      _paint(canvas, size);
+    });
+  }
+
+  void _paint(Canvas canvas, Size size) {
     if (candles.isEmpty || size.isEmpty) {
       return;
     }
@@ -77,6 +108,13 @@ class _CandlePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CandlePainter oldDelegate) =>
-      oldDelegate.candles != candles;
+  bool shouldRepaint(_CandlePainter oldDelegate) {
+    if (coupled != oldDelegate.coupled) {
+      return true;
+    }
+    if (coupled) {
+      return true;
+    }
+    return oldDelegate.candles != candles;
+  }
 }
