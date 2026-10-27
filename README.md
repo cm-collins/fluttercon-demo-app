@@ -115,6 +115,7 @@ Start at [`docs/README.md`](docs/README.md).
 |---|---|
 | [PRD](docs/product/PRD.md) | Product requirements: goals, audience, scope, success metrics |
 | [TRD](docs/technical/TRD.md) | Technical requirements: architecture, instrumentation, build modes |
+| [Renderer proof plan](docs/technical/renderer-proof-plan.md) | Phased plan for backend evidence, deterministic benchmarks, traces and stage delivery |
 | [Impeller architecture](docs/research/01-impeller-architecture.md) | How Impeller turns paint calls into Vulkan work |
 | [Profiling toolchain](docs/research/02-profiling-toolchain.md) | DevTools, Perfetto, AGI and the diagnosis method |
 | [OpenF1 data](docs/research/03-openf1-data.md) | Historical F1 telemetry research used by the talk concept |

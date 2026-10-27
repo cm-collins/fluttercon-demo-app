@@ -1,12 +1,14 @@
-# Kiln: Pit Wall — Documentation
+# Kiln — Documentation
 
 Documentation for **Kiln: Pit Wall**, the live demo app for the talk
 **"Beyond Skia: Deep-Dive GPU Scheduling and Profiling with Impeller on Android 10+"**
 (Droidcon / FlutterCon KE 2026).
 
-Kiln is an F1 race-replay dashboard that looks premium but is deliberately built with
-rendering anti-patterns. On stage, each anti-pattern is profiled live and fixed with a
-"pit stop" toggle until every frame fits the 8.33 ms budget of a 120 Hz display.
+The current Kiln app is a Binance market dashboard used to compare Flutter's Skia and
+Impeller rendering paths on Android. It measures a fragment-shader draw, records frame
+timings and supports matching `impeller` and `skia` Android flavors. Some research, talk
+and sample documents describe the earlier F1 race-replay concept; those remain as historical
+deep-dive material until the renderer proof plan is complete.
 
 ## How the docs are organised
 
@@ -45,6 +47,7 @@ flowchart LR
 |---|---|---|
 | `product/` | [PRD](product/PRD.md) | What we are building, for whom, and how we know it succeeded |
 | `technical/` | [TRD](technical/TRD.md) | Architecture, modules, instrumentation and technical requirements |
+| `technical/` | [Renderer proof plan](technical/renderer-proof-plan.md) | Phased plan for backend evidence, deterministic measurements, traces and stage delivery |
 | `research/` | [Impeller architecture](research/01-impeller-architecture.md) | How Impeller turns Flutter paint calls into Vulkan work |
 | `research/` | [Profiling toolchain](research/02-profiling-toolchain.md) | DevTools, Perfetto, AGI and what each one can prove |
 | `research/` | [OpenF1 data](research/03-openf1-data.md) | The telemetry source, its limits and licence |
@@ -95,7 +98,7 @@ are not pasted into the notes; they link to the maintained sample package in
 2. Learning the material: **Talk vocabulary**, then the **history** overview, then **notes 01 → 08** in order.
 3. Building the app: **TRD**, **Design system**, then **note 07** with the `samples/` code.
 4. Rehearsing: **Demo script**, then **Stage runbook**.
-5. Profiling Shader Lab on device: [TRD §11.0](technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything), then [Profiling toolchain](research/02-profiling-toolchain.md).
+5. Building the renderer proof: [Renderer proof plan](technical/renderer-proof-plan.md), then [TRD §11.0](technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything) and [Profiling toolchain](research/02-profiling-toolchain.md).
 
 ## Conventions
 
