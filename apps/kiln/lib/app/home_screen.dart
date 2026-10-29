@@ -37,7 +37,7 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 24),
               _Entry(
                 title: 'Shader Storm',
-                subtitle: '48 new effects in one frame: JIT vs AOT',
+                subtitle: 'Dozens of new effects in one frame: JIT vs AOT',
                 onTap: () => Navigator.of(context).pushNamed(KilnRoutes.storm),
               ),
               const SizedBox(height: 12),

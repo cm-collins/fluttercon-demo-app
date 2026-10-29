@@ -43,7 +43,11 @@ class _HeartbeatLaneState extends State<HeartbeatLane>
   void _tick(Duration elapsed) {
     final double position = _position(elapsed);
     final Duration step = elapsed - _last;
-    if (_last != Duration.zero && step > _freeze) {
+    if (_last != Duration.zero && step >= widget.period) {
+      // The dot would have gone round at least once; mark the whole lane
+      // rather than the leftover sliver.
+      _gaps.add(_Gap(from: 0, to: 1, at: elapsed, length: step));
+    } else if (_last != Duration.zero && step > _freeze) {
       _gaps.add(
         _Gap(from: _position(_last), to: position, at: elapsed, length: step),
       );

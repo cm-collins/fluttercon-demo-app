@@ -5,6 +5,7 @@ import '../logic/frame_history.dart';
 import '../logic/frame_timer.dart';
 import '../logic/frame_window.dart';
 import '../logic/storm_session.dart';
+import '../logic/storm_tiles.dart';
 import '../widgets/frame_strip.dart';
 import '../widgets/heartbeat_lane.dart';
 import '../widgets/lab_button.dart';
@@ -118,15 +119,11 @@ class _ShaderStormScreenState extends State<ShaderStormScreen> {
                     child: LabCard(
                       padding: const EdgeInsets.all(6),
                       child: _session.revealed
-                          ? StormGrid(tiles: _session.tiles)
-                          : Center(
-                              child: Text(
-                                '${_session.tiles.length} effects not drawn yet',
-                                style: LabText.body.copyWith(
-                                  color: LabColors.textSecondary,
-                                ),
-                              ),
-                            ),
+                          ? StormGrid(
+                              tiles: _session.tiles,
+                              columns: _session.tiles.length > 48 ? 12 : 8,
+                            )
+                          : _Waiting(session: _session),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -195,6 +192,82 @@ class _Header extends StatelessWidget {
         const SizedBox(width: 12),
         LabBadge(label: rendererLabel),
       ],
+    );
+  }
+}
+
+/// The empty grid. Before the first reveal it also offers the grid sizes.
+class _Waiting extends StatelessWidget {
+  const _Waiting({required this.session});
+
+  final StormSession session;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            '${session.tiles.length} effects not drawn yet',
+            style: LabText.body.copyWith(color: LabColors.textSecondary),
+          ),
+          if (session.canResize) ...<Widget>[
+            const SizedBox(height: 16),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                for (final int count in stormTileCounts) ...<Widget>[
+                  if (count != stormTileCounts.first) const SizedBox(width: 8),
+                  _CountChip(
+                    count: count,
+                    selected: count == session.tiles.length,
+                    onTap: () => session.resize(count),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CountChip extends StatelessWidget {
+  const _CountChip({
+    required this.count,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final int count;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color accent = selected ? LabColors.violet : LabColors.textSecondary;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: selected ? LabColors.surfaceElevated : LabColors.surface,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: selected ? accent : LabColors.hairline),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          child: Text(
+            '$count',
+            style: LabText.body.copyWith(
+              color: accent,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

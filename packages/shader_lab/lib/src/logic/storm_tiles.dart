@@ -10,6 +10,14 @@ enum StormFilter { none, matrix, mode }
 
 const List<int> stormStops = <int>[2, 3, 5];
 
+/// Grid sizes offered before the first reveal.
+const List<int> stormTileCounts = <int>[48, 96, 144];
+
+/// A mask blur is an extra render pass on Impeller every frame. Capping the
+/// count keeps the per-frame cost flat when the grid grows, so a larger storm
+/// adds first-use work without adding drawing work.
+const int stormMaxBlurred = 12;
+
 const List<TileMode> stormTileModes = <TileMode>[
   TileMode.clamp,
   TileMode.repeated,
@@ -69,22 +77,28 @@ class StormTileSpec {
 List<StormTileSpec> stormTiles(int count) {
   final Set<String> seen = <String>{};
   final List<StormTileSpec> tiles = <StormTileSpec>[];
+  int blurred = 0;
   // The dimension cycles repeat every 5040 indices.
   for (int i = 0; tiles.length < count && i < 5040; i++) {
+    // One tile in four has a blur, up to [stormMaxBlurred].
+    final StormBlur blur = i % 4 == 1 && blurred < stormMaxBlurred
+        ? StormBlur.values[1 + (i ~/ 4) % 3]
+        : StormBlur.none;
     final StormTileSpec spec = StormTileSpec(
       fill: StormFill.values[i % 4],
       stops: stormStops[(i ~/ 4) % 3],
       tileMode: stormTileModes[(i * 3 + i ~/ 7) % 4],
       blendMode: stormBlendModes[(i * 2 + 1) % 3],
-      // A mask blur is an extra render pass on Impeller every frame, so only
-      // one tile in four has one.
-      blur: i % 4 == 1 ? StormBlur.values[1 + (i ~/ 4) % 3] : StormBlur.none,
+      blur: blur,
       filter: StormFilter.values[(i ~/ 3) % 3],
       shape: StormShape.values[(i ~/ 5) % 4],
       stroke: (i ~/ 2).isOdd,
     );
     if (seen.add(spec.key)) {
       tiles.add(spec);
+      if (blur != StormBlur.none) {
+        blurred++;
+      }
     }
   }
   return tiles;

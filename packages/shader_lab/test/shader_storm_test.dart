@@ -59,6 +59,37 @@ void main() {
     );
   });
 
+  test('every offered grid size is all distinct effects', () {
+    for (final int count in stormTileCounts) {
+      final List<StormTileSpec> tiles = stormTiles(count);
+      expect(tiles, hasLength(count));
+      expect(tiles.map((StormTileSpec t) => t.key).toSet(), hasLength(count));
+    }
+  });
+
+  test('a larger storm does not add blurs', () {
+    for (final int count in stormTileCounts) {
+      final int blurred = stormTiles(count)
+          .where((StormTileSpec t) => t.blur != StormBlur.none)
+          .length;
+      expect(blurred, stormMaxBlurred);
+    }
+  });
+
+  test('the grid size is locked once the process has revealed', () {
+    final StormRecord record = StormRecord();
+    final StormSession session = StormSession(record: record);
+
+    session.resize(144);
+    expect(session.tiles, hasLength(144));
+
+    record.add(result(300));
+    expect(session.canResize, isFalse);
+    session.resize(48);
+    expect(session.tiles, hasLength(144));
+    session.dispose();
+  });
+
   test('only the first reveal of the process is recorded as first', () {
     final StormRecord record = StormRecord();
     expect(record.nextIsFirst, isTrue);

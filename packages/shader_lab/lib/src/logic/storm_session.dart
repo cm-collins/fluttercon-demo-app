@@ -40,13 +40,25 @@ class StormSession extends ChangeNotifier {
     : tiles = stormTiles(tileCount);
 
   final StormRecord record;
-  final List<StormTileSpec> tiles;
+  List<StormTileSpec> tiles;
   final FrameTimer _timer = FrameTimer();
 
   StormState state = StormState.hidden;
   bool _disposed = false;
 
   bool get revealed => state != StormState.hidden;
+
+  /// The grid size can only change before the first reveal of the process.
+  /// A later change would draw new effects in a run labelled "repeat".
+  bool get canResize => state == StormState.hidden && record.nextIsFirst;
+
+  void resize(int tileCount) {
+    if (!canResize || tileCount == tiles.length) {
+      return;
+    }
+    tiles = stormTiles(tileCount);
+    _notify();
+  }
 
   void reveal(Duration budget) {
     if (_disposed || state != StormState.hidden) {
@@ -88,6 +100,7 @@ class StormSession extends ChangeNotifier {
     debugPrint(
       'KILN::Storm::result '
       'temperature=${record.nextIsFirst ? 'first' : 'repeat'} '
+      'tiles=${tiles.length} '
       'worstMs=${formatMs(result.worst)} '
       'overBudget=${result.overBudgetFrames}/${result.frames}',
     );

@@ -1,3 +1,5 @@
+import 'dart:ui' show VertexMode, Vertices;
+
 import 'package:flutter/widgets.dart';
 
 import '../logic/durations.dart';
@@ -144,11 +146,24 @@ class _LanePainter extends CustomPainter {
     final double budgetY =
         size.height - size.height * budget.inMicroseconds / scale;
 
-    // One path per colour keeps this to a few draw calls however many bars
-    // there are, so the meter adds little to the raster time it reports.
-    final Path onBudget = Path();
-    final Path overBudget = Path();
-    final Path caps = Path();
+    // Every bar is two triangles in one drawVertices call, so the meter adds
+    // little to the raster time it reports. A Path of many rectangles would
+    // also be one call, but Skia renders it through its slow general path
+    // code and the meter itself went over budget.
+    final List<Offset> points = <Offset>[];
+    final List<Color> colors = <Color>[];
+    void bar(Rect r, Color color) {
+      points.addAll(<Offset>[
+        r.topLeft,
+        r.topRight,
+        r.bottomRight,
+        r.topLeft,
+        r.bottomRight,
+        r.bottomLeft,
+      ]);
+      colors.addAll(List<Color>.filled(6, color));
+    }
+
     final List<FrameSample> frames = history.frames;
     final int slots = history.capacity;
     final double slot = size.width / slots;
@@ -158,17 +173,21 @@ class _LanePainter extends CustomPainter {
       final double fraction = cost.inMicroseconds / scale;
       final double h = size.height * fraction.clamp(0.0, 1.0);
       final double left = (offset + i) * slot;
-      (cost > budget ? overBudget : onBudget).addRect(
+      bar(
         Rect.fromLTWH(left, size.height - h, slot * 0.7, h),
+        cost > budget ? LabColors.red : LabColors.green,
       );
       if (fraction > 1) {
-        caps.addRect(Rect.fromLTWH(left, 0, slot * 0.7, 3));
+        bar(Rect.fromLTWH(left, 0, slot * 0.7, 3), LabColors.textPrimary);
       }
     }
-    canvas
-      ..drawPath(onBudget, Paint()..color = LabColors.green)
-      ..drawPath(overBudget, Paint()..color = LabColors.red)
-      ..drawPath(caps, Paint()..color = LabColors.textPrimary);
+    if (points.isNotEmpty) {
+      canvas.drawVertices(
+        Vertices(VertexMode.triangles, points, colors: colors),
+        BlendMode.dst,
+        Paint(),
+      );
+    }
 
     canvas.drawLine(
       Offset(0, budgetY),
