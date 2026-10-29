@@ -31,7 +31,7 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${View.of(context).display.refreshRate.round()} Hz · ${formatMs(budget)} ms budget',
+                '${View.of(context).display.refreshRate.round()} Hz · ${formatMs(budget)} ms budget · ${KilnScope.benchmarkModeOf(context) ? 'BENCHMARK' : 'LIVE'}',
                 style: LabText.label,
               ),
               const SizedBox(height: 24),

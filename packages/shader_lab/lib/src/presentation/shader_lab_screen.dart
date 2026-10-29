@@ -7,6 +7,7 @@ import '../logic/durations.dart';
 import '../logic/frame_timer.dart';
 import '../logic/market.dart';
 import '../logic/paint_ledger.dart';
+import '../logic/renderer_evidence.dart';
 import '../logic/run_board.dart';
 import '../widgets/book_ladder.dart';
 import '../widgets/budget_readout.dart';
@@ -17,6 +18,8 @@ import '../widgets/lab_chrome.dart';
 import '../widgets/layer_frame.dart';
 import '../widgets/lab_tokens.dart';
 import '../widgets/run_board_view.dart';
+import '../widgets/renderer_evidence_card.dart';
+import '../widgets/shader_jank_panel.dart';
 
 /// Market dashboard used to time the first draw of one fragment shader.
 ///
@@ -30,8 +33,14 @@ class ShaderLabScreen extends StatefulWidget {
     required this.rendererLabel,
     required this.board,
     this.architectureNote,
+    this.evidence = const RendererEvidence(
+      engine: 'Unspecified',
+      backend: null,
+      backendVerified: false,
+    ),
     this.snapshot,
     this.shaderAsset = 'packages/shader_lab/shaders/depth_fill.frag',
+    this.jankShaderAsset = 'packages/shader_lab/shaders/speed_ramp.frag',
     this.onMeasuring,
     this.onBack,
   });
@@ -39,10 +48,12 @@ class ShaderLabScreen extends StatefulWidget {
   final String rendererLabel;
   final RunBoard board;
   final String? architectureNote;
+  final RendererEvidence evidence;
   final MarketSnapshot? snapshot;
 
   /// Asset key of the depth shader. The package test uses its own asset path.
   final String shaderAsset;
+  final String jankShaderAsset;
 
   /// Fired when a measured draw starts or finishes, so a live price socket can pause.
   final ValueChanged<bool>? onMeasuring;
@@ -121,6 +132,12 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
                       ),
                     )
                   else ...<Widget>[
+                    RendererEvidenceCard(
+                      evidence: widget.evidence,
+                      rendererLabel: widget.rendererLabel,
+                      budget: budget,
+                    ),
+                    const SizedBox(height: 16),
                     _QuoteHeader(quote: snapshot.quote),
                     const SizedBox(height: 16),
                     _StatRow(quote: snapshot.quote),
@@ -198,6 +215,13 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
                     RunBoardView(
                       board: widget.board,
                       onClear: widget.board.clear,
+                    ),
+                    const SizedBox(height: 20),
+                    const LabSectionTitle('Shader first use'),
+                    ShaderJankPanel(
+                      shaderAsset: widget.jankShaderAsset,
+                      budget: budget,
+                      onMeasuring: widget.onMeasuring,
                     ),
                     if (widget.architectureNote != null) ...<Widget>[
                       const SizedBox(height: 16),

@@ -7,6 +7,7 @@ class WatchlistView extends StatelessWidget {
   const WatchlistView({
     super.key,
     required this.rendererLabel,
+    this.benchmarkMode = false,
     required this.quotes,
     required this.loading,
     required this.error,
@@ -15,6 +16,7 @@ class WatchlistView extends StatelessWidget {
   });
 
   final String rendererLabel;
+  final bool benchmarkMode;
   final List<MarketQuote>? quotes;
   final bool loading;
   final String? error;
@@ -43,7 +45,7 @@ class WatchlistView extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${View.of(context).display.refreshRate.round()} Hz · ${formatMs(budget)} ms budget',
+                '${View.of(context).display.refreshRate.round()} Hz · ${formatMs(budget)} ms budget · ${benchmarkMode ? 'BENCHMARK' : 'LIVE'}',
                 style: LabText.label,
               ),
               const SizedBox(height: 16),

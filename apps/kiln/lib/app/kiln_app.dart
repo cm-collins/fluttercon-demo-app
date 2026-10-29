@@ -18,10 +18,12 @@ class KilnApp extends StatelessWidget {
     super.key,
     this.runtime = KilnRuntime.impeller,
     this.gateway = const BinanceGateway(),
+    this.benchmarkMode = false,
   });
 
   final KilnRuntime runtime;
   final MarketGateway gateway;
+  final bool benchmarkMode;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +39,7 @@ class KilnApp extends StatelessWidget {
         return KilnScope(
           runtime: runtime,
           gateway: gateway,
+          benchmarkMode: benchmarkMode,
           child: child ?? const SizedBox(),
         );
       },
@@ -45,6 +48,7 @@ class KilnApp extends StatelessWidget {
           KilnRoutes.shaderLab => MarketsRoute(
             runtime: runtime,
             gateway: gateway,
+            benchmarkMode: benchmarkMode,
           ),
           _ => const HomeScreen(),
         };
@@ -62,11 +66,13 @@ class KilnScope extends InheritedWidget {
     super.key,
     required this.runtime,
     required this.gateway,
+    required this.benchmarkMode,
     required super.child,
   });
 
   final KilnRuntime runtime;
   final MarketGateway gateway;
+  final bool benchmarkMode;
 
   static KilnScope _scope(BuildContext context) {
     final KilnScope? scope = context
@@ -80,8 +86,13 @@ class KilnScope extends InheritedWidget {
   static MarketGateway gatewayOf(BuildContext context) =>
       _scope(context).gateway;
 
+  static bool benchmarkModeOf(BuildContext context) =>
+      _scope(context).benchmarkMode;
+
   @override
   bool updateShouldNotify(KilnScope oldWidget) {
-    return runtime != oldWidget.runtime || gateway != oldWidget.gateway;
+    return runtime != oldWidget.runtime ||
+        gateway != oldWidget.gateway ||
+        benchmarkMode != oldWidget.benchmarkMode;
   }
 }

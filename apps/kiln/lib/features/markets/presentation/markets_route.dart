@@ -8,10 +8,16 @@ import 'watchlist_view.dart';
 
 /// Binds a [MarketsSession] to the watchlist and the instrument.
 class MarketsRoute extends StatefulWidget {
-  const MarketsRoute({super.key, required this.runtime, required this.gateway});
+  const MarketsRoute({
+    super.key,
+    required this.runtime,
+    required this.gateway,
+    this.benchmarkMode = false,
+  });
 
   final KilnRuntime runtime;
   final MarketGateway gateway;
+  final bool benchmarkMode;
 
   @override
   State<MarketsRoute> createState() => _MarketsRouteState();
@@ -50,6 +56,7 @@ class _MarketsRouteState extends State<MarketsRoute> {
         if (session.selected == null) {
           return WatchlistView(
             rendererLabel: widget.runtime.label,
+            benchmarkMode: widget.benchmarkMode,
             quotes: session.quotes,
             loading: session.loading,
             error: session.error,
@@ -67,6 +74,7 @@ class _MarketsRouteState extends State<MarketsRoute> {
         return ShaderLabScreen(
           rendererLabel: widget.runtime.label,
           architectureNote: widget.runtime.architectureNote,
+          evidence: widget.runtime.evidence,
           board: marketRuns,
           snapshot: session.loading ? null : session.shown,
           onMeasuring: session.setMeasuring,

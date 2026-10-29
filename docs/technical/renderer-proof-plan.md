@@ -565,3 +565,18 @@ Implement Phases 0–2A first. They establish deterministic inputs, backend trut
 boundaries and the shader-jank experiment. Then implement Phases 4–5 so every later UI and talk
 improvement is based on evidence. Build the teaching surface and stage polish after the
 measurement pipeline is trustworthy.
+
+## Current implementation checkpoint
+
+The current codebase now contains the first vertical slice of Phases 0–2A:
+
+- `KILN_BENCHMARK=true` selects a deterministic fixture gateway.
+- The app displays conservative renderer evidence and marks the backend unverified until
+  startup logs confirm it.
+- Shader Lab includes a separate animated first-use shader experiment with load, first-use,
+  warm-frame, over-budget and recovery readouts.
+- `tool/benchmark/capture_renderer_evidence.sh` captures relevant startup log lines.
+
+The remaining work in these phases is to correlate the captured backend evidence with the
+benchmark report, add automated repeated-run collection, and validate the cold/warm protocol
+on the target physical devices.

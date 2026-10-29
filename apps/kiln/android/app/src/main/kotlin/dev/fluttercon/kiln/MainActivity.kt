@@ -14,6 +14,7 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "rendererFamily" -> result.success(rendererFamily())
+                "rendererEvidence" -> result.success(rendererEvidence())
                 else -> result.notImplemented()
             }
         }
@@ -25,5 +26,21 @@ class MainActivity : FlutterActivity() {
             PackageManager.GET_META_DATA,
         )
         return info.metaData?.getString("dev.fluttercon.kiln.RENDERER_FAMILY") ?: "impeller"
+    }
+
+    private fun rendererEvidence(): Map<String, Any?> {
+        val info = packageManager.getApplicationInfo(
+            packageName,
+            PackageManager.GET_META_DATA,
+        )
+        val family = info.metaData?.getString("dev.fluttercon.kiln.RENDERER_FAMILY")
+            ?: "impeller"
+        return mapOf(
+            "family" to family,
+            "backend" to null,
+            "backendVerified" to false,
+            "androidApi" to android.os.Build.VERSION.SDK_INT,
+            "device" to "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}",
+        )
     }
 }

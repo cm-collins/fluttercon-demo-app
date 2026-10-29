@@ -9,6 +9,11 @@ flutter run --profile --flavor impeller
 flutter run --profile --flavor skia
 ```
 
+For deterministic renderer measurements, add
+`--dart-define=KILN_BENCHMARK=true`. This selects the bundled market fixture instead of the
+live Binance gateway. See the repository-level [`tool/benchmark/README.md`](../../tool/benchmark/README.md)
+for backend evidence capture.
+
 The `impeller` flavor enables Impeller and owns `kiln://` deep links. Flutter uses Vulkan
 when the phone's driver is valid and otherwise uses OpenGL ES. The `skia` flavor disables
 Impeller, so Android renders with Skia on OpenGL ES. The display refresh rate is read at

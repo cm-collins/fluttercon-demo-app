@@ -94,6 +94,10 @@ flutter run --profile --trace-systrace --flavor impeller
 To run the controlled Skia comparison, use the same command with `--flavor skia`. The
 flavors install side by side as `dev.fluttercon.kiln` and `dev.fluttercon.kiln.skia`.
 
+For deterministic benchmark data, add `--dart-define=KILN_BENCHMARK=true`. This replaces
+Binance with the bundled fixture while leaving the renderer and timing path unchanged.
+Backend evidence capture is documented in [`tool/benchmark/README.md`](tool/benchmark/README.md).
+
 For a cold Skia shader run, clear only that app's data before launching it:
 
 ```bash
