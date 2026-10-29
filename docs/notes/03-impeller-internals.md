@@ -114,6 +114,26 @@ defeat it.
   [`speed_ramp.frag` sample](../../samples/shaders/speed_ramp.frag).
 - A pipeline (shaders + fixed state) is chosen per draw; "SetPipeline" is one of the most
   frequent calls in Vulkan traces.
+- **Pipelines are not all built up front.** Impeller builds many at startup; a draw that needs
+  a combination of shader and state that does not exist yet (for example a blend mode or
+  attachment setup not used before) builds it on the raster thread, inside that frame. The
+  driver turns the precompiled SPIR-V into GPU machine code at that point.
+- Built pipelines are saved to a Vulkan pipeline cache on disk
+  (`code_cache/flutter.impeller.vkcache`), so the next launch builds them faster.
+
+```mermaid
+flowchart LR
+    draw["Draw with a<br/>contents type and state"] --> have{"Pipeline<br/>already built?"}
+    have -->|"yes"| bind["Bind it<br/>microseconds"]
+    have -->|"no"| make["PipelineVK::Create<br/>from SPIR-V compiled<br/>at engine build time"]
+    make --> cache["Kept in memory<br/>and in vkcache on disk"]
+    cache --> bind
+    bind --> rec["Record the draw<br/>into the command buffer"]
+```
+
+Measured on a Mali phone ([note 09](09-shader-storm-findings.md)): revealing 48 new effects
+built **30 pipelines in 58 ms** on `1.raster`, about 2 ms each; the repeat built none.
+Skia, for the same tiles, built 52 programs in 648 ms.
 
 ## Android specifics
 
@@ -130,6 +150,7 @@ defeat it.
 | "RepaintBoundary caches my widget as an image" | It isolates repaints; Impeller has no raster cache. Use `SnapshotWidget` or `toImageSync` deliberately. |
 | "Impeller uses GPU tessellation shaders" | Path tessellation is on the CPU. |
 | "No shader compilation means no raster cost" | Raster cost is tessellation, draw volume, offscreen passes and fill rate. |
+| "AOT means nothing happens on first use" | Pipelines for new GPU states are still built in the frame (measured 30 in 58 ms for 48 new effects). |
 | "Impeller is always faster than Skia" | More predictable; some effects measured slower. |
 
 ## Sources

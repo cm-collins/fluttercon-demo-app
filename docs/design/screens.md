@@ -17,7 +17,11 @@ flowchart LR
     control -.-> room
     room --> rosetta["6 · Rosetta tab"]
     pitwall -.-> lab["7 · Shader Lab<br/>(also in the Skia flavor APK)"]
+    pitwall -.-> storm["8 · Shader Storm<br/>(both flavor APKs)"]
 ```
+
+The current Kiln launcher shows two entries: **Shader Storm** and **Markets** (Shader Lab).
+Screens 0 to 6 describe the earlier F1 concept.
 
 Every screen can also be opened with a `kiln://scenario/<id>` deep link.
 
@@ -129,6 +133,33 @@ on first use versus Impeller's offline-compiled shader set. UI lives in
 | Skia, verified cold run after reset | Long recovery time, red; DevTools shows long raster frames |
 | Skia, repeat run | Recovery time and the first-minus-repeat gap show the cached-shader improvement |
 | Impeller, first run | Close to its repeat run; no Skia-style shader generation occurs mid-frame |
+
+## 8 · Shader Storm
+
+**Purpose:** make the JIT vs AOT difference visible from the back of the room. One tap
+draws dozens of never-seen effects in one frame; Skia has to write and compile a shader for
+each, Impeller only builds pipelines. UI lives in `packages/shader_lab`
+([`shader_storm_screen.dart`](../../packages/shader_lab/lib/src/presentation/shader_storm_screen.dart)).
+
+| Area, top to bottom | Shows |
+|---|---|
+| Header | Renderer badge, refresh rate and frame budget; one line on how this engine gets its shaders |
+| **MOTION** | A dot that moves every frame. A freeze leaves a red bar for 4 s; a freeze longer than 1.6 s paints the whole lane |
+| **UI · Dart on the main thread** | One bar per frame of Dart work (`buildDuration`), budget line, peak since the last reveal |
+| **RASTER · engine on 1.raster** | One bar per frame of raster-thread work (`rasterDuration`), budget line, peak |
+| Scoreboard | **FIRST REVEAL** and **REPEAT**: worst frame in the 16 frames after the tap, and frames over budget |
+| Grid | 48, 96 or 144 tiles, each a different mix of gradient, stops, tile mode, blend, blur, colour filter, shape and stroke. The size is chosen before the first reveal of the process |
+| Button | **REVEAL N EFFECTS**, then **HIDE** |
+
+| Run (144 tiles, data cleared first) | What the audience should see |
+|---|---|
+| Skia, first reveal | Whole MOTION lane red; RASTER peak about 1.9 s; UI lane green |
+| Skia, repeat | About 25 ms: the programs are cached |
+| Impeller, first reveal | About 166 ms; a short red gap |
+| Impeller, repeat | About 45–55 ms |
+
+Every reveal writes `KILN::Storm::result` to logcat and to the timeline. Measurements and
+traces: [09 · Shader Storm findings](../notes/09-shader-storm-findings.md).
 
 ## Anti-pattern coverage
 

@@ -38,7 +38,10 @@ to confuse), use [Talk vocabulary](../talk/vocabulary.md).
 | **MSAA** | Multisample antialiasing. Impeller uses 4× on mobile, resolved in tile memory. |
 | **Opacity peephole** | Engine optimisation that applies group opacity per draw when children don't overlap, avoiding `saveLayer`. |
 | **Perfetto** | Android's system tracing tool and trace viewer (successor to Systrace on Android 10+). |
-| **Pipeline (PSO)** | Compiled shaders plus fixed GPU state. Impeller builds them ahead of time. |
+| **Pipeline (PSO)** | Compiled shaders plus fixed GPU state such as blending. Impeller's shaders are compiled at engine build time; it builds many pipelines at startup and the rest on first use (about 2 ms each, measured). |
+| **Pipeline cache (Vulkan)** | Built pipelines saved to disk so the next launch builds them faster. Impeller's is `code_cache/flutter.impeller.vkcache`. |
+| **Program (Skia)** | A shader Skia generated for one combination of draw state, compiled and linked by the GL driver at runtime (about 12.5 ms each, measured). Saved to disk in a folder named after the engine version. |
+| **CPU frequency scaling** | The OS lowers a core's clock when the phone is idle and raises it under load. A burst of work that arrives while the clock is low runs slowly; a source of noisy first-use measurements. |
 | **Process** | OS container for a running application, its memory and resources. A process contains one or more threads. |
 | **Profile mode** | AOT-compiled build with tracing hooks. The only mode for performance measurement. |
 | **Raster cache** | Skia-era cache of complex layers as images. Impeller has none. |
@@ -47,6 +50,7 @@ to confuse), use [Talk vocabulary](../talk/vocabulary.md).
 | **Render target cache** | Impeller's reuse of offscreen textures across frames. |
 | **`RepaintBoundary`** | Widget that gives its subtree its own layer so repaints don't spread. Not a cache on Impeller. |
 | **`saveLayer`** | Canvas call that draws a group into an offscreen texture, then composites it. Triggers a render-pass switch. |
+| **Shader Storm** | Kiln screen that draws 48, 96 or 144 differently styled tiles in one frame, to show first-use shader and pipeline cost in the `skia` and `impeller` flavors. See [note 09](09-shader-storm-findings.md). |
 | **Shader Lab** | One Kiln screen built as current-SDK `skia` and `impeller` Android flavors to compare first-use shader compilation live while holding code and build mode constant. |
 | **Stall time** | Kiln timer: total time frames ran over budget after a trigger. See [vocabulary](../talk/vocabulary.md). |
 | **Recovery time** | Kiln timer: from the trigger frame until frames are back within the display budget, from `FrameTiming` timestamps. |

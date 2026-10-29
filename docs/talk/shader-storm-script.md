@@ -5,11 +5,14 @@ Quoted lines are the intended wording; say them in your own voice, but keep the 
 and claims exactly as written. Every number below was measured on the stage phone and is
 listed in [Measured evidence](#measured-evidence).
 
-**Length:** about 6 minutes. **Phones:** one, with both flavors installed.
+**Length:** about 6 minutes. **Phones:** one, with both flavors installed. **Grid:** 144
+tiles. What every panel means and what happens on each thread:
+[09 · Shader Storm findings](../notes/09-shader-storm-findings.md).
 
 ## Before you walk on
 
-1. Charge the phone and turn on Developer options → **Stay awake**.
+1. Charge the phone and turn on Developer options → **Stay awake**. Set the display refresh
+   rate to a fixed 120 Hz; the phone otherwise switches between 120 Hz and 90 Hz.
 2. Wipe Skia's shader cache so the first reveal is truly cold:
 
    ```text
@@ -42,7 +45,7 @@ listed in [Measured evidence](#measured-evidence).
 > Impeller'*. On the other build it writes: *'Using the Impeller rendering backend
 > (Vulkan)'*. Same Dart code, same phone, one setting different."
 
-**Do:** Tap **Shader Storm**.
+**Do:** Tap **Shader Storm**, then tap **144** under the empty grid.
 
 ## 2. The screen (0:45)
 
@@ -57,13 +60,14 @@ listed in [Measured evidence](#measured-evidence).
 > **The motion lane.** This dot moves every frame. If the app freezes, the dot jumps and the
 > jump stays on screen in red. You don't need to read a number.
 >
-> **Two threads.** Every Flutter frame is made twice. The **UI thread** runs your Dart code
-> and decides *what* to draw. The **raster thread** turns that into GPU work. The orange line
-> is the budget, and the corner shows the worst frame since the last reveal.
+> **Two CPU threads.** Every Flutter frame is made twice. The top lane is your Dart code,
+> running on Android's main thread: it decides *what* to draw. The bottom lane is Flutter's
+> **raster thread**: it turns that into work the GPU understands. Neither of them is the GPU.
+> The orange line is the budget, and the corner shows the worst frame since the last reveal.
 >
 > **The scoreboard.** The slowest frame after the first reveal, and after a repeat.
 >
-> **48 tiles, not drawn yet.** Each is a different mix of ordinary Flutter paint:
+> **144 tiles, not drawn yet.** Each is a different mix of ordinary Flutter paint:
 > gradients, blurs, colour filters, blend modes, strokes. The kind of thing every app has."
 
 ## 3. The idea (0:45)
@@ -80,42 +84,47 @@ listed in [Measured evidence](#measured-evidence).
 
 ## 4. Skia, cold (0:45)
 
-**Do:** Tap **REVEAL 48 EFFECTS**. Say nothing for two seconds.
+**Do:** Tap **REVEAL 144 EFFECTS**. Say nothing for two seconds.
 
-**Screen:** Red gap on the motion lane; FIRST REVEAL reads about 680 ms.
+**Screen:** The whole motion lane turns red; FIRST REVEAL reads about 1,860 ms. The UI lane
+stays green; the RASTER peak reads the same 1.8 s.
 
 **Say:**
 
-> "That red block is where the app froze.
+> "The whole lane is red. The app froze for longer than one trip of that dot.
 >
-> Slowest frame: about **680 milliseconds**. Our budget is 8.3. One frame took the time of
-> about **eighty**."
+> Slowest frame: almost **two seconds**. Our budget is 8.3 milliseconds. One frame took the
+> time of more than **two hundred**.
+>
+> And look which lane is red. Not the top one. Your Dart code finished in a few
+> milliseconds. It is the **raster thread**."
 
 ## 5. What the phone was doing (1:00)
 
-**Screen:** Slide: Skia system trace of the reveal frame.
+**Screen:** Slide: Skia system trace of the reveal frame (recorded with 48 tiles).
 
 **Say:**
 
-> "You might think the drawing is just expensive. So here is a system trace of that exact
-> frame.
+> "You might think the drawing is just expensive. So here is a system trace of the same
+> moment, recorded with 48 tiles.
 >
 > On the thread named **`1.raster`**, inside one frame, Skia built **52 new GPU programs**.
 > Look at the nesting: the frame submits, Skia flushes its work, and inside the flush is an
 > event Flutter itself labels **`shader_compile`**. **648 milliseconds** of compiling.
-> About twelve milliseconds per program.
+> About twelve and a half milliseconds per program.
 >
-> The freeze is not drawing. It is **writing and compiling shaders, mid-frame**."
+> The freeze is not drawing. It is **writing and compiling shaders, mid-frame**. And it
+> grows with your UI: 48 effects, 0.7 seconds. 96, 1.3. 144, 1.9."
 
 ## 6. Skia, repeat (0:30)
 
 **Do:** Tap **HIDE**, then **REVEAL** again.
 
-**Screen:** REPEAT reads about 20 ms.
+**Screen:** REPEAT reads about 25 ms.
 
 **Say:**
 
-> "Same tiles, same session. About **20 milliseconds**. The trace shows **zero** programs
+> "Same tiles, same session. About **25 milliseconds**. The trace shows **zero** programs
 > built. Skia kept them. So drawing was never the problem; **first use** was."
 
 ## 7. When first use happens (0:30)
@@ -129,23 +138,28 @@ listed in [Measured evidence](#measured-evidence).
 
 ## 8. Impeller, cold (1:00)
 
-**Do:** Open **Kiln Impeller** (violet badge) → **Shader Storm** → **REVEAL 48 EFFECTS**.
+**Do:** Open **Kiln Impeller** (violet badge) → **Shader Storm** → **144** →
+**REVEAL 144 EFFECTS**.
 
-**Screen:** FIRST REVEAL reads about 135 ms.
+**Screen:** FIRST REVEAL reads about 166 ms.
 
 **Say:**
 
 > "Same app, same code, same phone. Impeller, on Vulkan.
 >
-> About **135 milliseconds**. Five times better, and still not zero, and I want to show you
-> why, because it is the real difference between the two engines.
+> About **166 milliseconds**. Eleven times better, and still not zero, and I want to show
+> you why, because it is the real difference between the two engines.
 >
-> **[Slide: Impeller trace of the reveal frame.]**
+> **[Slide: Impeller trace of the reveal frame, recorded with 48 tiles.]**
 >
 > Impeller's shaders were compiled **when the Flutter engine was built**, before this app
 > existed. What it still does on first use is build **pipelines**: it takes a compiled shader
-> and fixes the GPU state around it. Here: **30 pipelines, 58 milliseconds**. About **two
-> milliseconds each**, against Skia's twelve.
+> and fixes the GPU state around it. With 48 tiles: **30 pipelines, 58 milliseconds**. About
+> **two milliseconds each**, against Skia's twelve and a half.
+>
+> And it barely grows. Skia went from 0.7 to 1.9 seconds as we tripled the effects.
+> Impeller went from 135 to 166 milliseconds. Skia needs a program per *effect*. Impeller
+> needs a pipeline per *GPU state*, and there are far fewer of those.
 >
 > And look at the clock. During this frame the CPU core was running at 700 megahertz. The
 > phone had been idle. Part of what you see is the CPU waking up."
@@ -156,9 +170,10 @@ listed in [Measured evidence](#measured-evidence).
 
 **Say:**
 
-> "Three runs each, medians. Cold, first use: Skia **680**, Impeller **135**. Relaunch with
-> the cache warm: both about **60**. Repeat inside the same session: Skia is actually faster,
-> **23** against **44**, because Impeller does some per-frame setup that Skia doesn't.
+> "Three runs each, medians. Cold, first use, 144 effects: Skia **1,860**, Impeller **166**.
+> With 48 effects, relaunch with the cache warm: both about **60**. Repeat inside the same
+> session: Skia is actually faster, **23** against **44**, because Impeller does some
+> per-frame work that Skia doesn't.
 >
 > So this is not 'Impeller is always faster'. It is: **Impeller moved the most expensive
 > work, writing and compiling shaders, out of the frame.**"
@@ -180,13 +195,23 @@ Device: Infinix X6873, Mali GPU, Android 16 (API 36), 120 Hz. Flutter 3.47.8, en
 `cf636b1dfb`, profile builds. Tracing off. Three rounds, alternating engines; worst frame
 in the 16 frames after the reveal, median (range).
 
+Cold first reveal by grid size:
+
+| Tiles | Skia, OpenGL ES | Impeller, Vulkan | Ratio |
+|---|---|---|---|
+| 48 | 681 ms (661–704) | 135 ms (133–144) | 5× |
+| 96 | 1,305 ms (1,293–1,329) | 161 ms (148–172) | 8× |
+| 144 | 1,860 ms (1,859–1,863) | 166 ms (163–169) | 11× |
+
+48 tiles, by situation:
+
 | Scenario | Skia, OpenGL ES | Impeller, Vulkan |
 |---|---|---|
 | Cold: data cleared, first reveal | **681 ms** (661–704) | **135 ms** (133–144) |
 | Repeat in the same session | 23 ms (20–23) | 44 ms (43–53) |
 | Relaunch, disk cache kept | 62 ms (61–64) | 61 ms (55–63) |
 
-From system traces of the cold reveal frame:
+From system traces of the cold reveal frame, 48 tiles (144-tile traces not yet recorded):
 
 | | Skia | Impeller |
 |---|---|---|

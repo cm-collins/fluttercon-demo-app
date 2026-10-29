@@ -21,8 +21,36 @@ be late.
 
 The Kiln monitor that reads these is in
 [`frame_budget_monitor.dart`](../../samples/lib/src/frame_budget/frame_budget_monitor.dart).
-The engine delivers timings in batches (roughly once per second), so on-screen readouts
-update at that rate.
+The engine delivers timings in batches, not per frame, so on-screen readouts lag the
+screen slightly. In Shader Storm the bars update a few times a second.
+
+### Two clocks for one frame
+
+Dart and `FrameTiming` describe a frame with different timestamps:
+
+| Where | Timestamp | Meaning |
+|---|---|---|
+| `SchedulerBinding.currentSystemFrameTimeStamp` (what tickers see) | vsync **target** | When this frame is due on screen |
+| `FrameTiming` `vsyncStart` | vsync **start** | When work on this frame began |
+
+When frames run back to back, the previous frame's target equals the next frame's start.
+Code that says "ignore frames that started at or before the timestamp I saw when the user
+tapped" therefore throws away the very frame it wants to measure. Kiln's `FrameWindow` did
+exactly that and reported 68 ms for a 677 ms frame until it was fixed; see
+`engine/src/flutter/shell/common/animator.cc` in the Flutter SDK, where the engine passes
+the target time to Dart.
+
+```mermaid
+sequenceDiagram
+    participant V as Vsync
+    participant D as Dart (main thread)
+    participant T as FrameTiming
+    V->>D: frame N, timestamp = target of N
+    Note over D: user taps, timer stores target of N
+    V->>D: frame N+1 starts at the target of N
+    D->>T: frame N+1 vsyncStart = target of N
+    Note over T: "started after the tap?" must count equal as after
+```
 
 ## How the profiler names map to threads
 
@@ -77,6 +105,16 @@ flowchart TD
 
 Perfetto is the only tool that shows the last two: you can see the raster thread **not
 running** (runnable but descheduled, or waiting on a fence) rather than busy.
+
+A measured example ([note 09](09-shader-storm-findings.md)): in Impeller's slowest Shader
+Storm frame (132 ms), `1.raster` was running for 71 ms, sleeping for 45 ms and runnable but
+not scheduled for 16 ms. For most of it, the core was clocked at **700 MHz out of
+3.2 GHz** because the phone had been idle. The same test once read 237 ms and usually
+135 ms. That is why every Kiln number is a median of repeated runs.
+
+The refresh rate can change under you too: the same phone switched between 120 Hz and
+90 Hz, which moves the budget from 8.33 ms to 11.1 ms. Fix it in Android's display settings
+before measuring.
 
 ## Android's view of the frame
 

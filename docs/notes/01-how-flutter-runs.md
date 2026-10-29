@@ -147,10 +147,38 @@ separate Flutter UI thread in this app. DevTools still calls this work "UI". Con
 The **raster thread** runs on the CPU. "Raster time" means CPU time spent preparing GPU
 work, plus any waiting on the GPU — not GPU execution time itself.
 
+## Seen in a real trace
+
+System traces of the Shader Storm screen on an Android 16 phone
+([09 · Shader Storm findings](09-shader-storm-findings.md)) show each claim above:
+
+| Claim | What the trace showed |
+|---|---|
+| Dart frame work runs on the main thread | `Animator::BeginFrame` ran on the thread named after the app (`fluttercon.kiln`), not on a `1.ui` thread |
+| Shader work is raster-thread CPU work | All 52 Skia program builds and all 30 Impeller pipeline builds ran on `1.raster` |
+| Text is split between threads | Text layout happens in Dart layout; `CreateGlyphAtlas` (letters into pixels) ran on `1.raster` |
+| A thread can be late without being busy | In Impeller's slowest frame, `1.raster` ran 71 ms, slept 45 ms and waited 16 ms for a CPU, mostly on a core clocked at 700 MHz |
+
+```mermaid
+flowchart LR
+    subgraph main["Main thread: DevTools UI"]
+        direction TB
+        a1["Animate<br/>tickers, MOTION dot"] --> a2["Build<br/>widgets"] --> a3["Layout<br/>sizes, text measuring"] --> a4["Paint<br/>record a DisplayList"]
+    end
+    subgraph raster["1.raster: DevTools Raster"]
+        direction TB
+        b1["Replay DisplayList"] --> b2["Shaders or pipelines<br/>compile or build if new"] --> b3["Triangles, glyph atlas,<br/>offscreen passes"] --> b4["Record and submit<br/>GPU commands"]
+    end
+    gpu["GPU<br/>runs commands, writes pixels"]
+    a4 -->|"layer tree"| b1
+    b4 --> gpu
+```
+
 ## How the threads relate to the talk
 
 | Demo moment | Work being stressed | Where it appears |
 |---|---|---|
+| Shader Storm, cold reveal | Skia writes and compiles a program per new effect (measured 52 programs, 648 ms); Impeller builds pipelines (30, 58 ms) | Raster / `1.raster`; UI stays green. See [note 09](09-shader-storm-findings.md) |
 | Shader Lab, Skia cold run | First-use shader generation and driver compilation can stall rendering | Mostly Raster / `1.raster`, with driver work triggered from that path |
 | Telemetry Duel | Main records paths; raster thread repeatedly flattens and tessellates excessive geometry | Usually Raster dominant; compare both bars |
 | Speed Ribbon Thrash | Main records many canvas operations; raster thread processes and submits thousands of draws | Raster / `1.raster`; Perfetto shows long back-to-back slices |

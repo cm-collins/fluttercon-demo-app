@@ -23,7 +23,7 @@ flowchart LR
     root --> history["history/"]
     history --> h1["Skia to Impeller,<br/>GL to Vulkan,<br/>Systrace to Perfetto"]
     root --> notes["notes/"]
-    notes --> n1["01 to 08 deep-dive notes"]
+    notes --> n1["01 to 09 deep-dive notes"]
     n1 -.->|"code links"| samples["../samples/<br/>broken + fixed code"]
 
     product --> prd["PRD.md<br/>what and why"]
@@ -58,6 +58,7 @@ flowchart LR
 | `talk/` | [Talk outline](talk/talk-outline.md) | The 40-minute narrative and key messages |
 | `talk/` | [Media](talk/media/README.md) | Concept video and embed notes for slides |
 | `talk/` | [Demo script](talk/demo-script.md) | Exactly what to click and say, minute by minute |
+| `talk/` | [Shader Storm script](talk/shader-storm-script.md) | What to click and say in the Skia JIT vs Impeller AOT segment, with measured numbers |
 | `talk/` | [Stage runbook](talk/stage-runbook.md) | Setup, rehearsal checklist and failure recovery |
 | `reference/` | [Rosetta](reference/rosetta.md) | Flutter concepts mapped to Android and iOS equivalents |
 | `reference/` | [Sources](reference/sources.md) | Every primary source used in the research |
@@ -91,6 +92,7 @@ are not pasted into the notes; they link to the maintained sample package in
 | 06 | [Profiling playbook](notes/06-profiling-playbook.md) | DevTools, Perfetto config and SQL, AGI, engine flame graphs |
 | 07 | [Optimisation patterns](notes/07-optimization-patterns.md) | Eight patterns, each linked to broken and fixed sample code |
 | 08 | [Glossary](notes/08-glossary.md) | Every term used in the talk |
+| 09 | [Shader Storm findings](notes/09-shader-storm-findings.md) | The Shader Storm screen explained, threads during a reveal, and measured Skia vs Impeller results |
 
 ## Reading order
 

@@ -7,7 +7,8 @@ import '../logic/frame_history.dart';
 import '../logic/frame_window.dart';
 import 'lab_tokens.dart';
 
-/// Recent frames as two lanes of bars: UI thread on top, raster thread below.
+/// Recent frames as two lanes of bars: UI (Dart frame work, which runs on the
+/// platform main thread since Flutter 3.29) on top, the raster thread below.
 ///
 /// Bars are scaled to four frame budgets and clipped above that, with a white
 /// cap marking a clipped bar. Each lane title carries the peak since the last
@@ -32,7 +33,7 @@ class FrameStrip extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _LaneTitle(
-            title: 'UI THREAD · build',
+            title: 'UI · Dart on the main thread',
             history: history,
             budget: budget,
             peak: () => history.peakBuild,
@@ -46,7 +47,7 @@ class FrameStrip extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           _LaneTitle(
-            title: 'RASTER THREAD · draw',
+            title: 'RASTER · engine on 1.raster',
             history: history,
             budget: budget,
             peak: () => history.peakRaster,

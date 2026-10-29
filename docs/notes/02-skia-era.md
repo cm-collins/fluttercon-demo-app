@@ -13,9 +13,14 @@ flowchart LR
     draw["New kind of draw<br/>appears in a frame"] --> gen["Skia generates SkSL<br/>for this combination"]
     gen --> translate["Translated to GLSL<br/>(or SPIR-V / MSL)"]
     translate --> driver["GPU driver compiles<br/>the shader"]
-    driver --> stall["Raster thread stalls<br/>tens to hundreds of ms"]
-    stall --> cached["Cached for next time"]
+    driver --> stall["Raster thread stalls<br/>measured: about 12.5 ms<br/>per program"]
+    stall --> cached["Cached in memory,<br/>and on disk per engine version"]
 ```
+
+Measured on a Mali phone with the Shader Storm screen
+([note 09](09-shader-storm-findings.md)): revealing 48 new effects at once made Skia build
+**52 programs in 648 ms** on `1.raster`, inside one 677 ms frame. The freeze grows with the
+number of new effects: **0.68 s** for 48, **1.3 s** for 96, **1.86 s** for 144.
 
 The first time an animation used a new effect, the raster thread waited for the driver
 compiler. Users saw a stutter **the first time** something happened — known as
@@ -42,12 +47,19 @@ Impeller uses a **small, fixed set of shaders** written by the Flutter team, com
 **when the engine is built**. Every Flutter drawing operation must be expressed with that
 set. That is a constraint — and the source of its predictability.
 
+What remains at runtime is building **pipelines**: a compiled shader plus fixed GPU state
+such as blending. Impeller builds many at startup and the rest on first use, where the
+driver still lowers the precompiled shader to GPU machine code. That is far cheaper than
+generating and compiling shader source, but it is not zero; see
+[03 · Impeller internals](03-impeller-internals.md#shaders-and-pipelines).
+
 ## Skia vs Impeller at a glance
 
 | | Skia (GPU backend) | Impeller |
 |---|---|---|
 | Shaders | Generated per draw combination at runtime | Fixed set, compiled at engine build time |
-| First-use jank | Yes | No (by design) |
+| First-use cost | Large: write and compile a program per new effect (measured ~12.5 ms each) | Small: build a pipeline per new GPU state (measured ~2 ms each, 30 for 48 effects) |
+| Disk cache | Compiled programs, in a folder named after the engine version | Vulkan pipeline cache (`flutter.impeller.vkcache`) |
 | Raster cache | Yes (heuristic) | No |
 | Path filling | GPU techniques incl. stencil-based approaches | CPU tessellation to triangles, MSAA for antialiasing |
 | Where it runs in 2026 | Web (CanvasKit / skwasm); Android when Impeller is disabled | iOS (only option), Android API 29+, desktop (default since 3.47) |
@@ -58,13 +70,17 @@ set. That is a constraint — and the source of its predictability.
 - Mature, heavily tuned paths for some effects; certain blurs measured faster on Skia than on
   Impeller in 2025–2026 issues.
 
-That is why the talk says Impeller is **predictable**, not **always faster**.
+That is why the talk says Impeller is **predictable**, not **always faster**. Measured: when
+the same 48 tiles were redrawn in the same session, Skia's worst frame was 23 ms and
+Impeller's 44 ms.
 
 ## Demo tie-in
 
-A 60-second recorded clip on the demo device:
-`flutter run --profile --no-enable-impeller`, open a screen for the first time, and show the
-first-frame stutter in DevTools. Then the same screen with Impeller: no stutter, steady cost.
+The **Shader Storm** screen in the `skia` and `impeller` flavors. Clear app data, press
+**REVEAL**, and the first reveal freezes on Skia (about 1.9 s at 144 tiles) while Impeller
+pays about 166 ms. The repeat shows the cached case. Full results and traces:
+[09 · Shader Storm findings](09-shader-storm-findings.md); stage wording:
+[Shader Storm script](../talk/shader-storm-script.md).
 
 ## Sources
 
