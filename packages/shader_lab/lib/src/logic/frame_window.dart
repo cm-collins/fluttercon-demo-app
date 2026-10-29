@@ -52,9 +52,12 @@ class FrameWindowResult {
 
 /// Measures how long frames take to get back on budget after a trigger.
 ///
-/// Feed every reported frame to [add]. Frames that started at or before
-/// [triggerMicros] are ignored. The window closes after [settleFrames]
-/// consecutive on-budget frames, or when [timeout] passes.
+/// Feed every reported frame to [add]. [triggerMicros] is the engine's frame
+/// timestamp when the trigger happened. The engine passes Dart a frame's vsync
+/// *target* time, which is when the next frame's vsync starts, so the first
+/// frame after the trigger starts at about [triggerMicros]. Frames that started
+/// more than half a budget earlier are ignored. The window closes after
+/// [settleFrames] consecutive on-budget frames, or when [timeout] passes.
 class FrameWindow {
   FrameWindow({
     required this.budget,
@@ -87,7 +90,7 @@ class FrameWindow {
     if (_result != null) {
       return _result;
     }
-    if (sample.vsyncStartMicros <= triggerMicros) {
+    if (sample.vsyncStartMicros < triggerMicros - budget.inMicroseconds ~/ 2) {
       return null;
     }
     final int start = _startMicros ??= sample.vsyncStartMicros;

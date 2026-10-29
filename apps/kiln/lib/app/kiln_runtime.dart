@@ -87,4 +87,9 @@ class KilnRuntime {
       'Impeller is disabled, so this app renders with Skia on OpenGL ES.',
     KilnRendererFamily.impeller => 'Flutter uses Vulkan when this phone\'s driver is valid; otherwise OpenGL ES.',
   };
+
+  String get shaderNote => switch (family) {
+    KilnRendererFamily.skia => 'Skia builds a GPU program the first time it meets a new effect, on the raster thread, inside the frame.',
+    KilnRendererFamily.impeller => 'Impeller\'s shaders were compiled when the engine was built. A new effect only needs a pipeline made from them.',
+  };
 }

@@ -110,6 +110,23 @@ void main() {
     expect(result.frames, 12);
   });
 
+  test('the frame whose vsync starts at the trigger timestamp is counted', () {
+    // Back-to-back frames: the timestamp Dart saw is the previous frame's
+    // vsync target, which equals the next frame's vsync start.
+    final FrameWindow window = FrameWindow(
+      budget: budget,
+      triggerMicros: 3 * frameUs,
+    );
+    final FrameWindowResult? result = feed(window, <FrameSample>[
+      frame(1, 4000),
+      frame(2, 677000),
+      for (int i = 3; i < 15; i++) frame(i, 4000),
+    ]);
+
+    expect(result!.worst, const Duration(microseconds: 677000));
+    expect(result.overBudgetFrames, 1);
+  });
+
   test('a frame cap closes a burst that never gets under budget', () {
     final FrameWindow window = FrameWindow(
       budget: budget,

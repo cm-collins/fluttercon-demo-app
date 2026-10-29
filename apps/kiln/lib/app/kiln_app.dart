@@ -11,6 +11,7 @@ import 'kiln_runtime.dart';
 abstract final class KilnRoutes {
   static const String home = '/';
   static const String shaderLab = '/shaderlab';
+  static const String storm = '/storm';
 }
 
 class KilnApp extends StatelessWidget {
@@ -49,6 +50,13 @@ class KilnApp extends StatelessWidget {
             runtime: runtime,
             gateway: gateway,
             benchmarkMode: benchmarkMode,
+          ),
+          KilnRoutes.storm => Builder(
+            builder: (BuildContext context) => ShaderStormScreen(
+              rendererLabel: runtime.label,
+              engineNote: runtime.shaderNote,
+              onBack: () => Navigator.of(context).maybePop(),
+            ),
           ),
           _ => const HomeScreen(),
         };
