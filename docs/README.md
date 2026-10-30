@@ -48,6 +48,7 @@ flowchart LR
 | `product/` | [PRD](product/PRD.md) | What we are building, for whom, and how we know it succeeded |
 | `technical/` | [TRD](technical/TRD.md) | Architecture, modules, instrumentation and technical requirements |
 | `technical/` | [Renderer proof plan](technical/renderer-proof-plan.md) | Phased plan for backend evidence, deterministic measurements, traces and stage delivery |
+| `technical/` | [Canvas Thrash plan](technical/canvas-thrash-plan.md) | Step 2 checklist: the thrash screen, X-ray mode, measurements, docs and rehearsal |
 | `research/` | [Impeller architecture](research/01-impeller-architecture.md) | How Impeller turns Flutter paint calls into Vulkan work |
 | `research/` | [Profiling toolchain](research/02-profiling-toolchain.md) | DevTools, Perfetto, AGI and what each one can prove |
 | `research/` | [OpenF1 data](research/03-openf1-data.md) | The telemetry source, its limits and licence |
