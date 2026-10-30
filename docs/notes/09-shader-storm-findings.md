@@ -274,24 +274,23 @@ Each of these changed a number during this work.
 
 ## Reproduce it
 
+With both flavors installed and one phone connected (see
+[`tool/benchmark/README.md`](../../tool/benchmark/README.md)):
+
 ```text
-# Cold run: clear the shader caches, then open the app
-adb shell pm clear dev.fluttercon.kiln.skia
-adb shell am start -n dev.fluttercon.kiln.skia/dev.fluttercon.kiln.MainActivity
+# Medians for every grid size: cold, repeat and relaunch, 3 rounds, tracing off
+tool/benchmark/storm_bench.sh 3 "48 96 144" storm.csv
 
-# Each reveal writes one line to logcat
-adb logcat -s flutter:I | grep KILN::Storm::result
-
-# System trace with engine events (Skia also needs trace-skia for compile events)
-adb shell am start -n dev.fluttercon.kiln.skia/dev.fluttercon.kiln.MainActivity \
-  --ez trace-skia true --ez trace-systrace true
-adb shell atrace --async_start -b 65536 -a dev.fluttercon.kiln.skia gfx view sched freq
-#   ... press REVEAL ...
-adb shell atrace --async_stop > skia_trace.txt
+# One cold reveal with engine events, summarised
+tool/benchmark/storm_trace.sh skia 144 skia-144.txt
+tool/benchmark/storm_trace.sh impeller 144 impeller-144.txt
 ```
 
-Open the trace in [Perfetto UI](https://ui.perfetto.dev) and search for
-`GrGLProgramBuilder::finalize` (Skia) or `PipelineVK::Create` (Impeller) on `1.raster`.
+`storm_trace.sh` prints what [`trace_summary.py`](../../tool/benchmark/trace_summary.py)
+finds: the slowest raster frame, Skia programs or Impeller pipelines built, the thread they
+ran on, and how `1.raster` spent the slowest frame. Open the same file in
+[Perfetto UI](https://ui.perfetto.dev) and search for `GrGLProgramBuilder::finalize` (Skia)
+or `PipelineVK::Create` (Impeller) on `1.raster` to see it.
 
 ## Sources
 
