@@ -75,9 +75,31 @@ KILN::Thrash::sample level=8 fixes=simplifyPaths,batchDraws xray=false uiP90Ms=3
 adb logcat -s flutter:I | grep KILN::Thrash::sample
 ```
 
-A script that steps through the fixes at 8× and reads these lines is planned
-([Canvas Thrash plan](../../docs/technical/canvas-thrash-plan.md), item C2). Keep X-ray
-off while measuring: the lens adds raster work of its own.
+| Script | What it does |
+|---|---|
+| [`thrash_bench.sh`](thrash_bench.sh) | At 8×: no fixes, each fix alone, then the fixes added top to bottom as on stage. Drops the first sample per setting, records the median of the next five, prints medians across rounds. Stops if a sample shows a different setting than intended |
+| [`thrash_trace.sh`](thrash_trace.sh) | A 5 s system trace at 8× with a chosen set of fixes, then a summary |
+| [`thrash_trace_summary.py`](thrash_trace_summary.py) | Raster frame times, `SurfaceFrame` phases, and `saveLayer` / `QueueSubmit` counts per frame |
+
+```bash
+tool/benchmark/thrash_bench.sh 3 thrash.csv            # Impeller; add "skia" as a third argument
+KILN_THRASH_TAPS="..." tool/benchmark/thrash_trace.sh none 5 broken.txt
+KILN_THRASH_TAPS="..." tool/benchmark/thrash_trace.sh all 5 fixed.txt
+```
+
+`thrash_bench.sh` finds the buttons once and prints a `KILN_THRASH_TAPS` line; pass it to
+skip the lookup on later runs (`thrash_trace.sh` requires it). Keep X-ray off while
+measuring: the lens adds raster work of its own.
+
+Phone setup that bit us on the Infinix X6873:
+
+- **Refresh rate.** Auto-Switch kept Kiln at 60 Hz even with 120 Hz selected. Choose
+  **High**, then **Customize App Refresh Rate** → Kiln and Kiln Skia → 120 Hz.
+- **Rotation.** Turn auto-rotate off; a turned phone sends every tap to the wrong place.
+- **Log buffer.** The default 256 KB buffer overflows in about a minute on this phone, and
+  `KILN::` lines vanish. Run `adb logcat -G 16M` first (resets on reboot).
+- **Hands off.** A touch while a script runs flips a setting; `thrash_bench.sh` catches it
+  and stops.
 
 ## Markets benchmark mode
 

@@ -9,10 +9,10 @@ as written.
 the problem, what is? Let's go break something."* What every panel means and why each fix
 works: [10 · Canvas Thrash explained](../notes/10-canvas-thrash.md).
 
-> **Status.** The counter values below are exact: the scene is generated from the dial level,
-> so they are the same on every run on this phone. Timings marked **⟨C2⟩** wait for the
-> Canvas Thrash benchmark ([plan](../technical/canvas-thrash-plan.md), item C2). Until then,
-> describe what the lanes do and say no timing numbers.
+Counter values are exact: the scene is generated from the dial level, so they are the same
+on every run on the stage phone. Timings are medians from `thrash_bench.sh`; see
+[Measured evidence](#measured-evidence). If you demo on a different phone, re-run the bench
+there and replace the timings.
 
 ## Before you walk on
 
@@ -107,7 +107,7 @@ repaints around **40–50/s**.
 > **130,000 points down to 12,000.** Draws went *up* by 16, because each line is drawn twice
 > to cover the wrap at the edge, and it doesn't matter: points were the cost, not draws.
 > Watch **both** lanes drop: building an 8,000-point path every frame was Dart work too.
-> ⟨C2: UI from X to Y ms, raster from X to Y ms⟩"
+> UI from 16 milliseconds to about 6. Raster from 30 to about 19."
 
 ## 5. Fix 2 · Batch draws (0:45)
 
@@ -122,7 +122,8 @@ repaints around **40–50/s**.
 > "Now every segment is two triangles, all of them in **one `drawVertices` call**. Draws
 > from 640 to **161**. Every draw call carries a fixed cost, so the engine does less
 > bookkeeping for the same picture. And these are triangles already, so there's nothing left
-> to cut up. ⟨C2⟩"
+> to cut up. Raster drops to about 14 milliseconds: the smallest win of the four. On Vulkan a
+> draw call is cheap; it's a few commands in a command buffer, not a trip to the driver."
 
 ## 6. Fix 3 · Glow without layers (1:00)
 
@@ -137,7 +138,9 @@ repaints around **40–50/s**.
 **Say:**
 
 > "Same soft glow, drawn as a circle with a radial gradient that fades to transparent: one
-> ordinary draw, no layer. Layers: **zero**. Look at the markers: they look the same. ⟨C2⟩"
+> ordinary draw, no layer. Layers: **zero**. Look at the markers: they look the same.
+> Raster: from 14 milliseconds to under 7. The biggest raster win. In the system trace, those
+> 64 layers also split every frame's GPU work into two queue submissions instead of one."
 
 ## 7. Fix 4 · Isolate repaints (0:45)
 
@@ -152,7 +155,8 @@ repaints around **40–50/s**.
 **Say:**
 
 > "Put the grid on its own layer with a `RepaintBoundary`. It is painted once and reused.
-> Grid repaints: **zero**. ⟨C2: UI from X to Y ms⟩"
+> Grid repaints: **zero**. UI from 4.4 milliseconds to 3.4: under the 4-millisecond
+> target."
 
 ## 8. The point (0:45)
 
@@ -160,7 +164,8 @@ repaints around **40–50/s**.
 
 **Say:**
 
-> "Same picture. Same 8× data. ⟨C2: RASTER from X to Y ms, UI from X to Y ms⟩
+> "Same picture. Same 8× data. Raster went from 30 milliseconds to six and a half. UI from
+> 16 to three and a half. We went from about 36 frames a second to the full 120.
 >
 > Nothing here was clever. Fewer points, fewer draw calls, no offscreen layers, no
 > pointless repainting.
@@ -194,9 +199,11 @@ repaints around **40–50/s**.
 > chart draws. The real geometry would come from Android GPU Inspector."
 
 **"Would this be different on Skia?"**
-> "The broken patterns are expensive on both. The bill shifts: offscreen layers and path
-> work cost different amounts on each engine. This segment runs on Impeller because that's
-> what ships by default."
+> "Much worse. Same phone, same 8×: Skia's raster thread takes about **190 milliseconds**
+> a frame broken, and still **58** with every fix on, against Impeller's six and a half. In
+> the Skia trace almost all of it is the 32 line draws, each one followed by a pixel upload,
+> which looks like Skia drawing each line into an image on the CPU. Impeller turns the same
+> line into triangles. On Skia no single fix helped; only all of them together did."
 
 **"Why does Simplify paths add draw calls?"**
 > "Each line is drawn twice to cover the wrap as it scrolls. Sixteen extra draws are cheap;
@@ -216,3 +223,38 @@ they apply to the stage phone only.
 | + Isolate repaints | 161 | 0 | 10,112 | 0/s |
 
 At 1× with no fixes: 78 draws, 8 layers, 2,240 path points.
+
+## Measured evidence
+
+Stage phone: Infinix X6873, Mali-G615 MC6, Vulkan 1.3, Android 16, 120 Hz. Flutter 3.47.8,
+Impeller profile build. `tool/benchmark/thrash_bench.sh 3`, tracing off, X-ray off. Frame
+p90 over the last 120 frames, median of 3 rounds (range).
+
+| 8×, fixes on | UI | Raster |
+|---|---|---|
+| none | 15.9 ms (15.6–16.3) | 29.7 ms (22.8–30.9) |
+| + Simplify paths | 6.3 (5.1–6.9) | 18.6 (13.5–18.7) |
+| + Batch draws | 4.9 (3.5–5.5) | 13.7 (13.1–18.1) |
+| + Glow without layers | 4.4 (4.2–4.5) | 6.6 (6.6–6.8) |
+| + Isolate repaints | 3.4 (3.3–3.4) | 6.5 (6.2–6.7) |
+
+Each fix on its own: Simplify paths 6.3 / 18.6, Batch draws 14.7 / 28.6, Glow without layers
+14.8 / 21.2, Isolate repaints 16.9 / 25.2 (UI / raster). Isolate repaints alone does not
+help at 8×: with 130,000 path points per frame, the grid is not the cost. It pays off once
+the rest is fixed.
+
+System traces, 5 s each (`tool/benchmark/thrash_trace.sh`):
+
+| 8× | Raster frame p50 | `SurfaceFrame::Encode` p50 | `saveLayer` / frame | `QueueSubmit` / frame | Frames in 5 s |
+|---|---|---|---|---|---|
+| no fixes | 27.9 ms | 27.1 ms | 64 | 2 | 179 |
+| Simplify + Batch | 13.8 ms | 12.9 ms | 64 | 2 | 355 |
+| all fixes | 4.8 ms | 3.7 ms | 0 | 1 | 604 |
+
+Dart timeline with paint tracking: `KILN::Thrash::grid` appears every frame without
+Isolate repaints and never with it.
+
+Skia flavor, same bench (UI / raster p90, median of 3): no fixes 21.8 / 188.4 ms; every fix
+alone and Simplify + Batch stay at 184–202 ms raster; + Glow 3.9 / 61.5; all fixes
+3.9 / 57.7. Skia trace with all fixes: 47 of 53 ms per raster frame inside 32
+`SkCanvas::drawPath` calls, with about 31 `GrGpu::writePixels` per frame.

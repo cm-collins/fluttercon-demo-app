@@ -81,11 +81,14 @@ X-ray adds raster work of its own. Turn it on to explain, off to measure.
 
 - [x] 📱 **C1 · Step 1 leftover.** Shader Storm bench and 144-tile traces with
   `tool/benchmark`, then update note 09 and the Storm script with the new phone's numbers.
-- [ ] 📱 **C2 · Thrash benchmark.** At 8×, each fix in turn, three rounds, medians of raster
+- [x] 📱 **C2 · Thrash benchmark.** At 8×, each fix in turn, three rounds, medians of raster
   and UI time.
-- [ ] 📱 **C3 · Traces.** Broken vs fixed; look for tessellation and render-pass events on `1.raster`.
+- [x] 📱 **C3 · Traces.** Broken vs fixed; look for tessellation and render-pass events on `1.raster`.
 - [ ] 📱 **C4 · Tuning.** If a fix's effect is too small to see, adjust the 8× workload. Tune,
   never fake.
+  2026-10-31: not tuned. Batch draws is the smallest win (raster 18.6 → 13.7 ms, overlapping
+  ranges); the script narrates it as such. Retuning would have invalidated the recorded
+  videos and traces. Revisit on the next stage phone.
 - [ ] 📱 **C5 · Optional.** Try Android GPU Inspector for the engine's real geometry.
 
 ## D. Docs
