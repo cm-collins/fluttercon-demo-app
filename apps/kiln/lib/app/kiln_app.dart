@@ -12,6 +12,7 @@ abstract final class KilnRoutes {
   static const String home = '/';
   static const String shaderLab = '/shaderlab';
   static const String storm = '/storm';
+  static const String thrash = '/thrash';
 }
 
 class KilnApp extends StatelessWidget {
@@ -55,6 +56,12 @@ class KilnApp extends StatelessWidget {
             builder: (BuildContext context) => ShaderStormScreen(
               rendererLabel: runtime.label,
               engineNote: runtime.shaderNote,
+              onBack: () => Navigator.of(context).maybePop(),
+            ),
+          ),
+          KilnRoutes.thrash => Builder(
+            builder: (BuildContext context) => CanvasThrashScreen(
+              rendererLabel: runtime.label,
               onBack: () => Navigator.of(context).maybePop(),
             ),
           ),

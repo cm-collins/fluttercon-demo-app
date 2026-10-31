@@ -26,7 +26,9 @@ void main() {
     await tester.pumpWidget(host(RunBoard()));
 
     expect(find.text('BTC/USDT'), findsOneWidget);
-    expect(find.text('Skia · OpenGL ES'), findsOneWidget);
+    // Once in the header badge and once in the renderer evidence card.
+    expect(find.text('Skia · OpenGL ES'), findsNWidgets(2));
+    expect(find.text('RENDERER EVIDENCE'), findsOneWidget);
     expect(find.text('DRAW DEPTH'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Depth shader has not been drawn.'),

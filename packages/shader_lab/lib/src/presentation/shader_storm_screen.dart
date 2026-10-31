@@ -9,7 +9,9 @@ import '../logic/storm_tiles.dart';
 import '../widgets/frame_strip.dart';
 import '../widgets/heartbeat_lane.dart';
 import '../widgets/lab_button.dart';
+import '../widgets/lab_chip.dart';
 import '../widgets/lab_chrome.dart';
+import '../widgets/lab_header.dart';
 import '../widgets/lab_tokens.dart';
 import '../widgets/storm_grid.dart';
 
@@ -79,7 +81,8 @@ class _ShaderStormScreenState extends State<ShaderStormScreen> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  _Header(
+                  LabHeader(
+                    title: 'Shader Storm',
                     rendererLabel: widget.rendererLabel,
                     budget: budget,
                     onBack: widget.onBack,
@@ -152,50 +155,6 @@ class _ShaderStormScreenState extends State<ShaderStormScreen> {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({
-    required this.rendererLabel,
-    required this.budget,
-    required this.onBack,
-  });
-
-  final String rendererLabel;
-  final Duration budget;
-  final VoidCallback? onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final double hz = 1000000 / budget.inMicroseconds;
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              if (onBack != null)
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: onBack,
-                  child: const Padding(
-                    padding: EdgeInsets.only(bottom: 4),
-                    child: Text('Home', style: LabText.label),
-                  ),
-                ),
-              const Text('Shader Storm', style: LabText.title),
-              Text(
-                '${hz.round()} Hz · ${formatMs(budget)} ms budget',
-                style: LabText.label,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        LabBadge(label: rendererLabel),
-      ],
-    );
-  }
-}
-
 /// The empty grid. Before the first reveal it also offers the grid sizes.
 class _Waiting extends StatelessWidget {
   const _Waiting({required this.session});
@@ -219,8 +178,12 @@ class _Waiting extends StatelessWidget {
               children: <Widget>[
                 for (final int count in stormTileCounts) ...<Widget>[
                   if (count != stormTileCounts.first) const SizedBox(width: 8),
-                  _CountChip(
-                    count: count,
+                  LabChip(
+                    label: '$count',
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
+                    ),
                     selected: count == session.tiles.length,
                     onTap: () => session.resize(count),
                   ),
@@ -229,44 +192,6 @@ class _Waiting extends StatelessWidget {
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-class _CountChip extends StatelessWidget {
-  const _CountChip({
-    required this.count,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final int count;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color accent = selected ? LabColors.violet : LabColors.textSecondary;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: selected ? LabColors.surfaceElevated : LabColors.surface,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: selected ? accent : LabColors.hairline),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-          child: Text(
-            '$count',
-            style: LabText.body.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
       ),
     );
   }

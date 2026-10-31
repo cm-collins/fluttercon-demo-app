@@ -23,7 +23,7 @@ flowchart LR
     root --> history["history/"]
     history --> h1["Skia to Impeller,<br/>GL to Vulkan,<br/>Systrace to Perfetto"]
     root --> notes["notes/"]
-    notes --> n1["01 to 09 deep-dive notes"]
+    notes --> n1["01 to 10 deep-dive notes"]
     n1 -.->|"code links"| samples["../samples/<br/>broken + fixed code"]
 
     product --> prd["PRD.md<br/>what and why"]
@@ -48,6 +48,7 @@ flowchart LR
 | `product/` | [PRD](product/PRD.md) | What we are building, for whom, and how we know it succeeded |
 | `technical/` | [TRD](technical/TRD.md) | Architecture, modules, instrumentation and technical requirements |
 | `technical/` | [Renderer proof plan](technical/renderer-proof-plan.md) | Phased plan for backend evidence, deterministic measurements, traces and stage delivery |
+| `technical/` | [Canvas Thrash plan](technical/canvas-thrash-plan.md) | Step 2 checklist: the thrash screen, X-ray mode, measurements, docs and rehearsal |
 | `research/` | [Impeller architecture](research/01-impeller-architecture.md) | How Impeller turns Flutter paint calls into Vulkan work |
 | `research/` | [Profiling toolchain](research/02-profiling-toolchain.md) | DevTools, Perfetto, AGI and what each one can prove |
 | `research/` | [OpenF1 data](research/03-openf1-data.md) | The telemetry source, its limits and licence |
@@ -93,11 +94,12 @@ are not pasted into the notes; they link to the maintained sample package in
 | 07 | [Optimisation patterns](notes/07-optimization-patterns.md) | Eight patterns, each linked to broken and fixed sample code |
 | 08 | [Glossary](notes/08-glossary.md) | Every term used in the talk |
 | 09 | [Shader Storm findings](notes/09-shader-storm-findings.md) | The Shader Storm screen explained, threads during a reveal, and measured Skia vs Impeller results |
+| 10 | [Canvas Thrash](notes/10-canvas-thrash.md) | What still costs on Impeller: tessellation, draw volume, `saveLayer` and repaint isolation, plus X-ray mode |
 
 ## Reading order
 
 1. New to the project: **PRD**, then **Screens**, then **Talk outline**.
-2. Learning the material: **Talk vocabulary**, then the **history** overview, then **notes 01 → 08** in order.
+2. Learning the material: **Talk vocabulary**, then the **history** overview, then **notes 01 → 10** in order.
 3. Building the app: **TRD**, **Design system**, then **note 07** with the `samples/` code.
 4. Rehearsing: **Demo script**, then **Stage runbook**.
 5. Building the renderer proof: [Renderer proof plan](technical/renderer-proof-plan.md), then [TRD §11.0](technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything) and [Profiling toolchain](research/02-profiling-toolchain.md).

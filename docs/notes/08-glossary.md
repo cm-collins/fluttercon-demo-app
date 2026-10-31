@@ -27,7 +27,7 @@ to confuse), use [Talk vocabulary](../talk/vocabulary.md).
 | **Embedder** | Platform code that hosts the Flutter engine (on Android: `FlutterActivity`, `FlutterView`, JNI). |
 | **Entity** | Impeller's unit of drawing: transform + blend mode + contents + geometry. |
 | **Frame budget** | Time available per frame: 8.33 ms at 120 Hz; talk also uses ~4 ms UI + ~4 ms raster as a single-frame latency target. |
-| **Thrash** | Kiln demo control that multiplies Speed Ribbon (and related) workload to stress the raster path (1×–8×). |
+| **Thrash** | Kiln demo control that multiplies a canvas workload to stress the raster path (1×–8×). In the current app it is the dial on the Canvas Thrash screen. |
 | **FrameTiming** | Per-frame timings from the engine: build, raster, total span. |
 | **impellerc** | Impeller's shader compiler: GLSL → SPIR-V → backend formats, at build time. |
 | **Isolate (Dart)** | Independent Dart heap and event loop. Isolates communicate with messages; an isolate is a language/runtime concurrency unit, not a guaranteed permanent OS thread. |
@@ -50,6 +50,9 @@ to confuse), use [Talk vocabulary](../talk/vocabulary.md).
 | **Render target cache** | Impeller's reuse of offscreen textures across frames. |
 | **`RepaintBoundary`** | Widget that gives its subtree its own layer so repaints don't spread. Not a cache on Impeller. |
 | **`saveLayer`** | Canvas call that draws a group into an offscreen texture, then composites it. Triggers a render-pass switch. |
+| **Canvas Thrash** | Kiln screen with a live market canvas, a thrash dial and four fixes (simplify paths, batch draws, glow without layers, isolate repaints). See [note 10](10-canvas-thrash.md). |
+| **Triangle strip** | A list of vertices where every three consecutive vertices form a triangle, so `v` vertices make `v − 2` triangles. Impeller tessellates a stroked path into one. |
+| **X-ray mode** | Canvas Thrash lens that draws the triangle strips a model of Impeller's stroke tessellation builds for the price lines. A model fed with the app's own points, not engine output. |
 | **Shader Storm** | Kiln screen that draws 48, 96 or 144 differently styled tiles in one frame, to show first-use shader and pipeline cost in the `skia` and `impeller` flavors. See [note 09](09-shader-storm-findings.md). |
 | **Shader Lab** | One Kiln screen built as current-SDK `skia` and `impeller` Android flavors to compare first-use shader compilation live while holding code and build mode constant. |
 | **Stall time** | Kiln timer: total time frames ran over budget after a trigger. See [vocabulary](../talk/vocabulary.md). |

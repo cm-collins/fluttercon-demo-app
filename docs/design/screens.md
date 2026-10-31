@@ -18,10 +18,12 @@ flowchart LR
     room --> rosetta["6 · Rosetta tab"]
     pitwall -.-> lab["7 · Shader Lab<br/>(also in the Skia flavor APK)"]
     pitwall -.-> storm["8 · Shader Storm<br/>(both flavor APKs)"]
+    pitwall -.-> thrash["9 · Canvas Thrash<br/>(both flavor APKs)"]
 ```
 
-The current Kiln launcher shows two entries: **Shader Storm** and **Markets** (Shader Lab).
-Screens 0 to 6 describe the earlier F1 concept.
+The current Kiln launcher shows two entries: **Shader Storm** and **Canvas Thrash**. The
+Markets screen (Shader Lab) is still in the app at the `/shaderlab` route but is not listed,
+because it needs live Binance data. Screens 0 to 6 describe the earlier F1 concept.
 
 Every screen can also be opened with a `kiln://scenario/<id>` deep link.
 
@@ -155,11 +157,39 @@ each, Impeller only builds pipelines. UI lives in `packages/shader_lab`
 |---|---|
 | Skia, first reveal | Whole MOTION lane red; RASTER peak about 1.9 s; UI lane green |
 | Skia, repeat | About 25 ms: the programs are cached |
-| Impeller, first reveal | About 166 ms; a short red gap |
+| Impeller, first reveal | About 145 ms; a short red gap |
 | Impeller, repeat | About 45–55 ms |
 
 Every reveal writes `KILN::Storm::result` to logcat and to the timeline. Measurements and
 traces: [09 · Shader Storm findings](../notes/09-shader-storm-findings.md).
+
+## 9 · Canvas Thrash
+
+**Purpose:** answer *"if compiling shaders is no longer the problem, what is?"*. A live
+canvas is thrashed until frames go red, then fixed one cause at a time. UI lives in
+`packages/shader_lab`
+([`canvas_thrash_screen.dart`](../../packages/shader_lab/lib/src/presentation/canvas_thrash_screen.dart)).
+
+| Area, top to bottom | Shows |
+|---|---|
+| Header | Title, refresh rate and frame budget, renderer badge |
+| Canvas | Made-up market data, always animating: price lines scrolling left, glowing dots riding them, a rippling heat strip, a grid with price labels |
+| Lanes | The UI and RASTER lanes from Shader Storm, with peaks since the last settings change |
+| **THRASH** | 1×, 2×, 4×, 8×: multiplies lines, points per line, dots and strip segments |
+| Fixes | **Simplify paths**, **Batch draws**, **Glow without layers**, **Isolate repaints**, each tagged with the lane it targets; **X-ray** shows the modelled triangles in a lens |
+| Counters | Draws, layers, path points, grid repaints per second; with X-ray, line triangles per frame and per second |
+
+| Broken pattern (fix off) | Fixed pattern (fix on) |
+|---|---|
+| New 8,000-point paths every frame | About two points per pixel column, built once, translated |
+| One `drawPath` per heat strip segment | One `drawVertices` call |
+| `saveLayer` + blur per dot | Radial gradient per dot |
+| Grid painted with the moving content | Grid behind its own `RepaintBoundary` |
+
+The canvas never stops animating, so the lanes always show the current cost. Every
+settings change writes `KILN::Thrash::config` to the timeline, and the screen logs
+`KILN::Thrash::sample` once a second. Concepts and expected effects:
+[10 · Canvas Thrash](../notes/10-canvas-thrash.md).
 
 ## Anti-pattern coverage
 

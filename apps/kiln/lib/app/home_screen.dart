@@ -4,7 +4,10 @@ import 'package:shader_lab/shader_lab.dart';
 import 'kiln_app.dart';
 import 'kiln_runtime.dart';
 
-/// Launcher for the Binance market dashboard.
+/// Launcher for the two demo screens.
+///
+/// The Markets screen stays reachable at [KilnRoutes.shaderLab] but is not
+/// listed: it needs live Binance data, which conference networks make unsafe.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -22,16 +25,14 @@ class HomeScreen extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  const Expanded(
-                    child: Text('Kiln Markets', style: LabText.title),
-                  ),
+                  const Expanded(child: Text('Kiln', style: LabText.title)),
                   const SizedBox(width: 12),
                   LabBadge(label: runtime.label),
                 ],
               ),
               const SizedBox(height: 4),
               Text(
-                '${View.of(context).display.refreshRate.round()} Hz · ${formatMs(budget)} ms budget · ${KilnScope.benchmarkModeOf(context) ? 'BENCHMARK' : 'LIVE'}',
+                '${View.of(context).display.refreshRate.round()} Hz · ${formatMs(budget)} ms budget',
                 style: LabText.label,
               ),
               const SizedBox(height: 24),
@@ -42,10 +43,10 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _Entry(
-                title: 'Markets',
-                subtitle: 'Binance book, one shader timed',
-                onTap: () =>
-                    Navigator.of(context).pushNamed(KilnRoutes.shaderLab),
+                title: 'Canvas Thrash',
+                subtitle:
+                    'Thrash a live canvas, then fix it one cause at a time',
+                onTap: () => Navigator.of(context).pushNamed(KilnRoutes.thrash),
               ),
             ],
           ),

@@ -120,7 +120,7 @@ stays green; the RASTER peak reads the same 1.8 s.
 
 **Do:** Tap **HIDE**, then **REVEAL** again.
 
-**Screen:** REPEAT reads about 25 ms.
+**Screen:** REPEAT reads about 23 ms.
 
 **Say:**
 
@@ -141,13 +141,13 @@ stays green; the RASTER peak reads the same 1.8 s.
 **Do:** Open **Kiln Impeller** (violet badge) → **Shader Storm** → **144** →
 **REVEAL 144 EFFECTS**.
 
-**Screen:** FIRST REVEAL reads about 166 ms.
+**Screen:** FIRST REVEAL reads about 145 ms.
 
 **Say:**
 
 > "Same app, same code, same phone. Impeller, on Vulkan.
 >
-> About **166 milliseconds**. Eleven times better, and still not zero, and I want to show
+> About **145 milliseconds**. Thirteen times better, and still not zero, and I want to show
 > you why, because it is the real difference between the two engines.
 >
 > **[Slide: Impeller trace of the reveal frame, recorded with 48 tiles.]**
@@ -158,7 +158,7 @@ stays green; the RASTER peak reads the same 1.8 s.
 > **two milliseconds each**, against Skia's twelve and a half.
 >
 > And it barely grows. Skia went from 0.7 to 1.9 seconds as we tripled the effects.
-> Impeller went from 135 to 166 milliseconds. Skia needs a program per *effect*. Impeller
+> Impeller went from 127 to 145 milliseconds. Skia needs a program per *effect*. Impeller
 > needs a pipeline per *GPU state*, and there are far fewer of those.
 >
 > And look at the clock. During this frame the CPU core was running at 700 megahertz. The
@@ -170,9 +170,9 @@ stays green; the RASTER peak reads the same 1.8 s.
 
 **Say:**
 
-> "Three runs each, medians. Cold, first use, 144 effects: Skia **1,860**, Impeller **166**.
+> "Three runs each, medians. Cold, first use, 144 effects: Skia **1,863**, Impeller **145**.
 > With 48 effects, relaunch with the cache warm: both about **60**. Repeat inside the same
-> session: Skia is actually faster, **23** against **44**, because Impeller does some
+> session: Skia is actually faster, **18** against **45**, because Impeller does some
 > per-frame work that Skia doesn't.
 >
 > So this is not 'Impeller is always faster'. It is: **Impeller moved the most expensive
@@ -193,25 +193,28 @@ stays green; the RASTER peak reads the same 1.8 s.
 
 Device: Infinix X6873, Mali GPU, Android 16 (API 36), 120 Hz. Flutter 3.47.8, engine
 `cf636b1dfb`, profile builds. Tracing off. Three rounds, alternating engines; worst frame
-in the 16 frames after the reveal, median (range).
+in the 16 frames after the reveal, median (range). Run on 2026-10-31.
 
 Cold first reveal by grid size:
 
 | Tiles | Skia, OpenGL ES | Impeller, Vulkan | Ratio |
 |---|---|---|---|
-| 48 | 681 ms (661–704) | 135 ms (133–144) | 5× |
-| 96 | 1,305 ms (1,293–1,329) | 161 ms (148–172) | 8× |
-| 144 | 1,860 ms (1,859–1,863) | 166 ms (163–169) | 11× |
+| 48 | 687 ms (671–690) | 127 ms (122–129) | 5× |
+| 96 | 1,310 ms (1,293–1,324) | 145 ms (143–149) | 9× |
+| 144 | 1,863 ms (1,809–1,864) | 145 ms (145–162) | 13× |
 
-48 tiles, by situation:
+By situation, 48 tiles and 144 tiles (the stage grid):
 
-| Scenario | Skia, OpenGL ES | Impeller, Vulkan |
-|---|---|---|
-| Cold: data cleared, first reveal | **681 ms** (661–704) | **135 ms** (133–144) |
-| Repeat in the same session | 23 ms (20–23) | 44 ms (43–53) |
-| Relaunch, disk cache kept | 62 ms (61–64) | 61 ms (55–63) |
+| Scenario | Skia, 48 | Impeller, 48 | Skia, 144 | Impeller, 144 |
+|---|---|---|---|---|
+| Cold: data cleared, first reveal | **687 ms** (671–690) | **127 ms** (122–129) | **1,863 ms** (1,809–1,864) | **145 ms** (145–162) |
+| Repeat in the same session | 18 ms (16–20) | 45 ms (44–49) | 23 ms (22–26) | 48 ms (44–56) |
+| Relaunch, disk cache kept | 58 ms (55–60) | 66 ms (63–69) | 102 ms (101–103) | 73 ms (68–78) |
 
-From system traces of the cold reveal frame, 48 tiles (144-tile traces not yet recorded):
+144-tile traces, tracing on: Skia built 118 programs in the reveal frame (1,714 ms, 14.6 ms
+each); Impeller built 40 pipelines (87 ms, 2.2 ms each). Both on `1.raster`.
+
+From system traces of the cold reveal frame, 48 tiles:
 
 | | Skia | Impeller |
 |---|---|---|

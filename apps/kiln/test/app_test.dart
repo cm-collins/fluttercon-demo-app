@@ -21,7 +21,7 @@ class FakeGateway extends MarketGateway {
 }
 
 void main() {
-  testWidgets('impeller flavor opens the Binance book', (
+  testWidgets('home lists the two demo screens and not Markets', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(412, 915));
@@ -30,11 +30,45 @@ void main() {
     await tester.pumpWidget(
       const KilnApp(runtime: KilnRuntime.impeller, gateway: FakeGateway()),
     );
-    expect(find.text('Kiln Markets'), findsOneWidget);
+
+    expect(find.text('Kiln'), findsOneWidget);
     expect(find.text('Impeller'), findsOneWidget);
     expect(find.textContaining('Hz ·'), findsOneWidget);
+    expect(find.text('Shader Storm'), findsOneWidget);
+    expect(find.text('Canvas Thrash'), findsOneWidget);
+    expect(find.text('Markets'), findsNothing);
+  });
 
-    await tester.tap(find.text('Markets'));
+  testWidgets('home opens Canvas Thrash', (WidgetTester tester) async {
+    await tester.binding.setSurfaceSize(const Size(412, 915));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      const KilnApp(runtime: KilnRuntime.impeller, gateway: FakeGateway()),
+    );
+    await tester.tap(find.text('Canvas Thrash'));
+    // The canvas animates forever, so pump frames instead of settling.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text('THRASH'), findsOneWidget);
+    expect(find.text('Simplify paths'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('impeller flavor still opens the Binance book by route', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 915));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      const KilnApp(runtime: KilnRuntime.impeller, gateway: FakeGateway()),
+    );
+    tester
+        .state<NavigatorState>(find.byType(Navigator))
+        .pushNamed(KilnRoutes.shaderLab);
     await tester.pumpAndSettle();
     await tester.tap(find.text('BTC/USDT'));
     await tester.pumpAndSettle();
@@ -70,7 +104,9 @@ void main() {
     await tester.pumpWidget(
       const KilnApp(runtime: KilnRuntime.skia, gateway: FakeGateway()),
     );
-    await tester.tap(find.text('Markets'));
+    tester
+        .state<NavigatorState>(find.byType(Navigator))
+        .pushNamed(KilnRoutes.shaderLab);
     await tester.pumpAndSettle();
     await tester.tap(find.text('BTC/USDT'));
     await tester.pumpAndSettle();

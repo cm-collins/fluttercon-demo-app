@@ -109,6 +109,17 @@ MSAA on chip. Offscreen layers break that: the layer must be stored so it can be
 | `BackdropGroup` with identical filters | One shared backdrop pass | Fewer passes |
 | Custom `.frag` shader | Pipeline from a precompiled shader | No runtime compilation |
 
+## Seen in Canvas Thrash
+
+[Canvas Thrash](10-canvas-thrash.md) has a live broken and fixed version of three rows of
+the table above:
+
+| Fix | Broken | Fixed | Vulkan consequence |
+|---|---|---|---|
+| Batch draws | 480 `drawPath` calls for the heat strip at 8× | One `drawVertices` call | Hundreds of bind-and-draw sequences become one |
+| Glow without layers | 64 `saveLayer` + blur calls at 8× | Radial gradients in the main pass | 64 extra render passes, each a store and a load on a tiler, disappear |
+| Simplify paths | 8,000-point stroked paths, tessellated every frame | About two points per pixel column | Smaller per-frame vertex buffers to fill and upload |
+
 ## How to see it
 
 - **Perfetto `gpu.renderstages`** (if the driver supports it): GPU-side render passes per frame.

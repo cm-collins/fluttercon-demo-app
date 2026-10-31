@@ -22,6 +22,18 @@ class FrameHistory extends ChangeNotifier {
 
   List<FrameSample> get frames => List<FrameSample>.unmodifiable(_frames);
 
+  /// The [fraction] percentile (0.9 for p90) of [pick] over [frames].
+  Duration percentile(
+    double fraction,
+    Duration Function(FrameSample sample) pick,
+  ) {
+    if (_frames.isEmpty) {
+      return Duration.zero;
+    }
+    final List<Duration> sorted = _frames.map(pick).toList()..sort();
+    return sorted[((sorted.length - 1) * fraction).round()];
+  }
+
   void resetPeaks() {
     peakBuild = Duration.zero;
     peakRaster = Duration.zero;

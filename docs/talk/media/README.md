@@ -49,8 +49,19 @@ concept clip only.
 | Order | Asset | Role |
 |---|---|---|
 | 1 | `skia-to-impeller-concept.mp4` (this file) | Attention, concept |
-| 2 | Timeline slide 4 | Dates and names |
-| 3 | **Live Shader Lab** (Skia and Impeller flavors from one current-SDK source) | Real Flutter stutter, measured live |
-| Backup | Shader Lab side-by-side recording (Slide 6, hidden) | Used only if the live run fails |
+| 2 | Timeline slide | Dates and names |
+| 3 | `storm-skia-144.mp4`, `storm-impeller-144.mp4` | Real Flutter first-use stutter, Skia vs Impeller |
 
-See [Demo script](../demo-script.md#note-on-shader-lab) ("Note on Shader Lab").
+## Stage-phone recordings
+
+Recorded on the Infinix X6873 on 2026-10-31. They are too large for git (the Canvas Thrash
+clip is 253 MB) and live in `~/fluttercon-captures/2026-10-31-infinix-x6873/videos/`, with a
+README that lists timestamps. Keep a second copy on USB and in cloud storage.
+
+| File | Length | Used in |
+|---|---|---|
+| `storm-skia-144.mp4` | 27 s | Shader Storm: Skia cold reveal 1,954 ms, repeat 21 ms |
+| `storm-impeller-144.mp4` | 27 s | Shader Storm: Impeller cold reveal 148 ms, repeat 39 ms |
+| `thrash-impeller-stage.mp4` | 1:33 | Cold open (from 0:19) and the whole Canvas Thrash segment |
+
+Where each is played: [Demo script](../demo-script.md#run-of-show).

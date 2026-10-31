@@ -16,13 +16,14 @@ Mali GPU, Android 16 (API 36), Flutter 3.47.8 (engine `cf636b1dfb`), profile bui
    **0.68 s** for 48 new effects, **1.3 s** for 96, **1.86 s** for 144.
 2. **Impeller pays much less, and the bill barely grows.** Its shaders were compiled when the
    engine was built. On first use it only builds **pipelines** from them, about **2 ms each**.
-   **135 ms** for 48 effects, **166 ms** for 144. Not zero, but 11× less at 144.
+   **127 ms** for 48 effects, **145 ms** for 144. Not zero, but 13× less at 144.
 3. **Both happen on the raster thread, inside the frame.** Not on the UI (main) thread, and
    not on the GPU.
-4. **Both engines cache.** Once warm, they are level (~60 ms on relaunch). Skia's cache is
+4. **Both engines cache.** Once warm, they are close (~60 ms on relaunch at 48 effects;
+   at 144, Skia 102 ms and Impeller 73 ms, because Skia still loads one program per effect). Skia's cache is
    keyed to the engine version, so every Flutter upgrade makes users cold again.
 5. **Impeller is not faster at everything.** Redrawing the same tiles in the same session,
-   Skia was faster here (23 ms vs 44 ms worst frame).
+   Skia was faster here (18 ms vs 45 ms worst frame).
 
 ## The screen, top to bottom
 
@@ -221,21 +222,39 @@ bounded set. That is the architectural difference behind the numbers.
 
 ## Results
 
+Run on 2026-10-31 with `storm_bench.sh 3 "48 96 144"`, screen fixed at 120 Hz, same
+Flutter build as above. An earlier run on the same build gave Skia 681 / 1,305 / 1,860 ms
+and Impeller 135 / 161 / 166 ms: Skia reproduced within 1%, Impeller came in 6–21 ms lower.
+
 **Cold first reveal**, data cleared before each run. Median of 3 runs, range in brackets.
 
 | Tiles | Skia, OpenGL ES | Impeller, Vulkan | Ratio |
 |---|---|---|---|
-| 48 | 681 ms (661–704) | 135 ms (133–144) | 5× |
-| 96 | 1,305 ms (1,293–1,329) | 161 ms (148–172) | 8× |
-| 144 | 1,860 ms (1,859–1,863) | 166 ms (163–169) | 11× |
+| 48 | 687 ms (671–690) | 127 ms (122–129) | 5× |
+| 96 | 1,310 ms (1,293–1,324) | 145 ms (143–149) | 9× |
+| 144 | 1,863 ms (1,809–1,864) | 145 ms (145–162) | 13× |
 
-**48 tiles, other situations.** Median of 3.
+**Every grid size, every situation.** Median of 3 runs, worst frame.
 
-| Situation | Skia | Impeller | What it means |
-|---|---|---|---|
-| Cold, first reveal | 681 ms | 135 ms | First install, new screen, or first launch after a Flutter upgrade |
-| Repeat in the same session | 23 ms | 44 ms | Nothing new to compile; this is drawing cost. Skia wins here |
-| Relaunch, disk cache kept | 62 ms | 61 ms | Both engines reload what they saved; level |
+| Situation | Tiles | Skia | Impeller | What it means |
+|---|---|---|---|---|
+| Cold, first reveal | 48 / 96 / 144 | 687 / 1,310 / 1,863 ms | 127 / 145 / 145 ms | First install, new screen, or first launch after a Flutter upgrade |
+| Repeat in the same session | 48 / 96 / 144 | 18 / 19 / 23 ms | 45 / 43 / 48 ms | Nothing new to compile; this is drawing cost. Skia wins here |
+| Relaunch, disk cache kept | 48 / 96 / 144 | 58 / 81 / 102 ms | 66 / 73 / 73 ms | Both reload what they saved. Skia's reload grows with the number of programs; Impeller's barely moves |
+
+**144-tile traces**, one cold reveal each, tracing on (so slower than the table):
+
+| | Skia | Impeller |
+|---|---|---|
+| Slowest raster frame | 1,820 ms | 167 ms |
+| First-use work in that frame | 118 programs built, 1,714 ms (139 in the whole trace) | 40 × `PipelineVK::Create`, 87 ms |
+| Per item | 14.6 ms | 2.2 ms |
+| Thread | `1.raster` | `1.raster` |
+| `1.raster` in that frame | running 1,038 ms, sleeping 670 ms, runnable 110 ms | running 88 ms, sleeping 66 ms, runnable 12 ms |
+
+Going from 48 to 144 effects, Skia's programs went from 52 to 118 in the reveal frame;
+Impeller's pipelines went from 30 to 40. That is the "bounded set of GPU states" below,
+measured.
 
 **What each engine keeps on disk.**
 
@@ -247,7 +266,7 @@ bounded set. That is the architectural difference behind the numbers.
 
 ## Conclusions
 
-1. The JIT vs AOT difference is real and large on first use: **5× at 48 effects, 11× at 144**.
+1. The JIT vs AOT difference is real and large on first use: **5× at 48 effects, 13× at 144**.
 2. AOT does **not** mean zero first-use cost. Impeller still builds pipelines inside the frame.
    It is cheaper per item (2 ms vs 12.5 ms) and needs far fewer items.
 3. Skia's cost is proportional to UI variety. Every new gradient, filter or shape combination
@@ -274,24 +293,23 @@ Each of these changed a number during this work.
 
 ## Reproduce it
 
+With both flavors installed and one phone connected (see
+[`tool/benchmark/README.md`](../../tool/benchmark/README.md)):
+
 ```text
-# Cold run: clear the shader caches, then open the app
-adb shell pm clear dev.fluttercon.kiln.skia
-adb shell am start -n dev.fluttercon.kiln.skia/dev.fluttercon.kiln.MainActivity
+# Medians for every grid size: cold, repeat and relaunch, 3 rounds, tracing off
+tool/benchmark/storm_bench.sh 3 "48 96 144" storm.csv
 
-# Each reveal writes one line to logcat
-adb logcat -s flutter:I | grep KILN::Storm::result
-
-# System trace with engine events (Skia also needs trace-skia for compile events)
-adb shell am start -n dev.fluttercon.kiln.skia/dev.fluttercon.kiln.MainActivity \
-  --ez trace-skia true --ez trace-systrace true
-adb shell atrace --async_start -b 65536 -a dev.fluttercon.kiln.skia gfx view sched freq
-#   ... press REVEAL ...
-adb shell atrace --async_stop > skia_trace.txt
+# One cold reveal with engine events, summarised
+tool/benchmark/storm_trace.sh skia 144 skia-144.txt
+tool/benchmark/storm_trace.sh impeller 144 impeller-144.txt
 ```
 
-Open the trace in [Perfetto UI](https://ui.perfetto.dev) and search for
-`GrGLProgramBuilder::finalize` (Skia) or `PipelineVK::Create` (Impeller) on `1.raster`.
+`storm_trace.sh` prints what [`trace_summary.py`](../../tool/benchmark/trace_summary.py)
+finds: the slowest raster frame, Skia programs or Impeller pipelines built, the thread they
+ran on, and how `1.raster` spent the slowest frame. Open the same file in
+[Perfetto UI](https://ui.perfetto.dev) and search for `GrGLProgramBuilder::finalize` (Skia)
+or `PipelineVK::Create` (Impeller) on `1.raster` to see it.
 
 ## Sources
 
