@@ -62,6 +62,23 @@ KILN_TAPS="home=600,450 c48=426,2047 c96=602,2047 c144=789,2047 reveal=612,2547"
   tool/benchmark/storm_bench.sh 3
 ```
 
+## Canvas Thrash
+
+Once the frame history holds only frames drawn with the current settings, the screen logs
+one line a second:
+
+```text
+KILN::Thrash::sample level=8 fixes=simplifyPaths,batchDraws xray=false uiP90Ms=3.1 rasterP90Ms=9.8 frames=120
+```
+
+```bash
+adb logcat -s flutter:I | grep KILN::Thrash::sample
+```
+
+A script that steps through the fixes at 8× and reads these lines is planned
+([Canvas Thrash plan](../../docs/technical/canvas-thrash-plan.md), item C2). Keep X-ray
+off while measuring: the lens adds raster work of its own.
+
 ## Markets benchmark mode
 
 The Markets screen's benchmark mode uses deterministic fixture data instead of Binance:

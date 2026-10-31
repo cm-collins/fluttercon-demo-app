@@ -7,6 +7,16 @@ so the demo app can swap them with one pit-stop toggle. Existing reference sampl
 Speed Ribbon integration remain release requirements in
 [Abstract alignment](../talk/abstract-alignment.md#delivery-contract).
 
+Four patterns can be switched live, on one canvas, in the
+[Canvas Thrash](10-canvas-thrash.md) screen:
+
+| Pattern | Canvas Thrash fix |
+|---|---|
+| 1 · Reduce path complexity | Simplify paths |
+| 2 · Batch draws | Batch draws |
+| 3 · Avoid hidden `saveLayer` | Glow without layers (an explicit `saveLayer` per glow, the car-glow case) |
+| 5 · Isolate repaints | Isolate repaints |
+
 ```mermaid
 flowchart LR
     subgraph raster["Raster-thread patterns"]

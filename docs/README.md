@@ -23,7 +23,7 @@ flowchart LR
     root --> history["history/"]
     history --> h1["Skia to Impeller,<br/>GL to Vulkan,<br/>Systrace to Perfetto"]
     root --> notes["notes/"]
-    notes --> n1["01 to 09 deep-dive notes"]
+    notes --> n1["01 to 10 deep-dive notes"]
     n1 -.->|"code links"| samples["../samples/<br/>broken + fixed code"]
 
     product --> prd["PRD.md<br/>what and why"]
@@ -94,11 +94,12 @@ are not pasted into the notes; they link to the maintained sample package in
 | 07 | [Optimisation patterns](notes/07-optimization-patterns.md) | Eight patterns, each linked to broken and fixed sample code |
 | 08 | [Glossary](notes/08-glossary.md) | Every term used in the talk |
 | 09 | [Shader Storm findings](notes/09-shader-storm-findings.md) | The Shader Storm screen explained, threads during a reveal, and measured Skia vs Impeller results |
+| 10 | [Canvas Thrash](notes/10-canvas-thrash.md) | What still costs on Impeller: tessellation, draw volume, `saveLayer` and repaint isolation, plus X-ray mode |
 
 ## Reading order
 
 1. New to the project: **PRD**, then **Screens**, then **Talk outline**.
-2. Learning the material: **Talk vocabulary**, then the **history** overview, then **notes 01 → 08** in order.
+2. Learning the material: **Talk vocabulary**, then the **history** overview, then **notes 01 → 10** in order.
 3. Building the app: **TRD**, **Design system**, then **note 07** with the `samples/` code.
 4. Rehearsing: **Demo script**, then **Stage runbook**.
 5. Building the renderer proof: [Renderer proof plan](technical/renderer-proof-plan.md), then [TRD §11.0](technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything) and [Profiling toolchain](research/02-profiling-toolchain.md).

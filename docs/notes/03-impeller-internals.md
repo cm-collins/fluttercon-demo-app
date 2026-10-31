@@ -65,6 +65,12 @@ Key consequences:
   drawn larger produces more segments.
 - **Each separate path is a separate draw** with its own binds. Thousands of small paths
   cost thousands of draws.
+- **A stroked path becomes one triangle strip.** `StrokePathSegmentReceiver` in
+  `impeller/entity/geometry/stroke_path_geometry.cc` adds two vertices per point (half the
+  stroke width each side) and two more per corner, unless the turn moves the edge by less
+  than 0.25 device pixels. A strip of `v` vertices is `v − 2` triangles, rebuilt every frame
+  into per-frame transient memory. Canvas Thrash's X-ray mode models exactly this; see
+  [10 · Canvas Thrash](10-canvas-thrash.md#x-ray-mode).
 
 ## Why triangulation instead of "stencil then cover"?
 

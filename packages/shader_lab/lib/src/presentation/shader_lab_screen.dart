@@ -3,7 +3,6 @@ import 'dart:developer' show Timeline;
 import 'package:flutter/widgets.dart';
 
 import '../logic/depth_session.dart';
-import '../logic/durations.dart';
 import '../logic/frame_timer.dart';
 import '../logic/market.dart';
 import '../logic/paint_ledger.dart';
@@ -14,7 +13,9 @@ import '../widgets/budget_readout.dart';
 import '../widgets/candle_chart.dart';
 import '../widgets/depth_chart.dart';
 import '../widgets/lab_button.dart';
+import '../widgets/lab_chip.dart';
 import '../widgets/lab_chrome.dart';
+import '../widgets/lab_header.dart';
 import '../widgets/layer_frame.dart';
 import '../widgets/lab_tokens.dart';
 import '../widgets/run_board_view.dart';
@@ -113,10 +114,11 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: _Header(
+              child: LabHeader(
+                title: snapshot?.quote.pair ?? 'Markets',
                 rendererLabel: widget.rendererLabel,
                 budget: budget,
-                pair: snapshot?.quote.pair,
+                backLabel: 'Markets',
                 onBack: widget.onBack,
               ),
             ),
@@ -246,53 +248,6 @@ class _ShaderLabScreenState extends State<ShaderLabScreen> {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({
-    required this.rendererLabel,
-    required this.budget,
-    required this.pair,
-    required this.onBack,
-  });
-
-  final String rendererLabel;
-  final Duration budget;
-  final String? pair;
-  final VoidCallback? onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final double hz = 1000000 / budget.inMicroseconds;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              if (onBack != null)
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: onBack,
-                  child: const Padding(
-                    padding: EdgeInsets.only(bottom: 4),
-                    child: Text('Markets', style: LabText.label),
-                  ),
-                ),
-              Text(pair ?? 'Markets', style: LabText.title),
-              Text(
-                '${hz.round()} Hz · ${formatMs(budget)} ms budget',
-                style: LabText.label,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        LabBadge(label: rendererLabel),
-      ],
-    );
-  }
-}
-
 class _QuoteHeader extends StatelessWidget {
   const _QuoteHeader({required this.quote});
 
@@ -330,56 +285,18 @@ class _LayerSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        _ModeChip(
+        LabChip(
           label: 'Coupled',
           selected: mode == LayerMode.coupled,
           onTap: () => onChanged(LayerMode.coupled),
         ),
         const SizedBox(width: 8),
-        _ModeChip(
+        LabChip(
           label: 'Isolated',
           selected: mode == LayerMode.isolated,
           onTap: () => onChanged(LayerMode.isolated),
         ),
       ],
-    );
-  }
-}
-
-class _ModeChip extends StatelessWidget {
-  const _ModeChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color accent = selected ? LabColors.violet : LabColors.textSecondary;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: selected ? LabColors.surfaceElevated : LabColors.surface,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: selected ? accent : LabColors.hairline),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Text(
-            label,
-            style: LabText.body.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

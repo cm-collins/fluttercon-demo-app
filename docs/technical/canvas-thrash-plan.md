@@ -55,25 +55,25 @@ The "expected" column is a hypothesis until section C measures it.
 
 ## A. Build Canvas Thrash
 
-- [ ] **A1 · Scene data.** Deterministic made-up market data: price lines, dots, heat strip,
+- [x] **A1 · Scene data.** Deterministic made-up market data: price lines, dots, heat strip,
   scaled by the thrash dial.
-- [ ] **A2 · Layers.** Grid and axes, price lines, glowing dots, heat strip, each with a broken
+- [x] **A2 · Layers.** Grid and axes, price lines, glowing dots, heat strip, each with a broken
   and a fixed painter that draw the same picture.
-- [ ] **A3 · Controls.** Thrash dial, four fix switches, the UI and RASTER lanes and peaks from
+- [x] **A3 · Controls.** Thrash dial, four fix switches, the UI and RASTER lanes and peaks from
   Shader Storm, and a live grid-repaints-per-second counter.
-- [ ] **A4 · Instrumentation.** `KILN::Thrash::…` timeline markers and a logcat line with the
+- [x] **A4 · Instrumentation.** `KILN::Thrash::…` timeline markers and a logcat line with the
   fixes, dial level and recent raster and UI times.
-- [ ] **A5 · Navigation.** Canvas Thrash on the home screen; Markets button removed.
-- [ ] **A6 · Tests.** Scene, dial and fix switches.
+- [x] **A5 · Navigation.** Canvas Thrash on the home screen; Markets button removed.
+- [x] **A6 · Tests.** Scene, dial and fix switches.
 
 ## B. X-ray mode
 
-- [ ] **B1 · Triangle model.** Split each path into segments and triangles the way Impeller's
+- [x] **B1 · Triangle model.** Split each path into segments and triangles the way Impeller's
   tessellator does, from the exact paths the canvas draws.
-- [ ] **B2 · Zoom lens.** A magnified window on part of the canvas showing the triangle wireframe.
-- [ ] **B3 · Live counters.** Points, triangles per frame and per second, draw calls, offscreen
+- [x] **B2 · Zoom lens.** A magnified window on part of the canvas showing the triangle wireframe.
+- [x] **B3 · Live counters.** Points, triangles per frame and per second, draw calls, offscreen
   layers, repaints.
-- [ ] **B4 · Tests.** Counts match the geometry.
+- [x] **B4 · Tests.** Counts match the geometry.
 
 X-ray adds raster work of its own. Turn it on to explain, off to measure.
 
@@ -90,14 +90,15 @@ X-ray adds raster work of its own. Turn it on to explain, off to measure.
 
 ## D. Docs
 
-Concepts are drafted before measuring; numbers are filled in after section C.
+Concepts are drafted before measuring; numbers are filled in after section C. D1 to D3
+are ticked for their concepts; their results sections still wait for section C.
 
-- [ ] **D1 · Note 10, Canvas Thrash explained.** Each fix in plain words, with diagrams: path to
+- [x] **D1 · Note 10, Canvas Thrash explained.** Each fix in plain words, with diagrams: path to
   triangles on the CPU, draws to the command buffer, `saveLayer` to render passes,
   `RepaintBoundary` vs a raster cache, what X-ray models and what it does not, measured results.
-- [ ] **D2 · Existing notes.** 03 Impeller internals, 04 Vulkan primer, 07 Optimisation
+- [x] **D2 · Existing notes.** 03 Impeller internals, 04 Vulkan primer, 07 Optimisation
   patterns, glossary.
-- [ ] **D3 · Screens and indexes.** Section 9 in screens.md, the docs README, the benchmark README.
+- [x] **D3 · Screens and indexes.** Section 9 in screens.md, the docs README, the benchmark README.
 - [ ] **D4 · Stage script.** `talk/canvas-thrash-script.md`: what to click and say, and likely
   questions from senior engineers.
 

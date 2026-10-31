@@ -2,15 +2,15 @@
 
 **A Flutter rendering and profiling demo for "Beyond Skia: Deep-Dive GPU Scheduling and Profiling with Impeller on Android 10+"**
 
-Kiln is currently a live Binance markets dashboard. It loads a USDT watchlist, opens a
-market snapshot with candles and an order book, and measures the first draw of a fragment
-shader used for the depth chart. The same Dart source can be built as two Android product
-flavors: **Kiln Impeller** and **Kiln Skia**.
+Kiln has two demo screens. **Shader Storm** draws dozens of never-seen effects in one
+frame to show where Skia (JIT) and Impeller (AOT) pay for shaders. **Canvas Thrash**
+thrashes a live canvas until frames go red, then fixes it one cause at a time: path
+tessellation, draw volume, `saveLayer` and repaint isolation. The same Dart source is built
+as two Android product flavors: **Kiln Impeller** and **Kiln Skia**.
 
 The app reads the display refresh rate at runtime and reports the corresponding frame
-budget. On a 120 Hz display that budget is 8.33 ms per frame. The dashboard records the
-measured draw and recovery window in a shared run board so the comparison can be repeated
-on the same device.
+budget. On a 120 Hz display that budget is 8.33 ms per frame. Both screens show the UI and
+raster frame times from the engine's own `FrameTiming`.
 
 ## Why "Kiln"
 
@@ -22,17 +22,18 @@ Skia, and the starting point of the talk.
 
 ```mermaid
 flowchart LR
-    home["Kiln Markets"] --> list["Binance USDT watchlist"]
-    list --> book["Select a market"]
-    book --> snapshot["Candles + depth + order book"]
-    snapshot --> draw["Draw depth shader"]
-    draw --> timing["Record draw and recovery timing"]
+    home["Kiln home"] --> storm["Shader Storm<br/>reveal 48, 96 or 144 new effects"]
+    home --> thrash["Canvas Thrash<br/>thrash dial, four fixes, X-ray"]
+    storm --> s1["First vs repeat worst frame,<br/>UI and raster lanes"]
+    thrash --> t1["Which lane drops<br/>as each fix is applied"]
+    home -.->|"route only"| markets["Markets<br/>live Binance book, one shader timed"]
 ```
 
-The dashboard uses public Binance market-data endpoints and a public trade WebSocket. It
-does not contain trading or account functionality. During a measured draw, live price
-notifications are held until the timing window closes so incoming data does not dirty the
-frame being measured.
+The Markets screen is still in the app at the `/shaderlab` route. It uses public Binance
+market-data endpoints and a public trade WebSocket, so it is not listed on the home screen:
+conference networks make live data unsafe for a stage demo. Measured findings:
+[Shader Storm](docs/notes/09-shader-storm-findings.md) ·
+[Canvas Thrash](docs/notes/10-canvas-thrash.md).
 
 Both flavors use the same Flutter SDK, Dart code, assets and profile build mode. The
 `impeller` flavor enables Impeller and reports the selected backend; Flutter uses Vulkan
@@ -45,9 +46,11 @@ useful for the talk, but are not a description of the current launcher surface.
 
 ## Status
 
-**Implemented.** The markets watchlist, Binance REST/WebSocket gateway, candle chart,
-order-book ladder, depth-fill shader, frame timer, run board, and Android `impeller` and
-`skia` flavors are implemented and covered by package/app tests. The F1 replay scenarios
+**Implemented.** Shader Storm, Canvas Thrash with X-ray mode, the Markets screen with its
+Binance gateway, the frame timer and lanes, the benchmark scripts in `tool/benchmark`, and the
+Android `impeller` and `skia` flavors are implemented and covered by package and app tests.
+Canvas Thrash measurements on the stage phone are pending
+([plan](docs/technical/canvas-thrash-plan.md)). The F1 replay scenarios
 remain in `samples/` as reference material for the broader talk narrative; they are not
 currently wired into the launcher.
 
@@ -55,9 +58,9 @@ currently wired into the launcher.
 
 ```text
 apps/
-  kiln/           Flutter app; Binance dashboard and Android renderer flavors
+  kiln/           Flutter app: home, routes and Android renderer flavors
 packages/
-  shader_lab/     Shared dashboard, shader, timing and presentation package
+  shader_lab/     Shader Storm, Canvas Thrash, Markets screens, timing and lanes
 docs/             PRD, TRD, research, design, talk, reference, history and deep-dive notes
 samples/          kiln_samples: broken and fixed rendering reference examples
 tool/             Documentation and profiling support tools
