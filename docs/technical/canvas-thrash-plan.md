@@ -79,7 +79,7 @@ X-ray adds raster work of its own. Turn it on to explain, off to measure.
 
 ## C. Measure on the stage phone
 
-- [ ] 📱 **C1 · Step 1 leftover.** Shader Storm bench and 144-tile traces with
+- [x] 📱 **C1 · Step 1 leftover.** Shader Storm bench and 144-tile traces with
   `tool/benchmark`, then update note 09 and the Storm script with the new phone's numbers.
 - [ ] 📱 **C2 · Thrash benchmark.** At 8×, each fix in turn, three rounds, medians of raster
   and UI time.

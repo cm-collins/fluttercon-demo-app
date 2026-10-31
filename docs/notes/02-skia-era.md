@@ -78,7 +78,7 @@ Impeller's 44 ms.
 
 The **Shader Storm** screen in the `skia` and `impeller` flavors. Clear app data, press
 **REVEAL**, and the first reveal freezes on Skia (about 1.9 s at 144 tiles) while Impeller
-pays about 166 ms. The repeat shows the cached case. Full results and traces:
+pays about 145 ms. The repeat shows the cached case. Full results and traces:
 [09 · Shader Storm findings](09-shader-storm-findings.md); stage wording:
 [Shader Storm script](../talk/shader-storm-script.md).
 

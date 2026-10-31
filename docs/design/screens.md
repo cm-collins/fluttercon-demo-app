@@ -157,7 +157,7 @@ each, Impeller only builds pipelines. UI lives in `packages/shader_lab`
 |---|---|
 | Skia, first reveal | Whole MOTION lane red; RASTER peak about 1.9 s; UI lane green |
 | Skia, repeat | About 25 ms: the programs are cached |
-| Impeller, first reveal | About 166 ms; a short red gap |
+| Impeller, first reveal | About 145 ms; a short red gap |
 | Impeller, repeat | About 45–55 ms |
 
 Every reveal writes `KILN::Storm::result` to logcat and to the timeline. Measurements and

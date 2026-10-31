@@ -179,6 +179,15 @@ void main() {
           ledger.pathPoints,
           lessThan(scene.lineCount * scene.pointsPerLine ~/ 5),
         );
+        // Points, not floats: the cache stores x, y pairs.
+        final List<Float32List> lines = ThrashLineCache().points(
+          scene,
+          ThrashLayout(canvasSize),
+        );
+        expect(
+          ledger.pathPoints,
+          lines.fold<int>(0, (int sum, Float32List xy) => sum + xy.length ~/ 2),
+        );
         expect(ledger.gridPaints, 0);
       },
     );

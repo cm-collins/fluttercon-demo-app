@@ -334,7 +334,8 @@ class ThrashScenePainter extends CustomPainter {
       }
       ledger
         ..draws += 2
-        ..pathPoints += points[line].length;
+        // x, y pairs: two floats per point.
+        ..pathPoints += points[line].length ~/ 2;
     }
     canvas.restore();
   }
