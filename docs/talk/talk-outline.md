@@ -37,6 +37,7 @@ journey
     section The jank it didn't
       Threads and tools: 4: Audience
       Canvas Thrash, four fixes: 5: Audience
+      Your own pre-compiled shader: 4: Audience
       Into the traces: 5: Audience
     section Finish
       Honest limits: 4: Audience
@@ -60,11 +61,12 @@ gantt
     section Impeller did not fix this
     Threads and tools             :b1, after a3, 2m
     Canvas Thrash                 :b2, after b1, 7m
-    Into the traces               :b3, after b2, 6m
+    Your own pre-compiled pathway :b4, after b2, 1m
+    Into the traces               :b3, after b4, 6m
     section Finish
     What Impeller didn't fix      :f1, after b3, 90s
     Takeaways                     :f2, after f1, 90s
-    Q and A                       :f3, after f2, 9m
+    Q and A                       :f3, after f2, 8m
 ```
 
 The line-by-line version is the [Demo script](demo-script.md). If time runs short, cut the
@@ -88,6 +90,7 @@ fixed-trace tab in "Into the traces", then shorten Q&A.
 | 12 | Tools then and now | Systrace → Perfetto; DevTools embeds a Perfetto viewer |
 | 13 | Diagnosis method | Thread → event → code → fix → measure |
 | 14 | Canvas Thrash scoreboard | The five-row medians table; 36 → 120 fps |
+| 14b | Your own pre-compiled pathway | Three code panels: `depth_fill.frag` (core lines) → `pubspec.yaml` `shaders:` → load once, `setFloat` in `paint()`. Bottom strip: "503 B GLSL → 4,008 B bundle: SPIR-V (Impeller · Vulkan) · GLSL ES (Impeller · OpenGL ES) · SkSL (Skia, compiled on the device)". No timing on this slide |
 | 15 | Canvas Thrash trace: broken vs fixed | `Encode` 27 → 3.7 ms; `saveLayer` 64 → 0; `QueueSubmit` 2 → 1; `1.raster` running, not waiting |
 | 16 | Honest limits | Isolate alone didn't help; GPU side not traced; Skia 188 / 58 ms |
 | 17 | Takeaways | The three registered takeaways |

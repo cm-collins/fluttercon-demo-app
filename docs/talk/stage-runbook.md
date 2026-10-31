@@ -55,8 +55,9 @@ The Canvas Thrash video is 253 MB; copy the folder, don't stream it.
 | 04:30 | Shader Storm |
 | 10:30 | One frame on Vulkan |
 | 15:00 | Canvas Thrash |
-| 22:00 | Into the traces |
-| 29:30 | Takeaways |
+| 22:00 | Your own pre-compiled pathway |
+| 23:00 | Into the traces |
+| 30:30 | Takeaways |
 
 Running late: cut demo script line 27 (the fixed trace tab), then shorten Q&A.
 

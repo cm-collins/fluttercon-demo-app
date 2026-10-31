@@ -59,7 +59,7 @@ detail lives. Evidence files are in `~/fluttercon-captures/2026-10-31-infinix-x6
 | P13 | Confidence to ship | lines 30–33 | Medians with ranges, honest limits, scripts to reproduce | `bench/`, `tool/benchmark/` | ✅ |
 | T1 | Skia JIT vs Impeller AOT pipeline mechanics on Vulkan | Storm; lines 13–14 | 118 Skia programs vs 40 Impeller pipelines in one reveal frame | `skia-144.txt`, `impeller-144.txt` | ✅ measured |
 | T2 | Read ~4 ms UI / ~4 ms raster allocations | lines 4–7; Canvas Thrash §8 | Fixed: UI 3.4 ms (under 4), raster 6.5 ms (under 8.3, over 4) | `bench/thrash-impeller.csv` | ✅ honest: raster ends between the target and the limit |
-| T3 | Custom painter patterns, precompiled pathways, avoid `saveLayer()` | Canvas Thrash §4–7; line 36 | Decimated cached paths, one `drawVertices`, gradient glow instead of `saveLayer` + blur | `thrash_canvas.dart`; bench | ✅ (no custom fragment shader in this talk) |
+| T3 | Custom painter patterns, precompiled pathways, avoid `saveLayer()` | Canvas Thrash §4–7; 22:00 lines P1–P3; line 36 | Decimated cached paths, one `drawVertices`, gradient glow instead of `saveLayer` + blur (measured); your own `.frag` → `pubspec` → `FragmentProgram`, and the APK bundle with SPIR-V, GLSL ES and SkSL | `thrash_canvas.dart`; bench; `depth_fill.frag` and its built asset | ✅ patterns measured; custom shader shown as code and build output, not timed |
 
 ## Gaps, said out loud
 

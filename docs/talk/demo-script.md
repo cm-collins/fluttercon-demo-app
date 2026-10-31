@@ -39,12 +39,13 @@ live from their scripts and keep the recordings as fallback.
 | 10:30 | One frame on Vulkan | 2:30 | Pipelines, tessellation, explicit command buffers |
 | 13:00 | Threads and tools | 2:00 | DevTools Timeline, Systrace / Perfetto |
 | 15:00 | Canvas Thrash | 7:00 | Thrash a real-time canvas; repaint isolation; layer reduction; custom painters |
-| 22:00 | Into the traces | 6:00 | Parse timeline traces; read Perfetto; command buffers in a real trace |
-| 28:00 | What Impeller didn't fix | 1:30 | Honest limits |
-| 29:30 | Takeaways | 1:30 | The three registered takeaways |
-| 31:00 | Q&A | 9:00 | |
+| 22:00 | Your own pre-compiled pathway | 1:00 | Maximize Impeller's pre-compiled rendering pathways |
+| 23:00 | Into the traces | 6:00 | Parse timeline traces; read Perfetto; command buffers in a real trace |
+| 29:00 | What Impeller didn't fix | 1:30 | Honest limits |
+| 30:30 | Takeaways | 1:30 | The three registered takeaways |
+| 32:00 | Q&A | 8:00 | |
 
-The schedule leaves 9 minutes for questions. If you run long, Q&A absorbs it.
+The schedule leaves 8 minutes for questions. If you run long, Q&A absorbs it.
 
 ---
 
@@ -138,9 +139,59 @@ below are where each step begins.
 
 Skip the script's hand-off line (section 9); the next segment is the hand-off.
 
-⏱ **22:00.** If late, cut line 27 below.
+⏱ **22:00.**
 
-## 22:00 — Into the traces (6:00)
+## 22:00 — Your own pre-compiled pathway (1:00)
+
+Source: [07 · Optimisation patterns, §6](../notes/07-optimization-patterns.md#6--use-precompiled-fragment-shaders).
+Code: [`depth_fill.frag`](../../packages/shader_lab/shaders/depth_fill.frag),
+[`pubspec.yaml`](../../packages/shader_lab/pubspec.yaml),
+[`depth_chart.dart`](../../packages/shader_lab/lib/src/widgets/depth_chart.dart).
+
+| # | Screen | Do | Say |
+|---|---|---|---|
+| P1 | Slide: your own pre-compiled pathway | — | "One more pattern, for the 'pre-compiled' part. Everything Impeller drew in both demos, gradients, blurs, blend modes, ran on shaders compiled when the engine was built. Your own effects can join that path." |
+| P2 | Same | Point at the three code panels, left to right. | "Write a fragment shader. List it under `shaders:` in pubspec. Load it once with `FragmentProgram.fromAsset`, keep the `FragmentShader`, and only set uniforms in `paint()`. One draw call, any procedural effect, no layer." |
+| P3 | Same | Point at the bundle strip at the bottom. | "And here's what the build did with this 500-byte file: a 4-kilobyte bundle. SPIR-V for Vulkan. GLSL for Impeller's OpenGL backend. And SkSL for Skia, as source text, which Skia still compiles on the phone the first time it's drawn. That's the Shader Storm problem again. Impeller uses the compiled form and only builds a pipeline. Same file, two engines: the whole talk in one asset." |
+
+**Slide content** (condensed from the real files; keep the uniform order):
+
+```glsl
+// shaders/depth_fill.frag
+#include <flutter/runtime_effect.glsl>
+uniform vec2 uSize;
+uniform float uBid;
+out vec4 fragColor;
+void main() {
+  vec2 uv = FlutterFragCoord().xy / uSize;
+  fragColor = vec4(mix(ask, bid, uBid) * (0.35 + 0.65 * uv.x), 1.0);
+}
+```
+
+```yaml
+# pubspec.yaml
+flutter:
+  shaders:
+    - shaders/depth_fill.frag
+```
+
+```dart
+// Once, before it is needed
+final program = await FragmentProgram.fromAsset(
+    'packages/shader_lab/shaders/depth_fill.frag');
+final shader = program.fragmentShader();
+
+// Every paint: uniforms only, one draw
+shader..setFloat(0, size.width)..setFloat(1, size.height)..setFloat(2, 1);
+canvas.drawPath(depth, Paint()..shader = shader);
+```
+
+Bottom strip: **503 B of GLSL → 4,008 B in the APK: SPIR-V (Impeller · Vulkan) · GLSL ES
+(Impeller · OpenGL ES) · SkSL (Skia: compiled on the device, at first use)**.
+
+⏱ **23:00.** If late, cut line 27 below.
+
+## 23:00 — Into the traces (6:00)
 
 Open these in ui.perfetto.dev **before** the talk, one tab each (see the runbook). All from
 `traces/` in the captures folder.
@@ -156,7 +207,7 @@ Open these in ui.perfetto.dev **before** the talk, one tab each (see the runbook
 | 29 | Perfetto: `dart-timeline/devtools-timeline-8x-isolate.perfetto-trace` | Search `KILN::Thrash::grid`. | "Isolate repaints on. Search for the grid: nothing. That's what a precise repaint boundary looks like in a trace: the event that shouldn't be there is gone." |
 | 30 | Slide: before / after | — | "So the method: the frame chart says which thread. The trace says which event. Your own named spans say which code." |
 
-## 28:00 — What Impeller didn't fix (1:30)
+## 29:00 — What Impeller didn't fix (1:30)
 
 | # | Screen | Do | Say |
 |---|---|---|---|
@@ -164,16 +215,16 @@ Open these in ui.perfetto.dev **before** the talk, one tab each (see the runbook
 | 32 | Same | — | "Second: I can show you the CPU side of the GPU, the encoding and the submissions. What the Mali GPU did with them, this phone's driver doesn't expose to Perfetto. The render-pass cost on the GPU is the model, not my trace." |
 | 33 | Same | — | "Third: if you're wondering whether Skia would cope better. Same phone, same chart: 188 milliseconds a frame broken, 58 with every fix. Impeller made this workload possible. It didn't make it free." |
 
-## 29:30 — Takeaways (1:30)
+## 30:30 — Takeaways (1:30)
 
 | # | Screen | Do | Say |
 |---|---|---|---|
 | 34 | Slide: takeaways | — | "One: demystify the engine. Skia compiled shaders just in time, in the frame. Impeller compiles them ahead of time, builds pipelines from them, tessellates your paths into triangles on the CPU and records explicit Vulkan command buffers." |
 | 35 | Same | — | "Two: profile low-level. Read the budget as about four milliseconds UI and four raster. DevTools for the frame, Perfetto for the system." |
-| 36 | Same | — | "Three: tame your custom painters. Fewer points, fewer draws, no `saveLayer` you don't need, repaint boundaries where they save real work. Prove every fix with numbers." |
+| 36 | Same | — | "Three: tame your custom painters. Fewer points, fewer draws, no `saveLayer` you don't need, repaint boundaries where they save real work, and your own effects as build-time shaders. Prove every fix with numbers." |
 | 37 | Slide: closing | — | "Impeller made performance predictable. It didn't make expensive work free. Thread, event, code, fix, measure. Thank you." |
 
-## 31:00 — Q&A (9:00)
+## 32:00 — Q&A (8:00)
 
 - Keep the Perfetto tabs and the evidence slides ready.
 - Answers to likely questions: [Shader Storm script](shader-storm-script.md),
@@ -194,6 +245,8 @@ challenged.
 | "Impeller has no raster cache" | "RepaintBoundary caches it" | Impeller draws every layer every frame; the boundary saves Dart re-recording |
 | "We keep at most two points per pixel column" | "We cache the path" | The win is less geometry |
 | "Impeller builds pipelines from precompiled shaders, mostly at startup, the rest on first use" | "Impeller never does anything at runtime" | Storm measured 40 pipelines built in the reveal frame, about 2 ms each |
+| "A custom `.frag` is precompiled for Impeller; Skia gets SkSL text and compiles it on the device" | "A custom shader means no runtime compilation on any engine" | The APK bundle contains SPIR-V, GLSL ES and SkSL; Skia compiles the SkSL at first use |
+| "This is the pattern; we didn't time a custom shader on the phone" | Any millisecond figure for the custom shader | No on-device measurement exists for it |
 | "Command buffers are recorded on the raster thread and executed by the GPU asynchronously" | "Impeller renders on the GPU thread" | Flutter has no GPU thread |
 | "On this phone the raster thread was CPU-bound" | "The GPU was the bottleneck" | `1.raster` was running 90–98% of every traced frame |
 | "The layers cost raster-thread time; the GPU-side cost is the model" | "We measured 64 extra render passes on the GPU" | GPU render stages are not available on this phone |
