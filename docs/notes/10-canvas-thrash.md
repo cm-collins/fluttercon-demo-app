@@ -9,9 +9,10 @@ Read [01 · How Flutter runs](01-how-flutter-runs.md),
 [03 · Impeller internals](03-impeller-internals.md) and
 [04 · Vulkan primer](04-vulkan-primer.md) first if the terms below are new.
 
-> **Status.** The screen is built. The "expected" effects below are hypotheses until they
-> are measured on the stage phone ([plan](../technical/canvas-thrash-plan.md), section C).
-> Numbers will be added here then.
+Every number here was **measured** on the stage phone (Infinix X6873, Mali-G615 MC6,
+Vulkan 1.3, Android 16, 120 Hz) with profile builds, tracing off unless stated. Each fix
+section gives the hypothesis written before measuring, then what the phone showed. Full
+tables: [Results](#results).
 
 ## The screen, top to bottom
 
@@ -106,6 +107,10 @@ cost.
 **Expected:** raster drops, because there is less tessellation. UI drops a little, because
 Dart no longer builds 128,000 `lineTo` calls per frame.
 
+**Measured:** both drop, and UI far more than "a little". Alone: UI 15.9 → 6.3 ms, raster
+29.7 → 18.6 ms. Path points 129,920 → 12,032 (632 per line on this screen). Building an
+8,000-point path in Dart every frame was most of the UI lane.
+
 ## Fix 2 · Batch draws
 
 | | What the code does |
@@ -133,6 +138,11 @@ hundreds of them per frame are. See
 [04 · Vulkan primer](04-vulkan-primer.md#one-frame-in-vulkan-terms).
 
 **Expected:** raster drops.
+
+**Measured:** the smallest win. Alone it does almost nothing (raster 29.7 → 28.6 ms: the
+paths dominate). After Simplify paths: raster 18.6 → 13.7 ms and UI 6.3 → 4.9 ms, with
+overlapping ranges across rounds. Draws 640 → 161. On this phone, 480 small draws are a cost
+but not the main one.
 
 ## Fix 3 · Glow without layers
 
@@ -163,6 +173,17 @@ See [04 · Vulkan primer](04-vulkan-primer.md#tile-based-gpus-the-key-to-mobile-
 **Expected:** raster drops, possibly the most of the four fixes. If the raster thread is
 waiting on the GPU, a Perfetto trace shows `1.raster` sleeping rather than running.
 
+**Measured:** the biggest raster win. After Simplify paths and Batch draws: raster
+13.7 → 6.6 ms. Alone: 29.7 → 21.2 ms. In the system trace, the 64 layers mean 64
+`Canvas::saveLayer` per frame and **two** `QueueSubmit` per frame instead of one.
+
+The sleeping test came out the other way: `1.raster` was **running** for 12.9 of its
+14.1 ms with layers on, and sleeping for 0.3 ms. The layers cost raster-thread CPU time to
+set up the offscreen passes, the blur and the composite (about 9 ms per frame here). The
+raster thread never waited on the GPU, so the GPU-side cost of the extra passes, the tile
+stores and loads above, was not the limit on this phone, and this phone's driver does not
+expose GPU render stages to measure it directly.
+
 ## Fix 4 · Isolate repaints
 
 | | What the code does |
@@ -191,6 +212,12 @@ so the raster thread still draws the grid every frame. What disappears is the ma
 re-recording it and laying out its text.
 
 **Expected:** the UI lane drops; the raster lane barely moves. That non-result is the point.
+
+**Measured:** as predicted, once the rest is fixed: UI 4.4 → 3.4 ms, raster 6.6 → 6.5 ms,
+grid repaints to 0. In the Dart timeline the `KILN::Thrash::grid` span is gone. **Alone, at
+8× broken, it does not help** (UI 16.9 ms, raster 25.2 ms, within noise of no fixes): a
+grid is nothing next to 130,000 path points. Isolate repaints is worth doing when the
+expensive work is already gone.
 
 ## X-ray mode
 
@@ -245,13 +272,50 @@ screen writes one logcat line a second:
 KILN::Thrash::sample level=8 fixes=simplifyPaths,batchDraws xray=false uiP90Ms=3.1 rasterP90Ms=9.8 frames=120
 ```
 
-A benchmark script that steps through the fixes at 8× and reads these lines is plan item
-C2.
+[`thrash_bench.sh`](../../tool/benchmark/thrash_bench.sh) steps through the fixes at 8×
+and reads these lines; [`thrash_trace.sh`](../../tool/benchmark/thrash_trace.sh) records a
+system trace at any setting. See the [benchmark README](../../tool/benchmark/README.md).
 
 ## Results
 
-To be measured on the stage phone: raster and UI p90 at 8× with no fixes, then with each
-fix added in turn, three rounds, medians.
+**Fixes added top to bottom, as on stage.** Impeller, 8×, frame p90, median of 3 rounds
+(range).
+
+| Fixes on | UI | Raster |
+|---|---|---|
+| none | 15.9 ms (15.6–16.3) | 29.7 ms (22.8–30.9) |
+| + Simplify paths | 6.3 (5.1–6.9) | 18.6 (13.5–18.7) |
+| + Batch draws | 4.9 (3.5–5.5) | 13.7 (13.1–18.1) |
+| + Glow without layers | 4.4 (4.2–4.5) | 6.6 (6.6–6.8) |
+| + Isolate repaints | 3.4 (3.3–3.4) | 6.5 (6.2–6.7) |
+
+**Each fix alone:** Simplify paths 6.3 / 18.6 · Batch draws 14.7 / 28.6 · Glow without
+layers 14.8 / 21.2 · Isolate repaints 16.9 / 25.2 (UI / raster, ms).
+
+**System traces at 8×, 5 s each.**
+
+| | Raster frame p50 | `SurfaceFrame::Encode` p50 | `1.raster` running / frame | `saveLayer` / frame | `QueueSubmit` / frame | Frames in 5 s |
+|---|---|---|---|---|---|---|
+| No fixes | 27.9 ms | 27.1 ms | 24.3 of 28.1 ms | 64 | 2 | 179 |
+| Simplify + Batch | 13.8 ms | 12.9 ms | 12.9 of 14.1 ms | 64 | 2 | 355 |
+| All fixes | 4.8 ms | 3.7 ms | 4.5 of 4.9 ms | 0 | 1 | 604 (120 fps) |
+
+Almost the whole raster frame is `SurfaceFrame::Encode`: Impeller turning the DisplayList
+into tessellated geometry and command buffers on the CPU. The raster thread is CPU-bound
+throughout; it does not sit waiting on the GPU.
+
+**Same bench on Skia.** No fixes: UI 21.8 ms, raster **188.4 ms**. Each fix alone, and
+Simplify + Batch together, leave raster at 184–202 ms. Adding Glow without layers: 61.5 ms.
+All fixes: **57.7 ms**, against Impeller's 6.5. In a Skia trace with all fixes, 47 of the
+53 ms raster frame is inside the 32 `SkCanvas::drawPath` calls for the price lines, with
+about 31 `GrGpu::writePixels` per frame: consistent with Skia drawing each anti-aliased
+stroke into a mask on the CPU and uploading it, where Impeller tessellates it into
+triangles.
+
+**What was not measured.** GPU execution: when each render pass ran on the Mali GPU and
+for how long. This phone's driver offers Perfetto only GPU memory, not render stages or
+counters. The render-pass costs in Fix 3 are explained from the Vulkan model, not traced.
+Captures: `fluttercon-captures/2026-10-31-infinix-x6873/` (videos, traces, CSVs).
 
 ## Sources
 

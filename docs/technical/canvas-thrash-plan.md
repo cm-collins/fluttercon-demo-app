@@ -94,7 +94,7 @@ X-ray adds raster work of its own. Turn it on to explain, off to measure.
 ## D. Docs
 
 Concepts are drafted before measuring; numbers are filled in after section C. D1 to D3
-are ticked for their concepts; their results sections still wait for section C.
+now carry the measured results (2026-10-31).
 
 - [x] **D1 · Note 10, Canvas Thrash explained.** Each fix in plain words, with diagrams: path to
   triangles on the CPU, draws to the command buffer, `saveLayer` to render passes,
@@ -102,15 +102,15 @@ are ticked for their concepts; their results sections still wait for section C.
 - [x] **D2 · Existing notes.** 03 Impeller internals, 04 Vulkan primer, 07 Optimisation
   patterns, glossary.
 - [x] **D3 · Screens and indexes.** Section 9 in screens.md, the docs README, the benchmark README.
-- [ ] **D4 · Stage script.** `talk/canvas-thrash-script.md`: what to click and say, and likely
+- [x] **D4 · Stage script.** `talk/canvas-thrash-script.md`: what to click and say, and likely
   questions from senior engineers.
 
 ## E. Rebuild the talk (step 3)
 
-- [ ] **E1 · Run of show.** Rewrite `talk/demo-script.md`: Shader Storm, Canvas Thrash,
+- [x] **E1 · Run of show.** Rewrite `talk/demo-script.md`: Shader Storm, Canvas Thrash,
   Perfetto walkthrough, takeaways.
-- [ ] **E2 · Abstract alignment.** Every promise in the abstract points at a real demo moment.
-- [ ] **E3 · Stage runbook.** Setup checklist, fixed refresh rate, failure recovery.
+- [x] **E2 · Abstract alignment.** Every promise in the abstract points at a real demo moment.
+- [x] **E3 · Stage runbook.** Setup checklist, fixed refresh rate, failure recovery.
 - [ ] **E4 · Slides.** Two Shader Storm trace slides, one Canvas Thrash trace slide.
 - [ ] 📱 **E5 · Rehearsal.** Three runs on the stage phone, backup videos, exported traces.
 

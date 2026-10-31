@@ -139,8 +139,12 @@ repaints around **40–50/s**.
 
 > "Same soft glow, drawn as a circle with a radial gradient that fades to transparent: one
 > ordinary draw, no layer. Layers: **zero**. Look at the markers: they look the same.
-> Raster: from 14 milliseconds to under 7. The biggest raster win. In the system trace, those
-> 64 layers also split every frame's GPU work into two queue submissions instead of one."
+> Raster: from 14 milliseconds to under 7. The biggest raster win.
+>
+> And here's what the trace says about *where* that cost was. The raster thread was busy the
+> whole time, not waiting for the GPU. Setting up 64 offscreen passes, 64 blurs, 64
+> composites is CPU work on the raster thread before the GPU sees anything. The layers also
+> split every frame's GPU work into two queue submissions instead of one."
 
 ## 7. Fix 4 · Isolate repaints (0:45)
 
@@ -204,6 +208,13 @@ repaints around **40–50/s**.
 > the Skia trace almost all of it is the 32 line draws, each one followed by a pixel upload,
 > which looks like Skia drawing each line into an image on the CPU. Impeller turns the same
 > line into triangles. On Skia no single fix helped; only all of them together did."
+
+**"So is the GPU the bottleneck?"**
+> "Not on this phone. In every trace the raster thread is running on the CPU 90 percent of
+> the frame or more; it almost never waits for the GPU. The cost is Impeller encoding the
+> frame: tessellating, setting up passes, recording command buffers. What the GPU does with
+> them, I can't show you: this phone's driver doesn't expose GPU render stages to Perfetto.
+> On a Pixel you can trace that too."
 
 **"Why does Simplify paths add draw calls?"**
 > "Each line is drawn twice to cover the wrap as it scrolls. Sixteen extra draws are cheap;

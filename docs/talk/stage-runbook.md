@@ -1,126 +1,95 @@
 # Stage runbook
 
-Setup, rehearsal and recovery for the live demo.
+How to run the talk from a laptop alone. Both demos play from recordings made on the stage
+phone, and the trace walkthrough opens traces captured in the same session. The words are in
+the [Demo script](demo-script.md); this page is the setup and the recovery plan.
 
-## Stage topology
+## What you need
 
-```mermaid
-flowchart LR
-    phone["120 Hz Android phone<br/>Kiln (profile build)"] -- USB --> laptop["Laptop"]
-    laptop --> devtools["Flutter DevTools<br/>(Chrome)"]
-    laptop --> perfetto["Perfetto UI<br/>(record_android_trace)"]
-    laptop --> slides["Slides"]
-    phone -. "Mirroring (scrcpy)<br/>or document camera" .-> projector["Projector"]
-    laptop --> projector
-```
+| Item | Where | Check |
+|---|---|---|
+| Captures folder | `~/fluttercon-captures/2026-10-31-infinix-x6873/` (its README lists every file) | All three videos play to the end |
+| **Second copy** of the captures folder | USB drive and cloud storage | Opens on another machine |
+| Slides | Exported to PDF as well as the deck | PDF opens offline |
+| Video player | One that can pause on a frame and jump to a timestamp (VLC, mpv) | Space pauses; arrow keys step |
+| Browser with ui.perfetto.dev | Chrome or Edge | Loads with Wi-Fi off once cached (step 4 below) |
+| Laptop power, HDMI/USB-C adapter, clicker | Bag | Tested with the venue projector if possible |
 
-## Equipment checklist
+The Canvas Thrash video is 253 MB; copy the folder, don't stream it.
 
-- [ ] Demo phone, fully charged, plus a spare phone with the same build
-- [ ] Two USB data cables (tested), USB-C adapter for the laptop
-- [ ] Laptop charger, HDMI / USB-C display adapter
-- [ ] Document camera or phone stand (mirroring fallback)
-- [ ] Offline copies: slides, exported DevTools snapshots, Perfetto traces, concept video (`docs/talk/media/skia-to-impeller-concept.mp4`), device Skia comparison recording
+## The evening before
 
-## Phone preparation
+1. Open every video once in the player you'll use on stage. Note that `storm-skia-144.mp4`
+   reveals at about **0:10**, `storm-impeller-144.mp4` at about **0:04**, and the Canvas
+   Thrash steps are at the timestamps in the [Demo script](demo-script.md#1500--canvas-thrash-700).
+2. Rehearse the whole talk once against the clock with the videos and traces, not slides
+   alone.
+3. Charge everything. Turn off notifications and auto-updates on the laptop.
 
-- [ ] Airplane mode on, Bluetooth off, Do Not Disturb on
-- [ ] Display set to 120 Hz (or adaptive with the app forcing high refresh)
-- [ ] Brightness fixed, auto-brightness off, battery saver off
-- [ ] Developer options: USB debugging on, stay awake on
-- [ ] Device cool before the talk (no charging or heavy use in the last 10 minutes)
-- [ ] Renderer badge shows **Impeller · Vulkan**
-- [ ] Both current-SDK flavor APKs installed: **Kiln Impeller** (`dev.fluttercon.kiln`) and **Kiln Skia** (`dev.fluttercon.kiln.skia`)
-- [ ] Badges and `adb logcat` agree: **Impeller · Vulkan** and **Skia · OpenGL ES**
-- [ ] Shader Lab reset command ready and cold behavior verified: `adb shell pm clear dev.fluttercon.kiln.skia`
+## Thirty minutes before
 
-## Laptop preparation
+1. Laptop on power. Display mirrored, or presenter view with the video player and browser on
+   the projected screen.
+2. Slides open on the title slide.
+3. Video player open with the three videos queued.
+4. **Perfetto tabs.** Open https://ui.perfetto.dev once while online, then open each file
+   below in its own tab (drag the file onto the page). Once loaded, the page keeps working
+   without a network.
 
-### How to run (DevTools + Perfetto)
+   | Tab | File (under `traces/`) | Prepare |
+   |---|---|---|
+   | 1 | `perfetto-system/thrash-trace-none.txt` | Pin the app main thread and `1.raster`; zoom to 3–4 frames |
+   | 2 | `perfetto-system/thrash-trace-all.txt` | Same pins and zoom |
+   | 3 | `dart-timeline/devtools-timeline-8x-broken.perfetto-trace` | Search box ready: `KILN::Thrash` |
+   | 4 | `dart-timeline/devtools-timeline-8x-isolate.perfetto-trace` | Search box ready: `KILN::Thrash::grid` |
+   | 5 (Q&A) | `perfetto-system/skia-144.txt` | Search `GrGLProgramBuilder::finalize` |
+   | 6 (Q&A) | `perfetto-system/impeller-144.txt` | Search `PipelineVK::Create` |
 
-Physical device, USB debugging, **`adb` on PATH**. Always **profile** + **`--trace-systrace`**
-(never debug for numbers). Full detail: [TRD §11.0](../technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything).
+5. Turn Wi-Fi off and click through the tabs once to confirm they still work.
+6. Water. Phone on silent.
 
-**Kiln Impeller** — from `apps/kiln`:
+## Timing cues
 
-```text
-cd apps/kiln
-flutter run --profile --trace-systrace --flavor impeller
-```
+| Clock | You should be starting |
+|---|---|
+| 04:30 | Shader Storm |
+| 10:30 | One frame on Vulkan |
+| 15:00 | Canvas Thrash |
+| 22:00 | Into the traces |
+| 29:30 | Takeaways |
 
-Open Shader Lab: **Home → Shader Lab**, or
-`adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"`.
-
-**Kiln Skia** — from the same directory and Flutter SDK:
-
-```text
-cd apps/kiln
-flutter run --profile --trace-systrace --flavor skia
-```
-
-Before a candidate **cold** demo: `adb shell pm clear dev.fluttercon.kiln.skia`. Confirm
-during rehearsal that this produces the expected cold/warm gap on the target GPU; use a
-reinstall or fresh package ID for the recording if the driver cache survives `pm clear`.
-
-**DevTools** attaches to whichever app **`flutter run`** started. Switch apps = stop one run
-and start the other (or use two laptops / recorded DevTools and Perfetto backups).
-
-- [ ] Both flavor builds use the same recorded Flutter version, JDK, dependencies and profile mode
-- [ ] DevTools open on the Performance page, frames chart visible
-- [ ] Perfetto `record_android_trace` script tested with the phone (do **not** use WebUSB recording — it stops `adb` and disconnects `flutter run`)
-- [ ] Hidden browser tabs: one exported DevTools snapshot and one Perfetto trace per lap
-- [ ] Terminal with the deep-link commands pasted and ready
-- [ ] Notifications off, presenter mode tested, font size enlarged in the terminal
-
-## Rehearsal checklist (run at least three times)
-
-- [ ] Full 40-minute run with a timer
-- [ ] Each lap: broken state visibly red within 3 seconds
-- [ ] Shader Lab recovery / accumulated overrun / slowest frame — Skia first run TBD s / TBD ms / TBD ms; Skia repeat TBD s / TBD ms / TBD ms; Impeller first TBD s / TBD ms / TBD ms
-- [ ] Shader Lab recovery time matches the same interval in DevTools (within one frame)
-- [ ] `adb logcat` confirms Impeller selected Vulkan before a Vulkan recording
-- [ ] Each lap's pit stop shows "Recovered in … s" within 5 s (Speed Ribbon at Thrash 8×: ___ s)
-- [ ] Shader Lab gap is readable from the back of the room; if not, plan to use the Slide 6 recording
-- [ ] Thrash: each step (1×, 2×, 4×, 8×) visibly raises the raster bar; 8× does not freeze the phone
-- [ ] Thrash trace contains `KILN::Thrash::level`; fixed one-draw ribbon recovers under the identical 8× replay
-- [ ] DevTools teaching path rehearsed aloud: red frame → UI/raster → `KILN::` span → source → fix → comparison
-- [ ] Perfetto teaching path rehearsed aloud: main thread → `1.raster` → Expected vs Actual → same `KILN::` marker
-- [ ] Track Paints proves the static circuit stops repainting after `map-layers`
-- [ ] Offscreen-layer checkerboarding decreases after tower, glass and car-glow fixes
-- [ ] Broken car painter visibly contains `canvas.saveLayer`; fixed painter uses a radial gradient with no layer
-- [ ] Verbose build proof for `ribbon-shader` saved offline, including the `impellerc` step
-- [ ] Finale at Thrash 4× with all pit stops on: both thread bars near their 4 ms ticks and zero missed frames in the measured 5 s replay after one warm-up
-- [ ] Every row of [Abstract alignment](abstract-alignment.md) delivered in the run
-- [ ] Each lap: fixed state measurably better; finale green or purple
-- [ ] Measure with mirroring on and off; note the difference
-- [ ] Simulate failures: unplug USB mid-lap and recover with backups
-- [ ] One rehearsal on a projector, checking colours and text size from the back of the room
-- [ ] 10-minute soak test to see thermal drift
-
-## Recording backups
-
-For every lap, capture both states on the demo device:
-
-| Lap | DevTools snapshot (broken / fixed) | Perfetto trace (broken / fixed) | Screen recording |
-|---|---|---|---|
-| Shader Lab (Skia first / Skia second / Impeller first) | ☐ / ☐ / ☐ | — | ☐ side-by-side |
-| 1 Telemetry Duel | ☐ / ☐ | ☐ / ☐ | ☐ |
-| 2 Speed Ribbon (Thrash 8×) | ☐ / ☐ | ☐ / ☐ | ☐ |
-| 3 Pit Wall | ☐ / ☐ | ☐ / ☐ | ☐ |
-| 4 Race Control | ☐ / ☐ | ☐ / ☐ | ☐ |
-| Finale | ☐ / ☐ | ☐ / ☐ | ☐ |
+Running late: cut demo script line 27 (the fixed trace tab), then shorten Q&A.
 
 ## Failure recovery
 
-```mermaid
-flowchart TD
-    fail{"What failed?"}
-    fail -- "DevTools disconnected" --> d1["Import the lap's exported snapshot,<br/>keep talking"]
-    fail -- "Perfetto capture failed" --> p1["Open the pre-recorded trace tab"]
-    fail -- "Phone frozen or crashed" --> ph1["Switch to the spare phone<br/>(same build, already installed)"]
-    fail -- "Mirroring dropped" --> m1["Document camera,<br/>or screen recording"]
-    fail -- "Fixed state not green" --> t1["Name it: thermals or mirroring load.<br/>Show the rehearsal capture"]
-    fail -- "Renderer is OpenGL ES" --> g1["Spare phone; if both, present<br/>Vulkan parts from recordings"]
-```
+| If… | Then… |
+|---|---|
+| A video won't play | Show the screenshot slide for that moment; the numbers are on it. Narrate from the segment script |
+| The video player freezes | Restart it; the timestamps are in the demo script. Keep talking from the script meanwhile |
+| A Perfetto tab is blank or the page won't load | Switch to the trace screenshot slides for lines 23–29 |
+| The projector crops the portrait video | Pause and point at what matters; the lanes and counters are in the lower half |
+| Laptop dies | Second copy on USB: slides PDF and videos run on any machine |
+| Someone asks for it live | "These are recordings from the stage phone. The scripts in the repo reproduce every number on your phone" |
 
-**Rule:** never debug live for more than 20 seconds. Switch to the backup and keep the story moving.
+## If a phone becomes available
+
+Run the two demo segments live from their scripts and keep the recordings as fallback.
+Numbers on a different phone will differ: re-run the benches on it first and say which phone
+the scoreboard came from. Setup, from what went wrong on the Infinix:
+
+1. Install both profile flavors (`tool/benchmark/README.md`, "Before measuring").
+2. **Refresh rate fixed at 120 Hz for Kiln**, checked while Canvas Thrash animates
+   (`adb shell dumpsys SurfaceFlinger | grep activeMode`). On Infinix: Screen Refresh Rate →
+   High → Customize App Refresh Rate → Kiln and Kiln Skia → 120 Hz.
+3. **Auto-rotate off.** **Stay awake on.** Notifications silenced.
+4. `adb logcat -G 16M` before running any script.
+5. Clear both apps' data right before the talk so the Shader Storm reveals are cold:
+   `adb shell pm clear dev.fluttercon.kiln.skia && adb shell pm clear dev.fluttercon.kiln`.
+6. Mirror the phone (for example `scrcpy`) and check the mirror keeps up at 8×.
+7. Check whether the phone exposes GPU render stages (`adb shell perfetto --query | grep
+   gpu.renderstages`). If it does, a GPU trace can close the one gap in the talk.
+
+## After the talk
+
+Return any borrowed phone with its settings restored (refresh rate back to its original mode,
+per-app entries removed, apps uninstalled if the owner wants).
