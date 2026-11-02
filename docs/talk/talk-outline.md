@@ -92,6 +92,7 @@ fixed-trace tab in "Into the traces", then shorten Q&A.
 | 14 | Canvas Thrash scoreboard | The five-row medians table; 36 → 120 fps |
 | 14b | Your own pre-compiled pathway | Three code panels: `depth_fill.frag` (core lines) → `pubspec.yaml` `shaders:` → load once, `setFloat` in `paint()`. Bottom strip: "503 B GLSL → 4,008 B bundle: SPIR-V (Impeller · Vulkan) · GLSL ES (Impeller · OpenGL ES) · SkSL (Skia, compiled on the device)". No timing on this slide |
 | 15 | Canvas Thrash trace: broken vs fixed | `Encode` 27 → 3.7 ms; `saveLayer` 64 → 0; `QueueSubmit` 2 → 1; `1.raster` running, not waiting |
+| 15b | Reading the budget | Three rows from the traces (see [Frame scheduling](../notes/05-frame-scheduling.md#reading-the-budget-from-a-trace)): UI and raster p50, share inside 4.17 ms and 8.33 ms, frame rate. Callout: 1000 ÷ 27.9 ms = 36 fps |
 | 16 | Honest limits | Isolate alone didn't help; GPU side not traced; Skia 188 / 58 ms |
 | 17 | Takeaways | The three registered takeaways |
 | 18 | Closing | Core message, repo link, sources |

@@ -116,7 +116,7 @@ Source: [How Flutter runs](../notes/01-how-flutter-runs.md), [Frame scheduling](
 | # | Screen | Do | Say |
 |---|---|---|---|
 | 20 | Slide: threads | — | "Three names, two CPU threads. Since 3.29, Dart animation, build, layout and paint run on the platform main thread; DevTools labels that work 'UI'. Impeller prepares GPU work on the raster thread, `1.raster` in Perfetto. The GPU is hardware downstream, not a third Flutter thread." |
-| 21 | Slide: tools | — | "Perfetto replaced Systrace in Android 10, and still opens Systrace files. DevTools' Performance page shows the Dart timeline, and embeds a Perfetto viewer for it." |
+| 21 | Slide: tools | — | "Perfetto replaced Systrace in Android 10, and still opens Systrace files. The system traces you'll see were recorded with `atrace`, the tool underneath Systrace. DevTools' Performance page shows the Dart timeline, and embeds a Perfetto viewer for it." |
 | 22 | Slide: method | — | "One method for everything that follows: which thread is over budget, which event, which code. One surgical fix. Measure again." |
 
 ⏱ **15:00.**
@@ -203,6 +203,9 @@ Open these in ui.perfetto.dev **before** the talk, one tab each (see the runbook
 | 25 | Same | Search `Canvas::saveLayer`, then `QueueSubmit`. | "Sixty-four `saveLayer` per frame, our glowing dots. And two queue submissions per frame. Those are the explicit command buffers going to the GPU." |
 | 26 | Same | Select a frame on `1.raster`; show the thread-state track (Running vs Sleeping). | "And the thread state: running. Not sleeping, not waiting for the GPU. On this phone, the cost is the CPU preparing the frame." |
 | 27 | Perfetto: `perfetto-system/thrash-trace-all.txt` | Same zoom. | "All four fixes. Four point eight milliseconds a frame, zero layers, one submission, and 604 frames in five seconds: 120 frames a second." |
+| 27a | Slide: reading the budget | Point at the broken row. | "Now read the budget from those traces. Broken: UI 13 milliseconds, raster 28. Neither is close. And divide a thousand by 28: 36. That's the frame rate we measured. The slowest thread sets the pace." |
+| 27b | Same | Point at the middle row. | "Halfway through the fixes, UI is inside four milliseconds on 94 percent of frames, and we're still at 70 frames a second, because raster is at 14. A green UI bar doesn't help if raster is red. That's why you read the bars before touching code." |
+| 27c | Same | Point at the fixed row. | "Fixed: UI inside four on 98 percent of frames. Raster inside four on only 19 percent, but inside 8.3 on 99 percent. And UI plus raster went over 8.3 on more than a quarter of frames, while we still averaged 120. That's pipelining: the threads overlap. Four and four is the target for latency. 8.3 per thread is the limit for frame rate." |
 | 28 | Perfetto: `dart-timeline/devtools-timeline-8x-broken.perfetto-trace` | Search `KILN::Thrash`. | "This is the Dart timeline, the same events DevTools' Performance page reads, with paint tracking on. Our painters are named: `grid`, `strip`, `lines`, `dots`. The grid paints every frame." |
 | 29 | Perfetto: `dart-timeline/devtools-timeline-8x-isolate.perfetto-trace` | Search `KILN::Thrash::grid`. | "Isolate repaints on. Search for the grid: nothing. That's what a precise repaint boundary looks like in a trace: the event that shouldn't be there is gone." |
 | 30 | Slide: before / after | — | "So the method: the frame chart says which thread. The trace says which event. Your own named spans say which code." |
@@ -220,7 +223,7 @@ Open these in ui.perfetto.dev **before** the talk, one tab each (see the runbook
 | # | Screen | Do | Say |
 |---|---|---|---|
 | 34 | Slide: takeaways | — | "One: demystify the engine. Skia compiled shaders just in time, in the frame. Impeller compiles them ahead of time, builds pipelines from them, tessellates your paths into triangles on the CPU and records explicit Vulkan command buffers." |
-| 35 | Same | — | "Two: profile low-level. Read the budget as about four milliseconds UI and four raster. DevTools for the frame, Perfetto for the system." |
+| 35 | Same | — | "Two: profile low-level. Read the budget as about four milliseconds UI and four raster, and remember the slowest thread sets your frame rate. DevTools for the frame, Perfetto for the system." |
 | 36 | Same | — | "Three: tame your custom painters. Fewer points, fewer draws, no `saveLayer` you don't need, repaint boundaries where they save real work, and your own effects as build-time shaders. Prove every fix with numbers." |
 | 37 | Slide: closing | — | "Impeller made performance predictable. It didn't make expensive work free. Thread, event, code, fix, measure. Thank you." |
 
@@ -241,7 +244,9 @@ challenged.
 
 | Say | Don't say | Why |
 |---|---|---|
-| "Budget about 4 ms UI and 4 ms raster for single-frame latency" | "Each thread must be under 4 ms or the frame drops" | Threads pipeline; each can reach 8.3 ms at 120 Hz without dropping, at the cost of latency and headroom |
+| "Budget about 4 ms UI and 4 ms raster for single-frame latency" | "Each thread must be under 4 ms or the frame drops" | Threads pipeline; each can reach 8.3 ms at 120 Hz without dropping, at the cost of latency and headroom. Measured: fixed raster is over 4 ms on 81% of frames, at 120 fps |
+| "The slowest thread sets the frame rate" (when it is over 8.3 ms) | "UI plus raster must fit in 8.3 ms" | Measured: 35.5 fps at 27.9 ms raster, 70.4 fps at 13.8 ms; and 120 fps with UI + raster over 8.3 ms on 28% of frames |
+| "These budget shares come from traces, and tracing slows frames" | Quoting them as the benchmark medians | Bench medians are separate: UI 3.4 ms, raster 6.5 ms p90 |
 | "Impeller has no raster cache" | "RepaintBoundary caches it" | Impeller draws every layer every frame; the boundary saves Dart re-recording |
 | "We keep at most two points per pixel column" | "We cache the path" | The win is less geometry |
 | "Impeller builds pipelines from precompiled shaders, mostly at startup, the rest on first use" | "Impeller never does anything at runtime" | Storm measured 40 pipelines built in the reveal frame, about 2 ms each |

@@ -88,6 +88,31 @@ to the full 8.33 ms and the app still produces one frame per vsync. The "~4 ms U
 raster" split is the target for **lowest latency** (`totalSpan` within one frame), not a
 hard rule for smoothness.
 
+## Reading the budget from a trace
+
+Measured on the stage phone: Canvas Thrash at 8×, 120 Hz, a 5 s system trace at each
+setting, from [`thrash_trace_summary.py`](../../tool/benchmark/thrash_trace_summary.py).
+Tracing slows frames, so these are for reading the budget; the headline times are the bench
+medians in [note 10](10-canvas-thrash.md#results).
+
+| Impeller, 8× | UI p50 | UI inside 4.17 / 8.33 ms | Raster p50 | Raster inside 4.17 / 8.33 ms | Frame rate | 1000 ÷ raster p50 |
+|---|---|---|---|---|---|---|
+| No fixes | 13.5 ms | 0% / 0% | 27.9 ms | 0% / 0% | 35.5 fps | 35.8 |
+| Simplify + Batch | 2.7 ms | 94% / 99% | 13.8 ms | 0% / 0% | 70.4 fps | 72.7 |
+| All fixes | 2.3 ms | 98% / 100% | 4.8 ms | 19% / 99% | 119.8 fps | 206.6 (capped by the screen) |
+
+Skia with all fixes fits the same pattern: raster 53.2 ms, 19.2 fps, against 18.8 predicted.
+
+Three things to read from it:
+
+1. **The slowest thread sets the frame rate.** Once a thread is over 8.33 ms, the frame rate
+   is about 1000 ÷ its frame time, however good the other thread looks.
+2. **A green bar on one thread proves nothing about the frame rate.** In the middle row, UI
+   is inside its target on 94% of frames and the app still runs at 70 fps.
+3. **The two threads overlap.** With all fixes, UI + raster fits in 8.33 ms on only 72% of
+   frames (paired by order, so approximate), and the app still averages 120 fps. Raster is
+   over the 4 ms target on 81% of frames. That costs latency and headroom, not frame rate.
+
 ## Ways a frame goes wrong
 
 ```mermaid
