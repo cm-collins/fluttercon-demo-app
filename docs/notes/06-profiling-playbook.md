@@ -21,8 +21,7 @@ cd apps/kiln
 flutter run --profile --trace-systrace --flavor impeller
 ```
 
-Open Shader Lab from the home screen, or
-`adb shell am start -a android.intent.action.VIEW -d "kiln://scenario/shaderlab"`.
+Open **Shader Storm** or **Canvas Thrash** from the home screen.
 
 **Kiln Skia** — from the same project and Flutter SDK:
 
@@ -35,11 +34,8 @@ Before a candidate Skia **cold-run** demo:
 `adb shell pm clear dev.fluttercon.kiln.skia`. Verify the cold/warm gap on the target
 phone; `pm clear` does not guarantee removal of every vendor GPU-driver cache.
 
-DevTools attaches to whichever app **`flutter run`** started. Switch apps = stop one run and
+DevTools attaches to whichever app `flutter run` started. Switch apps = stop one run and
 start the other (or use exported snapshots). See [TRD §11.0](../technical/TRD.md#110-how-to-run-so-devtools-and-perfetto-see-everything).
-
-For the full Pit Wall demo (when built), use the same **`--profile --trace-systrace`** pattern
-from `apps/kiln` only.
 
 ## 2. Mark your own code
 
@@ -47,16 +43,18 @@ Wrap scenario work in named spans so anyone can find it in a trace:
 
 - Helper: [`kiln_trace.dart`](../../samples/lib/src/core/kiln_trace.dart) → `KILN::<Scenario>::<phase>`
 - Example use: [`telemetry_duel_broken.dart`](../../samples/lib/src/telemetry_duel/telemetry_duel_broken.dart)
+- In the app: [`thrash_canvas.dart`](../../packages/shader_lab/lib/src/widgets/thrash_canvas.dart)
+wraps its painters as `KILN::Thrash::grid`, `::strip`, `::lines` and `::dots`
 
 ## 3. Flutter DevTools
 
 Keep the names straight before reading a trace:
 
 - **UI bar** = Dart frame phases measured by `buildDuration`; in current Flutter they run
-  on the platform **main thread**.
-- **Raster bar** = Impeller work measured by `rasterDuration` on **`1.raster`**.
+on the platform **main thread**.
+- **Raster bar** = Impeller work measured by `rasterDuration` on `1.raster`.
 - **GPU** = hardware downstream from `1.raster`; a long Raster bar is not automatically
-  proof that GPU execution itself was slow.
+proof that GPU execution itself was slow.
 
 ```mermaid
 flowchart LR
@@ -79,6 +77,32 @@ flowchart LR
 | CPU profiler | Find hot Dart functions for UI-bound frames |
 | Export / import | Keep before/after evidence and stage backups |
 
+### DevTools capture for the talk (10 minutes, any Android phone)
+
+Not yet done: the talk's real DevTools screens need a phone attached. Any Android phone with
+Vulkan will do, because these are for reading the UI; label them with that phone and keep
+the stage phone's numbers as the evidence.
+
+1. `cd apps/kiln && flutter run --profile --trace-systrace --flavor impeller`, then open the
+
+   DevTools link it prints. Open Canvas Thrash, tap **8×**, X-ray odd
+2. **Performance page.** Record about 5 s of red frames. Screenshot the frames chart with one
+
+   red frame selected, showing its UI and Raster times.
+3. **Timeline Events.** Search `KILN::Thrash`. Screenshot `grid`, `strip`, `lines`, `dots`
+
+   inside one frame. Screenshot **Frame analysis** for the same frame.
+4. **Enhance tracing** → Track paints, then turn on **Isolate repaints**. Record again and
+
+   screenshot the same search with `grid` gone. Turn tracking off afterwards.
+5. **Offscreen layers** checkerboard at 8×, then with **Glow without layers**. Photograph or
+
+   screenshot the phone.
+6. Turn all four fixes on, record, and screenshot the green frames chart.
+7. **Export** a snapshot for the broken and the fixed state; DevTools can load them later
+
+   with no phone attached.
+
 ## 4. Perfetto system trace
 
 Config: [`kiln_trace_config.pbtx`](../../samples/tool/perfetto/kiln_trace_config.pbtx)
@@ -94,7 +118,7 @@ not disconnect `flutter run`. (The Perfetto website's WebUSB recorder requires s
 
 What to look at in the Perfetto UI:
 
-1. The app process: **main thread** (Dart since 3.29) and **`1.raster`**.
+1. The app process: **main thread** (Dart since 3.29) and `1.raster`.
 2. `KILN::` slices on those threads.
 3. **Expected / Actual Timeline** tracks for the app (Android 12+).
 4. CPU tracks: is the raster thread running, runnable or sleeping when the frame is late?
@@ -108,10 +132,20 @@ Saved queries (run in the Perfetto UI "Query (SQL)" page or `trace_processor`):
 | [`raster_thread_slices.sql`](../../samples/tool/perfetto/queries/raster_thread_slices.sql) | The longest raster-thread work |
 | [`janky_frames.sql`](../../samples/tool/perfetto/queries/janky_frames.sql) | Frames SurfaceFlinger classified as janky, with the jank type |
 
+The talk's captures used `atrace` directly, through
+[`thrash_trace.sh`](../../tool/benchmark/thrash_trace.sh): that gives a Systrace-format text
+file with slices, thread states and CPU frequency, which Perfetto opens. It has **no**
+Expected / Actual Timeline or GPU render stages; those need the config above and, for render
+stages, a driver that exposes them (`adb shell perfetto --query | grep gpu.renderstages`).
+The Infinix X6873 does not.
+
+To read the frame budget from a trace, see
+[Frame scheduling](05-frame-scheduling.md#reading-the-budget-from-a-trace).
+
 ## 5. Android GPU Inspector (preparation only)
 
 - **Frame profiler (Vulkan):** every Vulkan call, render pass and draw for one frame; count
-  render passes before and after the `saveLayer` fixes.
+render passes before and after the `saveLayer` fixes.
 - **System profiler:** GPU counters (for example fragment load, memory bandwidth) over time.
 - Requires a debuggable build; capture screenshots for the Q&A appendix.
 

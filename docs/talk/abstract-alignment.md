@@ -52,13 +52,13 @@ detail lives. Evidence files are in `~/fluttercon-captures/2026-10-31-infinix-x6
 | P6 | Tessellation of vector paths into triangles | line 16; Canvas Thrash §4 | X-ray triangle lens; path points 129,920 → 12,032; `Encode` 27 → 13 ms | video 0:32–0:59; `thrash-trace-*.txt` | ✅ modelled + measured indirectly |
 | P7 | Explicit command buffers under heavy stress | lines 17–18, 25–27 | `SurfaceFrame::Encode` dominates the raster frame; `QueueSubmit` 2 → 1 per frame when layers go | `thrash-trace-none.txt`, `thrash-trace-all.txt` | ⚠️ CPU side measured; GPU execution explained, not traced |
 | P8 | Intentionally thrash a real-time canvas | 00:00 line 2; Canvas Thrash §3 | Dial 1× → 8×, both lanes red | `videos/thrash-impeller-stage.mp4` 0:00–0:32 | ✅ |
-| P9 | Parse advanced DevTools Timeline traces | 13:00 line 21; lines 28–29 | Dart timeline (the events DevTools' Performance page reads) with named `KILN::Thrash::*` spans, opened in Perfetto | `traces/dart-timeline/*.perfetto-trace` | ⚠️ same data, shown in Perfetto, not the DevTools UI |
-| P10 | Interpret Systrace / Perfetto metrics | lines 23–27 | Main and `1.raster` slices, thread state (running vs sleeping), `saveLayer` and `QueueSubmit` counts | `traces/perfetto-system/` | ✅ |
+| P9 | Parse advanced DevTools Timeline traces | 13:00 line 21; lines 28–29 | Dart timeline (the events DevTools' Performance page reads) with named `KILN::Thrash::*` spans, opened in Perfetto | `traces/dart-timeline/*.perfetto-trace` | ⚠️ same data, shown in Perfetto, not the DevTools UI. Closed by the [10-minute capture](../notes/06-profiling-playbook.md#devtools-capture-for-the-talk-10-minutes-any-android-phone) |
+| P10 | Interpret Systrace / Perfetto metrics | lines 23–27c | Main and `1.raster` slices, thread state (running vs sleeping), `saveLayer` and `QueueSubmit` counts, budget shares and frame rate; recorded with `atrace`, the tool behind Systrace | `traces/perfetto-system/`, `summaries.txt` | ✅ measured. No Expected / Actual Timeline in these captures |
 | P11 | Precise repaint boundary isolation | Canvas Thrash §7; line 29 | Grid repaints → 0/s; `KILN::Thrash::grid` absent from the timeline; UI 4.4 → 3.4 ms | `devtools-timeline-8x-isolate.perfetto-trace` | ✅ measured |
 | P12 | Layer complexity reduction | Canvas Thrash §6; line 25 | Layers 64 → 0; raster 13.7 → 6.6 ms; `saveLayer` 64 → 0 per frame in the trace | `thrash-trace-simplifyPaths+batchDraws.txt` vs `-all.txt` | ✅ measured |
 | P13 | Confidence to ship | lines 30–33 | Medians with ranges, honest limits, scripts to reproduce | `bench/`, `tool/benchmark/` | ✅ |
 | T1 | Skia JIT vs Impeller AOT pipeline mechanics on Vulkan | Storm; lines 13–14 | 118 Skia programs vs 40 Impeller pipelines in one reveal frame | `skia-144.txt`, `impeller-144.txt` | ✅ measured |
-| T2 | Read ~4 ms UI / ~4 ms raster allocations | lines 4–7; Canvas Thrash §8 | Fixed: UI 3.4 ms (under 4), raster 6.5 ms (under 8.3, over 4) | `bench/thrash-impeller.csv` | ✅ honest: raster ends between the target and the limit |
+| T2 | Read ~4 ms UI / ~4 ms raster allocations | lines 4–7; lines 27a–27c; Canvas Thrash §8 | Bench, fixed: UI 3.4 ms (under 4), raster 6.5 ms (under 8.3, over 4). Traces: budget shares for three states; 1000 ÷ raster = frame rate; 120 fps with UI + raster over 8.3 ms on 28% of frames | `bench/thrash-impeller.csv`, `summaries.txt` | ✅ measured; raster ends between the target and the limit, and the talk says so |
 | T3 | Custom painter patterns, precompiled pathways, avoid `saveLayer()` | Canvas Thrash §4–7; 22:00 lines P1–P3; line 36 | Decimated cached paths, one `drawVertices`, gradient glow instead of `saveLayer` + blur (measured); your own `.frag` → `pubspec` → `FragmentProgram`, and the APK bundle with SPIR-V, GLSL ES and SkSL | `thrash_canvas.dart`; bench; `depth_fill.frag` and its built asset | ✅ patterns measured; custom shader shown as code and build output, not timed |
 
 ## Gaps, said out loud
@@ -66,7 +66,8 @@ detail lives. Evidence files are in `~/fluttercon-captures/2026-10-31-infinix-x6
 | Gap | Why | What the talk does instead |
 |---|---|---|
 | GPU execution (render passes on the Mali GPU) | The phone's driver exposes only GPU memory to Perfetto | Line 32 says so; render-pass cost is explained from the Vulkan model |
-| DevTools UI walkthrough | No phone on stage to attach DevTools to | The same Dart timeline events, opened in Perfetto (lines 28–29). A live DevTools demo needs any device or emulator attached |
+| DevTools UI walkthrough ("Master advanced Flutter DevTools") | No phone left to attach DevTools to; the frames chart, Frame analysis and Timeline Events have not been captured | **Open: the biggest gap left.** Needs the [10-minute capture](../notes/06-profiling-playbook.md#devtools-capture-for-the-talk-10-minutes-any-android-phone) on any Android phone. Until then, the same Dart timeline events open in Perfetto (lines 28–29) |
+| Expected / Actual Timeline | The captures used `atrace` text, which has no frame timeline | Not claimed. Frame rate comes from the raster slices instead |
 | Raster at 6.5 ms is over the 4 ms raster target | Measured | Say it: inside the 8.3 ms frame, at 120 fps, with less headroom than four and four |
 | Batch draws is a small win | Measured: 18.6 → 13.7 ms, overlapping ranges | The script calls it the smallest win of the four |
 
