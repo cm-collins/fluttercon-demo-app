@@ -1,6 +1,6 @@
 # Talk deck
 
-The slides for *Beyond Skia*: 48 slides plus 2 backup tables, one idea per slide. The spoken words are
+The slides for *Beyond Skia*: 32 slides plus 2 backup tables. The spoken words are
 in the speaker notes and the [Demo script](../demo-script.md).
 
 | File | What it is |
@@ -14,17 +14,23 @@ in the speaker notes and the [Demo script](../demo-script.md).
 Animations only run in Slide Show mode in PowerPoint or LibreOffice Impress, never in a file preview
 such as a code editor extension.
 
-Rebuild with `python3 docs/talk/slides/build_pptx.py` (needs `python-pptx`, and the photo, logos and images in `local/`). Colours come from the
-`THEMES` table, so one edit restyles a whole deck.
+Rebuild with `python3 docs/talk/slides/build_pptx.py` (needs `python-pptx`, Pillow, and the photo, logos and images in `local/`). Colours come from the
+`THEMES` table, so one edit restyles a whole deck. Speaker notes live in `speaker_notes.json`, one entry per slide; the [Demo script](../demo-script.md) repeats them, so change both.
 
 `index.html` is the earlier browser version, with the older layout and text. It no longer matches the
 PowerPoint deck.
 
 ## Design rules
 
-- **One idea per slide.** Details go in the notes and the backup tables.
+- **One topic per slide, taught in full.** A slide holds its diagram and its explanation together, and each slide leads into the next. Numbers tables stay in the backups.
+- **Grid.** 56 px side margins and 16 px gutters. Content runs from y=128 (y=164 under a subtitle) to y=648. The source
+  line sits on the logo's line at the bottom, and must fit on one line.
+- **Hierarchy.** A section label and journey marker, a left-aligned title, then tiles. Gradient tiles carry the headline
+  result, and the dark bar carries the one sentence to remember.
+- **Tables.** Native and editable, with a header band, hairline rows and one highlighted column.
+- **Icons.** [Lucide](https://lucide.dev), stored as white masks in `icons/` and tinted at build time. Licence in `icons/LICENSE.txt`.
 - **Type.** Inter Tight for headlines, Inter for text, JetBrains Mono only for code and logs. Apple's SF
-  Pro is not licensed for this. Fine print is at least 18 px.
+  Pro is not licensed for this. Fine print is at least 18 px. Line spacing is 1.08 for text and 0.96 for headings.
 - **Colour.** Blue is the main result and Impeller. Ink is the comparison and Skia. Red means over budget.
 - **Charts.** No scales or gridlines where they add nothing; label lines directly.
 - **Numbers.** Only the Infinix measurements count as evidence. Emulator screens are labelled and quote
@@ -40,6 +46,8 @@ video to a USB drive**; from a fresh clone, `local/` has to be restored from tha
 |---|---|---|
 | `beyond-skia.pptx`, `beyond-skia-dark.pptx` | The decks, including the photo, logo and speaker notes | Yes |
 | `build_pptx.py` | Builds the decks | Yes |
+| `speaker_notes.json` | The speaker notes, one entry per slide | Yes |
+| `icons/` | Lucide icon masks and their licence | Yes |
 | `index.html`, `deck.css`, `deck.js` | Earlier browser deck and engine | Yes |
 | `trace-data.js` | Real frame timings from the stage phone's traces | Yes |
 | `fonts/` | Outfit and JetBrains Mono, with their open font licences | Yes |

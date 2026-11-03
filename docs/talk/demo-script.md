@@ -12,7 +12,7 @@ Every promise in the registered abstract is mapped to a moment here in
 [Abstract alignment](abstract-alignment.md). Term definitions: [Talk vocabulary](vocabulary.md).
 
 **Stage setup: no phone.** The slides are a clean PowerPoint deck, and the recordings from the stage
-phone play separately in a video player. The trace slides draw real frames from the captured traces. Everything lives in
+phone play separately in a video player. Slides 5 and 28 draw real frames from the captured traces. Everything lives in
 `~/fluttercon-captures/2026-10-31-infinix-x6873/` (see its README). Before the session, follow
 the [Stage runbook](stage-runbook.md). If a phone becomes available, run the demo segments
 live from their scripts and keep the recordings as fallback.
@@ -30,250 +30,375 @@ live from their scripts and keep the recordings as fallback.
 
 ## Run of show
 
+Times are estimates from the word count of the speaker notes at about 130 words a minute, plus the
+clips and votes. Check them in a rehearsal.
+
 | Time | Segment | Slides | Length | Abstract promise it delivers |
 |---|---|---|---|---|
-| 00:00 | Cold open | 1–2 | 1:00 | Real-time graphics canvas, under stress |
-| 01:00 | The budget | 3–4 | 1:30 | 120 fps; ~4 ms UI / ~4 ms raster |
-| 02:30 | How we got here | 5–11 | 3:30 | Definitive transition to Impeller |
-| 06:00 | Shader Storm | 12–19 | 6:00 | Skia JIT vs Impeller AOT; how Impeller schedules pipelines |
-| 12:00 | One frame on Vulkan | 20–21 | 2:30 | Pipelines, tessellation, explicit command buffers |
-| 14:30 | Threads and tools | 22–23 | 2:00 | DevTools Timeline, Systrace / Perfetto |
-| 16:30 | Canvas Thrash | 24–37 | 7:00 | Thrash a real-time canvas; repaint isolation; layer reduction; custom painters |
-| 23:30 | Your own pre-compiled pathway | 38–39 | 1:00 | Maximize Impeller's pre-compiled rendering pathways |
-| 24:30 | Into the traces | 40–45 | 6:00 | Parse timeline traces; read Perfetto; command buffers in a real trace |
-| 30:30 | What Impeller didn't fix | 46 | 1:30 | Honest limits |
-| 32:00 | Takeaways | 47–48 | 1:30 | The three registered takeaways |
-| 33:30 | Q&A | 49–50 backup | 6:30 | |
+| 00:00 | Cold open and map | 1–2 | 1:15 | Real-time graphics canvas, under stress |
+| 01:15 | How Flutter draws | 3–5 | 3:30 | Threads, the frame pipeline, 120 fps, ~4 ms UI / ~4 ms raster |
+| 04:45 | Before: Skia | 6–8 | 3:30 | Skia's runtime model, compilation jank, why workarounds failed |
+| 08:15 | Now: Impeller | 9–12 | 4:00 | Definitive transition to Impeller; precompiled shaders; how pipelines are scheduled |
+| 12:15 | The proof | 13–15 | 3:45 | Skia JIT vs Impeller AOT, measured |
+| 16:00 | Inside a frame | 16–18 | 4:00 | Tessellation, explicit command buffers, GPU scheduling, render passes |
+| 20:00 | What Impeller didn't fix | 19–25 | 7:15 | Thrash a real-time canvas; repaint isolation; layer reduction; custom painters |
+| 27:15 | Your own shader | 26 | 1:00 | Maximize Impeller's pre-compiled rendering pathways |
+| 28:15 | Prove it | 27–29 | 3:45 | DevTools, Systrace / Perfetto, frame-budget reading |
+| 32:00 | Finish | 30–32 | 1:30 | Honest limits; the three registered takeaways |
+| 33:30 | Q&A | 33–34 backup | 6:30 | |
 
-The schedule leaves 6:30 for questions. If you run long, Q&A absorbs it.
+If you run long, Q&A absorbs it.
 
 ## The deck
 
-**Slides:** [`slides/beyond-skia.pptx`](slides/beyond-skia.pptx), one idea per slide. A dark copy sits beside it. **Clips:**
-`slides/local/clips-stage/`, played separately in a video player, so the deck itself carries no video.
+**Slides:** [`slides/beyond-skia.pptx`](slides/beyond-skia.pptx), with a dark copy beside it. Each slide
+teaches one topic in full, so its diagram and explanation are together. **Clips:** `slides/local/clips-stage/`, played
+separately in a video player, so the deck itself carries no video.
 
-Every speaker note says when to play a clip. The tables below remain the full spoken wording, and
-slide numbers are in the run of show above.
-
-| After slide | Play | Then advance to |
+| When | Play | Then |
 |---|---|---|
-| 1 | `01-broken-chart-8x.mp4` | 2 "Impeller fixed one kind of jank" |
-| 4 | `02-skia-to-impeller-concept.mp4` | 5 "A stutter you couldn't fix in Dart" |
-| 11 | `03-skia-first-reveal.mp4` | 12 "Frozen." |
-| 13 | `04-skia-repeat.mp4` | 14 "21 ms" |
-| 14 | `05-impeller-first-reveal.mp4` | 15 "148 ms" |
-| 24 | `06-dial-1x-to-8x.mp4` | 25 "129,920" |
-| 29 | `07-xray.mp4`, then `08-simplify-paths.mp4` | 30 "Fix 1" |
+| After slide 1 | `01-broken-chart-8x.mp4` | Slide 2 |
+| After slide 5 | `02-skia-to-impeller-concept.mp4` | Slide 6 |
+| During slide 13 | `03-skia-first-reveal.mp4`, then click | First score appears |
+| During slide 13, after the vote | `04-skia-repeat.mp4`, then click | Second score appears |
+| During slide 13 | `05-impeller-first-reveal.mp4`, then click | Impeller scores appear |
+| After slide 19 | `06-dial-1x-to-8x.mp4` | Slide 20 |
+| After slide 21 | `07-xray.mp4`, then `08-simplify-paths.mp4` | Slide 22 |
 
 ### Audience votes
 
-A show of hands, about 20 seconds each. Ask, wait, then advance.
+A show of hands, about 20 seconds each. Ask, wait, then click.
 
 | Slide | Ask | The answer |
 |---|---|---|
-| 13 | "Same effects, second time. Will it freeze again?" | No: 21 ms in the recording. The programs are built |
-| 27 | "Which fix helps raster most, on its own?" | Simplify paths, 18.6 ms from 29.7. Batch draws barely moves it |
-| 33 | "A `RepaintBoundary` on the grid, on its own: how much does it save?" | Almost nothing at 8×. A grid is nothing next to 130,000 points |
-| 42 | "Is the raster thread waiting on the GPU?" | No: it is running 24 of 28 ms |
+| 13 | "Same effects, second time. Will it freeze again?" | No: 23 ms. The programs are built |
+| 21 | "Which fix helps raster most, on its own?" | Simplify paths, 18.6 ms from 29.7. Batch draws barely moves it |
+| 24 | "A `RepaintBoundary` on the grid, on its own: how much does it save?" | Almost nothing at 8×. A grid is nothing next to 130,000 points |
+| 28 | "Is the raster thread waiting on the GPU?" | No: it is running 24 of 28 ms |
 
 ### Two true stories
 
 Say these in your own words.
 
-- **Slide 43.** "Going in, I suspected the raster thread was waiting on the GPU. The trace said
+- **Slide 28.** "Going in, I suspected the raster thread was waiting on the GPU. The trace said
   otherwise: on this phone it's the CPU." Only say this if it is true for you.
-- **Any time around the budget.** "The phone was set to 120 Hz, but it was quietly running my app at
-  60 until I set it per app. Check the header before you trust a number."
+- **Slide 5.** "The phone was set to 120 Hz, but it was quietly running my app at 60 until I set it
+  per app. Check the header before you trust a number."
 
 ---
 
-## 00:00 — Cold open (1:00)
+## Slide by slide
+
+These words match the speaker notes in the deck. Say them in your own voice, but keep the facts.
+
+### 00:00 Cold open
+
+**Slide 1: Beyond Skia**
+
+Hi, I'm Collins. Let me show you a chart.
+
+>>> AFTER THIS SLIDE: play 01-broken-chart-8x.mp4 from local/clips-stage/, then come back and press Next.
+
+**Slide 2: Impeller fixed one kind of jank.**
+
+This is a live market chart in Flutter, on Impeller, on Vulkan, on a 120 hertz phone. Every red bar in that clip was a frame that missed its deadline. It ran at about a third of the frame rate the screen can show.
+
+Impeller was supposed to fix jank. It did fix one kind: compilation jank. It didn't fix the other kind: drawing cost. That's today's map. To understand either one, we first need to see how Flutter gets a picture onto the screen, so let's start at the top.
+
+### 01:15 How Flutter draws
+
+**Slide 3: Dart and the engine are different things.**
+
+Three layers. The framework is Dart: widgets, layout, your paint methods. Everything you write lives here. The engine is C++ that ships inside your app. It runs your Dart, renders frames and lays out text, and dart:ui is the door between the two. The embedder hosts all of it on Android: it provides the surface, the input and the threads.
+
+So when I say Dart, I mean your code. When I say engine, I mean the C++ underneath it. And notice one thing: Flutter doesn't ask Android to draw a button. It asks the GPU to draw triangles. The box in blue, the renderer, is the one this talk replaces. Now let's follow one frame through these layers.
+
+**Slide 4: One frame, from vsync to pixels.**
+
+Vsync fires. CLICK: on the main thread, Flutter animates, builds, lays out and paints. Here's the first thing people get wrong: paint draws nothing. Your paint method records a list of commands called a DisplayList, and hands it over.
+
+CLICK: the raster thread takes that list. It replays it, gets the GPU programs it needs, breaks paths into triangles, and records commands for the GPU. Raster time is CPU time. The GPU hasn't done this work yet.
+
+CLICK: the GPU runs those commands later, on its own schedule, then Android puts the result on the display. So there are three names and only two CPU threads. Remember this picture: everything we measure today lands in one of those three boxes. Now, how long do they have?
+
+**Slide 5: Every frame gets 8.3 ms.**
+
+At 120 hertz each frame gets 8.3 milliseconds. Those faint lines are the deadlines.
+
+CLICK: budget about 4 milliseconds for UI and 4 for raster, and the whole frame lands in one refresh.
+
+CLICK: strictly, the threads overlap. While raster draws this frame, Dart can already build the next. So each thread can stretch to 8.3 and you still hit 120, but every frame arrives later and you have no headroom. Four and four is the target. 8.3 per thread is the limit.
+
+CLICK: this is the chart you just saw, real frames from a trace. Raster is 28 milliseconds. A thousand divided by 28 is 36 frames a second, and that is what we measured. The slowest thread sets your frame rate.
+
+Hold on to that. Now let's go back to where a frame could suddenly take almost two seconds.
+
+>>> AFTER THIS SLIDE: play 02-skia-to-impeller-concept.mp4 from local/clips-stage/, then come back and press Next.
+
+### 04:45 Before: Skia
+
+**Slide 6: The engine before: Skia on OpenGL ES.**
+
+Here's the engine as it was. Skia is the 2D library behind Chrome and Android's own UI, excellent and general purpose. Sky, the prototype that became Flutter, drew with it in 2015, and Flutter 1.0 shipped on it in 2018.
+
+Read it top to bottom. The platform thread is Android. Dart has its own thread, 1.ui, and hands over what it recorded. Skia replays it on the raster thread, on top of OpenGL ES, and the driver underneath hides the work.
+
+Now look at the left. When Flutter is built, no shader for your screen exists. CLICK: so they are written and compiled here, on the raster thread, while the user is watching. That's the design decision that caused everything on the next slide.
+
+**Slide 7: Compilation jank.**
+
+So what is compilation jank? A shader is a small program for the GPU, and the driver has to compile it for that exact chip. Skia is general, so it generates a shader for each new combination of paint, blend and clip.
+
+CLICK: a new combination appears on screen. Skia writes SkSL, that's translated to GLSL, the driver compiles it on the raster thread, inside your frame, and the frame misses its deadline.
+
+CLICK: how bad? That tiny blue mark is one frame's budget. Each red block is one program from a real Skia trace, to scale: 118 of them, 14.6 milliseconds each, in one frame. 1.8 seconds.
+
+CLICK: it happens once per shader, per install, and a Flutter upgrade resets the cache.
+CLICK: you rarely see it, because your own phone is already warm.
+CLICK: and no amount of optimising Dart touches it. The UI bar stays green while the app is frozen.
+
+So the community tried to work around it.
+
+**Slide 8: Three years of workarounds.**
+
+2019: draw common shapes offscreen at startup. You needed real Skia knowledge to guess the right calls, and startup got slower. 2020, Flutter 1.20: record the shaders with cache-sksl and bundle them. It helped, it really did, but it was tied to devices and drivers, and you had to capture again after each engine upgrade. 2021: the default warm-up comes out.
+
+This quote is the Flutter team's own issue from May 2019. Zero extra effort, and it must handle cases no test ever saw. That sentence is the spec for what came next. Warm-up was the community trying to fix a renderer from the outside. The issue closed in August 2023, pointing to Impeller.
+
+### 08:15 Now: Impeller
+
+**Slide 9: The engine now: Impeller on Vulkan.**
+
+Same picture, same positions, now. Three things moved.
+
+At the top, Dart moved. Since 3.29 it runs on the platform main thread, with Android. That's separate from Impeller, but you'll see it in your traces, so know it. DevTools still calls it UI.
+
+CLICK: on the left, the box that was empty. A small fixed set of shaders, written by the Flutter team, goes through impellerc when the engine is built: SPIR-V for Vulkan, Metal for iOS, and GLSL ES. They ship inside the engine. Look at the raster thread: write a shader, compile a shader, both gone.
+
+And underneath, Vulkan replaces OpenGL ES. Vulkan hides much less. The engine says exactly what runs and when.
+
+CLICK: one new box appears: tessellate. Impeller turns paths into triangles itself. Keep your eye on that box, because it's the bill for this design. First, let's see exactly when each engine does its work.
+
+**Slide 10: Skia compiles late. Impeller compiles early.**
+
+Here's the same app as a timeline, left to right, from when the code is built to every frame on the phone.
+
+CLICK: Skia. Nothing happens ahead of time unless you wrote a warm-up. All the expensive work lands in the first use of an effect: 14.6 milliseconds per program, inside the frame.
+
+CLICK: Impeller. Shaders are compiled at engine build, and your own frag files when you build your app. A pipeline is a compiled shader plus fixed GPU state. Most are built at startup.
+
+But be careful: not all of them. The design goal in Impeller's README is to build pipeline state up front, and my traces show a few still built in the frame, about 2.2 milliseconds each, when a draw needs a combination it doesn't have yet. So the honest claim is: no shader source is written or compiled in the frame. A little work still happens there. It's just a fraction of what it was.
+
+**Slide 11: One rule. One platform at a time.**
+
+That rule took years to ship. CLICK: iOS first, default in 3.10 in May 2023, and Skia gone from iOS in 3.29.
+CLICK: Android took longer, because of the range of hardware. Default on Vulkan devices in 3.27, December 2024.
+CLICK: desktop, this year, in 3.47.
+
+If asked: web still renders with Skia, and Android below API 29 stays on the legacy renderer. The Skia build's own log warns that opting out is deprecated, so this comparison won't be possible forever.
+
+**Slide 12: A trade, not a free upgrade.**
+
+Impeller isn't free. It's a trade, and this table is the rest of the talk. Row one is the win, and we'll measure it next. Rows two and three are the bill: no raster cache, so some old fast code is now honestly slow, and paths become CPU work. Row four: Vulkan doesn't hide costs, so what you pay for is how much you record. The last row isn't Impeller at all, but it landed around the same time, so it's in every trace you'll read. So is the win real? Let's measure it.
+
+### 12:15 The proof
+
+**Slide 13: Same app. Same phone. Two renderers.**
+
+Don't trust a badge. Read what the engine writes at startup: those are the two log lines. Same Flutter SDK, same Dart code, same phone, one setting different. Shader Storm reveals 144 tiles at once, and no two share the same mix of paint settings. These are recordings from the stage phone; the scoreboard shows medians of three clean runs, so they differ slightly from the clip.
+
+>>> PLAY 03-skia-first-reveal.mp4 from local/clips-stage/, then come back to this slide. Watch the motion lane, and say nothing for two seconds.
+
+CLICK: Frozen. Nearly two seconds, the whole motion lane red. And the UI lane stayed green: Dart was fine, the engine stopped to compile.
+
+VOTE: same effects, second time. Hands up: will it freeze again? Wait for hands.
+
+>>> PLAY 04-skia-repeat.mp4 from local/clips-stage/, then come back to this slide.
+
+CLICK: 23 milliseconds. No freeze. The programs are already built.
+
+Now Impeller, same phone, same 144 effects, first time.
+
+>>> PLAY 05-impeller-first-reveal.mp4 from local/clips-stage/, then come back to this slide.
+
+CLICK: 145 milliseconds. Short, but not zero. And its second time is 48.
+
+**Slide 14: Skia's freeze grows. Impeller's barely does.**
+
+CLICK: the lines draw. As we tripled the new effects, from 48 to 144, Skia went from 0.7 to 1.9 seconds. Impeller went from 127 to 145 milliseconds. That's 13 times shorter at 144. After a relaunch, disk caches help both: 102 against 73. But Skia's cache is keyed to the engine version, so a Flutter upgrade sends your users back to the top line.
+
+**Slide 15: The cost shrank and moved. It didn't vanish.**
+
+Here's why it barely grows. CLICK: Skia builds a program per effect, 118 in the reveal frame. Impeller only builds pipelines from shaders that are already compiled: 40 of them, about two milliseconds each. Both on the raster thread, both in the frame. The cost moved and shrank. It did not vanish.
+
+CLICK: and to be fair, in the same session Skia is actually faster: 23 against 48. So this is not 'Impeller is always faster'. It's predictable, and it took the most expensive work out of the frame. So what is Impeller doing in those frames instead? Let's look inside one.
+
+### 16:00 Inside a frame
+
+**Slide 16: Tessellation: how a path becomes triangles.**
+
+Now the box I told you to watch. Your GPU fills triangles. It can't fill a Bezier curve. So someone has to cut every path into triangles, and on Impeller that someone is the CPU.
+
+CLICK: paint asks for a path: lines and curves.
+CLICK: curves flatten into points. The tolerance depends on scale, so drawing it larger gives more points.
+CLICK: for a stroke, each point gets two vertices, half the stroke width each side. A corner adds two more, unless the turn moves the edge by less than a quarter of a device pixel.
+CLICK: those become one long triangle strip. v vertices make v minus 2 triangles.
+
+CLICK: this all happens on the CPU, on the raster thread. The vertices are copied into per-frame memory, and it becomes one draw. Next frame, it all happens again. There's no cache between frames.
+
+CLICK: so words matter. A path is what you ask for. Tessellation is the work Impeller does with it. The chart you saw has 16 lines of 8,000 points. By the engine's own rule that's at least a quarter of a million vertices every frame, built by the CPU. Then what happens to them?
+
+**Slide 17: The CPU records. The GPU executes.**
+
+Those triangles don't go straight to the GPU. The raster thread writes a list: begin a render pass, bind a pipeline, bind buffers, draw, and so on. That's a command buffer. On Vulkan this is explicit, so Impeller writes each command itself.
+
+CLICK: watch one frame go through. Raster records. It submits to the queue and moves on. The GPU executes while the raster thread is already on the next frame. A fence tells the CPU when the GPU has finished.
+
+That is GPU scheduling. The CPU records, the GPU executes, fences keep them in step. No single command is slow. Volume is the cost. And one kind of command costs far more than the others.
+
+**Slide 18: Why a layer costs more than a draw.**
+
+Most mobile GPUs are tile-based. They split the screen into tiles and draw each one in fast on-chip memory. Writing out to main memory is slow and costs battery, so the ideal frame is one render pass: clear, all your draws on the chip, resolve the anti-aliasing on the chip, store once.
+
+CLICK: now add one saveLayer with a blur. The GPU has to store what it has drawn, switch to an offscreen target, draw and blur there, then load everything back to composite it. The Flutter docs compare it to making a firehose change direction.
+
+I need to be honest about one thing. What I measured is the CPU side: 64 saveLayer and two queue submits per frame, about 9 milliseconds of raster-thread time. What the Mali GPU did with those passes, this phone's driver doesn't expose. So the GPU side here is the model, not my trace.
+
+That's the full picture of a frame. Now we can break one.
+
+### 20:00 What Impeller didn't fix
+
+**Slide 19: What Impeller didn't fix.**
+
+Skia pays at the worst moment, in the frame, in front of the user. Impeller paid when the engine was built. So if compiling shaders is no longer the problem, what is? Let's go break something. Each step doubles the lines and doubles the points on each line, so four times the path points. Watch which bar grows.
+
+>>> AFTER THIS SLIDE: play 06-dial-1x-to-8x.mp4 from local/clips-stage/, then come back and press Next.
+
+**Slide 20: Nothing is compiling. This is pure drawing cost.**
+
+RASTER is far taller than UI. My Dart finishes; the engine is the one struggling. And nothing here is compiling. This is pure drawing cost, and no renderer saves you from asking it to draw too much.
+
+Three separate things grew, and they aren't the same. Path points: that's the detail I ask for, and tessellation is the work it causes. They grow fastest, four times per step. Draw calls: each one records binds and a draw. Layers: each one adds an offscreen pass. Three inputs, three different costs, and each maps to a box you've already seen. Almost 130,000 points, 624 draws, 64 layers. So which one do we fix?
+
+**Slide 21: Which fix helps most, on its own?**
+
+VOTE: four fixes, each one on its own. Which helps raster most? Hands up for Simplify paths. Batch draws. Glow without layers. Isolate repaints.
+
+CLICK: Simplify paths, by a distance. 29.7 down to 18.6. Notice none of them reaches the budget alone. Let's see it. The first clip is X-ray: a model of what Impeller does with a path, the same steps from the tessellation slide, built from the exact paths we send it. It costs work of its own, so it goes off before we judge anything. The second clip turns the fix on.
+
+>>> AFTER THIS SLIDE: play 07-xray.mp4 from local/clips-stage/, then come back and press Next.
+
+>>> AFTER THIS SLIDE: play 08-simplify-paths.mp4 from local/clips-stage/, then come back and press Next.
+
+**Slide 22: Fix 1: Simplify paths.**
+
+That line is 8,000 points on a chart about 330 pixels wide: 25 points for every pixel column. CLICK: keep the lowest and highest in each column, build the path once, then only move it. It looks the same. Path points go from 130,000 to 12,000.
+
+Both bars drop. Raster, because there's less to tessellate. UI by even more, which surprised me: building an 8,000-point path in Dart every frame was most of the UI time.
+
+**Slide 23: Fixes 2 and 3: fewer draws, no layers.**
+
+Fix 2. The heat strip was 480 segments, each its own path, its own paint and its own draw. Now every segment is two triangles, all in one drawVertices call. Same picture. But it's the smallest win of the four: on Vulkan a draw is a few small commands, not a trip to the driver.
+
+Fix 3, the biggest raster win. Each glowing dot was a saveLayer with a blur: the offscreen pass from a few slides ago, 64 times a frame. Same glow, as a radial gradient, in the main pass. Raster halves, and the trace shows two queue submits per frame become one. Here's what surprised me: the raster thread was busy the whole time, not waiting for the GPU. So on this phone the layers cost CPU time first.
+
+**Slide 24: Fix 4: A RepaintBoundary, on its own?**
+
+VOTE: the grid and labels are redrawn every frame, so wrap them in a RepaintBoundary. Hands up: how much did that save at 8×?
+
+CLICK: almost nothing. A grid is nothing next to 130,000 path points. Fix the big cost first.
+
+CLICK: once the other fixes are in, it pays off. Grid repaints go to zero, UI drops under 4 milliseconds. And raster barely moves.
+
+CLICK: that's the point, especially if you learned Flutter on Skia. There's no raster cache to reuse the layer, so the raster thread still draws it every frame. On Impeller a RepaintBoundary saves Dart work, not GPU work.
+
+**Slide 25: Four fixes. From 36 fps to 120.**
+
+CLICK through each fix: raster from 30 milliseconds to six and a half. UI from 16 to three and a half. From about 36 frames a second to the full 120. Nothing here was clever. Fewer points, fewer draws, no offscreen layers, no pointless repainting. Impeller took shader compilation out of the frame. You still pay for every point, every draw and every layer you ask for.
+
+### 27:15 Your own shader
+
+**Slide 26: Your effects can be pre-compiled too.**
+
+One more pattern, for the pre-compiled part. Everything Impeller drew in both demos ran on shaders compiled when the engine was built. Your own effects can join that path: write a fragment shader, list it in pubspec, load it once, and only set uniforms in paint.
+
+And here's what the build did with this 500-byte file: a 4-kilobyte bundle. SPIR-V for Vulkan. GLSL for Impeller's OpenGL backend. And SkSL for Skia, as source text, which Skia still compiles on the phone the first time it's drawn. Same file, two engines: the whole talk in one asset. I didn't time this shader on the phone, so I won't quote a speed.
+
+### 28:15 Prove it
+
+**Slide 27: DevTools: which thread, then which code.**
+
+How do you find all this on your own app? Always in profile mode, on a real device. This shot is an emulator in debug mode, so ignore its milliseconds. I'm showing you where to look.
+
+Each pair is one frame. Red is late. Raster is the taller one, so that's where I look first. Select a frame, and Timeline Events tells me which code, because I wrapped my painters in named spans. That's the whole method, and it's the one we just used: which thread, which event, which code, one fix, measure again. DevTools gives you the frame. For the whole system, you need a system trace.
+
+**Slide 28: Perfetto: 100 ms on the phone.**
+
+This is the broken chart as the system sees it, a real 100 milliseconds. Top row Dart, second row raster: long slices back to back. It never rests.
+
+CLICK: all four fixes. Short slices with gaps between them. Four frames became twelve.
+
+CLICK: here's what the trace tells us. Raster 28 down to 4.8. Almost all of that is SurfaceFrame Encode: Impeller turning our DisplayList into triangles and command buffers. 64 saveLayer down to zero. Two queue submits down to one. 179 frames in five seconds up to 604.
+
+VOTE: so in the broken case, is the raster thread waiting on the GPU? Hands up.
+
+CLICK: no. It's running for 24 of its 28 milliseconds. [Only if it is true for you: going in, I suspected the GPU, and the trace said otherwise.] On this phone the cost is the CPU preparing the frame. I can't show you the GPU side: this phone's driver doesn't expose render stages. If yours does, Perfetto and AGI will show it.
+
+**Slide 29: Read the budget from the trace.**
+
+Now read the budget from those traces. Broken: divide a thousand by 28 and you get 36. We measured 35.5.
+
+CLICK: the slowest thread sets the rate.
+
+CLICK: halfway through the fixes, UI is inside four milliseconds on 94 percent of frames, and we're still at 70 frames a second, because raster is at 14. A green UI bar proves nothing if raster is red. That's why you read the bars before touching code.
+
+CLICK: fixed: raster is over the 4 millisecond target on 81 percent of frames, but inside 8.3 on 99 percent. And UI plus raster went over 8.3 on more than a quarter of frames, while we still averaged 120. That's the overlap from the start of the talk. Four and four is the target for latency. 8.3 per thread is the limit for frame rate.
+
+### 32:00 Finish
+
+**Slide 30: Three honest limits.**
+
+Not every fix helped on its own. I can show you the CPU side of the GPU, but what the Mali GPU did with those buffers, this phone's driver doesn't expose to Perfetto. And Skia: same phone, same chart, 188 milliseconds broken, 58 with every fix. Impeller made this workload possible. It didn't make it free.
+
+**Slide 31: Take this home.**
+
+One: demystify the engine. Skia compiles in the frame; Impeller compiles ahead, tessellates on the CPU and records explicit command buffers. Two: profile low-level. DevTools for the frame, Perfetto for the system, and the slowest thread sets your frame rate. Three: tame your custom painters, and your own effects as build-time shaders. Prove every fix with numbers.
+
+**Slide 32: Impeller made performance predictable. It didn't make expensive work free.**
+
+Impeller made performance predictable. It didn't make expensive work free. Thread, event, code, fix, measure: that's the method you can take into production. The repo has the app and every script behind these numbers, so run it on your own phone. Thank you.
+
+Leave this slide up during Q&A so people can scan the code.
+
+### 33:30 Q&A backup
+
+**Slide 33: Shader Storm medians**
+
+Backup for Q&A: press Next past the closing slide, or type the slide number and press Enter.
+
+**Slide 34: Canvas Thrash medians at 8×**
+
+Backup for Q&A: press Next past the closing slide, or type the slide number and press Enter.
+
+---
+
+## Optional: Perfetto, for Q&A or a live trace
+
+Slide 28 already draws the real frames. If someone asks to see a trace, open these from `traces/` in the
+captures folder.
 
 | # | Screen | Do | Say |
 |---|---|---|---|
-| 1 | Slide: title | Walk to centre. | "Hi, I'm … Let me show you a chart." |
-| 2 | Video: `thrash-impeller-stage.mp4`, start at **0:19** (8×, broken) | Play about 10 s. Pause on red lanes. | "This is a live market chart in Flutter, on Impeller, on Vulkan, on a 120 hertz phone. Every red bar is a frame that missed its deadline. It's running at about a third of the frame rate the screen can show." |
-| 3 | Same, paused | — | "Impeller was supposed to fix jank. It did fix one kind. In the next 30 minutes I'll show you which one, and how to find and fix the kind it didn't." |
-
-## 01:00 — The budget (1:30)
-
-| # | Screen | Do | Say |
-|---|---|---|---|
-| 4 | Slide: the budget | — | "The screen refreshes 120 times a second. Each frame gets 8.3 milliseconds." |
-| 5 | Slide: the budget | Point at the split. | "Flutter spends that frame on two threads. UI is our Dart code. Raster is Impeller. Budget about 4 milliseconds for each, and the whole frame, from vsync to pixels, lands inside one refresh." |
-| 6 | Slide: the budget | — | "Strictly, the threads overlap, so each can stretch to 8.3 and still hit 120. But then you add a frame of latency and have no headroom left. Four and four is the budget I design for." |
-| 7 | Slide: the budget | Point at the two lanes in the screenshot. | "Both demo screens show those two lanes. One bar per frame, green under budget, red over." |
-
-## 02:30 — How we got here (3:30)
-
-Source: [History overview](../history/README.md), [Rendering engine history](../history/01-rendering-engine.md).
-
-| # | Screen | Do | Say |
-|---|---|---|---|
-| 8 | Video: [`skia-to-impeller-concept.mp4`](media/skia-to-impeller-concept.mp4) | Full screen, ~15 s. | *(Mostly silence.)* Then: "That's the idea. Skia forged parts mid-race. Impeller fires them in the kiln first." |
-| 9 | Slide 5: Skia era | Click once for the chain. | "Flutter 1.0 shipped in December 2018 on Skia, the 2D engine behind Chrome and Android's own UI. A new effect appears, Skia writes a shader, the driver compiles it on the raster thread, the frame is late. Once per shader, per install, and no amount of optimising Dart fixes it." |
-| 10 | Slides 6–7: workarounds, then the quote | Advance. | "First, draw common shapes offscreen. Then Flutter 1.20: record shaders and bundle them. It helped, but it was tied to devices and drivers, and had to be captured again after every engine upgrade. The team's own issue, opened in May 2019, set the real bar: zero extra effort from developers, and it must handle cases no test ever saw. That issue was closed in August 2023, pointing to Impeller." |
-| 11 | Slide 8: rollout | Click iOS, Android, Desktop. | "One rule: no shader compilation while the app runs. iOS first: default in 3.10, May 2023. Android on Vulkan: default in 3.27, December 2024. Desktop: 3.47, this year." |
-| 12 | Slides 9–11: the trade, the engine logs, the closing line | Advance. | "It's a trade. Shaders compiled ahead of time. No raster cache. Paths tessellated on the CPU. And since 3.29, Dart on the main thread. Skia wasn't slow. It was unpredictable. Let's measure it." |
-
-## 06:00 — Shader Storm (6:00)
-
-Run [Shader Storm script](shader-storm-script.md) sections 1 to 10, with these screens:
-
-| Script section | Screen |
-|---|---|
-| 1–2 (the phone, the screen) | Slide: renderer evidence (the two log lines), then `storm-skia-144.mp4` paused at 0:00–0:08 |
-| 4 (Skia, cold) | `storm-skia-144.mp4` from the reveal (~0:10): **1,954 ms** in the recording, 1,863 ms median |
-| 5–6 (Skia repeat, trace) | Same video to the repeat (**21 ms**), then the Skia trace slide |
-| 7–8 (Impeller) | `storm-impeller-144.mp4`: reveal **148 ms**, repeat **39 ms**; then the Impeller trace slide |
-| 9 (scoreboard) | Slide: Storm medians |
-
-Say once, at the first video: *"These are recordings from the stage phone; the numbers on
-the scoreboard are medians of three clean runs without recording."*
-
-⏱ **12:00.**
-
-## 12:00 — One frame on Vulkan (2:30)
-
-Source: [Impeller internals](../notes/03-impeller-internals.md), [Vulkan primer](../notes/04-vulkan-primer.md).
-
-| # | Screen | Do | Say |
-|---|---|---|---|
-| 13 | Slide: shaders → pipelines → triangles | — | "Here's what Impeller does with one frame on Vulkan." |
-| 14 | Same | Point at shaders. | "Every shader is compiled when the engine is built. A pipeline is a shader plus fixed GPU state. Impeller builds pipelines from those precompiled shaders, mostly at startup; the ones it meets later it builds on first use, two milliseconds each, as you just saw." |
-| 15 | Same | Point at DisplayList. | "Your `paint()` method doesn't touch the GPU. It records a DisplayList." |
-| 16 | Same | Point at tessellation. | "On the raster thread, Impeller tessellates: every path is broken into triangles on the CPU. Simple convex shapes take a fast path." |
-| 17 | Slide: command buffers | Point at record, submit, execute. | "Then it records explicit command buffers: begin a render pass, bind a pipeline, bind buffers, draw, end. It submits them to the Vulkan queue and moves on. The GPU executes while the raster thread starts the next frame." |
-| 18 | Same | — | "That's GPU scheduling: the CPU records, the GPU executes, fences keep them in step. Under stress the risk is no longer compilation. It's the volume of what we record, and every extra render pass we ask for." |
-| 19 | Same | — | "And Impeller has no raster cache. Whatever we ask it to draw, it draws every frame." |
-
-## 14:30 — Threads and tools (2:00)
-
-Source: [How Flutter runs](../notes/01-how-flutter-runs.md), [Frame scheduling](../notes/05-frame-scheduling.md), [Profiling tools history](../history/03-profiling-tools.md).
-
-| # | Screen | Do | Say |
-|---|---|---|---|
-| 20 | Slide: threads | — | "Three names, two CPU threads. Since 3.29, Dart animation, build, layout and paint run on the platform main thread; DevTools labels that work 'UI'. Impeller prepares GPU work on the raster thread, `1.raster` in Perfetto. The GPU is hardware downstream, not a third Flutter thread." |
-| 21 | Slide: tools | — | "Perfetto replaced Systrace in Android 10, and still opens Systrace files. The system traces you'll see were recorded with `atrace`, the tool underneath Systrace. DevTools' Performance page shows the Dart timeline, and embeds a Perfetto viewer for it." |
-| 22 | Slide: method | — | "One method for everything that follows: which thread is over budget, which event, which code. One surgical fix. Measure again." |
-
-⏱ **16:30.**
-
-## 16:30 — Canvas Thrash (7:00)
-
-Run [Canvas Thrash script](canvas-thrash-script.md) sections 1 to 8 over
-`thrash-impeller-stage.mp4`. Pause the video at each step while you talk; the timestamps
-below are where each step begins.
-
-| Script section | Video position |
-|---|---|
-| 1–2 (calm, 1×) | 0:00 |
-| 3 (break it) | 0:08 2×, 0:14 4×, **0:19 8×** |
-| 4 (Simplify paths, X-ray) | 0:32 X-ray on, 0:43 off, **0:48** Simplify paths |
-| 5 (Batch draws) | 0:59 |
-| 6 (Glow without layers) | 1:08 |
-| 7 (Isolate repaints) | 1:20 |
-| 8 (the point) | 1:20 onward, then Slide: Canvas Thrash medians |
-
-Skip the script's hand-off line (section 9); the next segment is the hand-off.
-
-⏱ **23:30.**
-
-## 23:30 — Your own pre-compiled pathway (1:00)
-
-Source: [07 · Optimisation patterns, §6](../notes/07-optimization-patterns.md#6--use-precompiled-fragment-shaders).
-Code: [`depth_fill.frag`](../../packages/shader_lab/shaders/depth_fill.frag),
-[`pubspec.yaml`](../../packages/shader_lab/pubspec.yaml),
-[`depth_chart.dart`](../../packages/shader_lab/lib/src/widgets/depth_chart.dart).
-
-| # | Screen | Do | Say |
-|---|---|---|---|
-| P1 | Slide: your own pre-compiled pathway | — | "One more pattern, for the 'pre-compiled' part. Everything Impeller drew in both demos, gradients, blurs, blend modes, ran on shaders compiled when the engine was built. Your own effects can join that path." |
-| P2 | Same | Point at the three code panels, left to right. | "Write a fragment shader. List it under `shaders:` in pubspec. Load it once with `FragmentProgram.fromAsset`, keep the `FragmentShader`, and only set uniforms in `paint()`. One draw call, any procedural effect, no layer." |
-| P3 | Same | Point at the bundle strip at the bottom. | "And here's what the build did with this 500-byte file: a 4-kilobyte bundle. SPIR-V for Vulkan. GLSL for Impeller's OpenGL backend. And SkSL for Skia, as source text, which Skia still compiles on the phone the first time it's drawn. That's the Shader Storm problem again. Impeller uses the compiled form and only builds a pipeline. Same file, two engines: the whole talk in one asset." |
-
-**Slide content** (condensed from the real files; keep the uniform order):
-
-```glsl
-// shaders/depth_fill.frag
-#include <flutter/runtime_effect.glsl>
-uniform vec2 uSize;
-uniform float uBid;
-out vec4 fragColor;
-void main() {
-  vec2 uv = FlutterFragCoord().xy / uSize;
-  fragColor = vec4(mix(ask, bid, uBid) * (0.35 + 0.65 * uv.x), 1.0);
-}
-```
-
-```yaml
-# pubspec.yaml
-flutter:
-  shaders:
-    - shaders/depth_fill.frag
-```
-
-```dart
-// Once, before it is needed
-final program = await FragmentProgram.fromAsset(
-    'packages/shader_lab/shaders/depth_fill.frag');
-final shader = program.fragmentShader();
-
-// Every paint: uniforms only, one draw
-shader..setFloat(0, size.width)..setFloat(1, size.height)..setFloat(2, 1);
-canvas.drawPath(depth, Paint()..shader = shader);
-```
-
-Bottom strip: **503 B of GLSL → 4,008 B in the APK: SPIR-V (Impeller · Vulkan) · GLSL ES
-(Impeller · OpenGL ES) · SkSL (Skia: compiled on the device, at first use)**.
-
-⏱ **24:30.** If late, cut line 27 below.
-
-## 24:30 — Into the traces (6:00)
-
-Open these in ui.perfetto.dev **before** the talk, one tab each (see the runbook). All from
-`traces/` in the captures folder.
-
-| # | Screen | Do | Say |
-|---|---|---|---|
+| 24 | `06-dial-1x-to-8x.mp4` | 25 "129,920" |
+| 29 | `07-xray.mp4`, then `08-simplify-paths.mp4` | 30 "Fix 1" |
+| 27 | "Which fix helps raster most, on its own?" | Simplify paths, 18.6 ms from 29.7. Batch draws barely moves it |
 | 23 | Perfetto: `perfetto-system/thrash-trace-none.txt` | Pin the app's main thread and `1.raster`. Zoom to 3–4 frames. | "This is the broken chart at 8×, as the system sees it. Here's the main thread, the work DevTools calls UI. And here's `1.raster`: long slices, back to back. It never rests." |
 | 24 | Same | Click one `GPURasterizer::Draw` slice, expand to `SurfaceFrame::Encode`. | "Each raster frame is 28 milliseconds, and 27 of them are this: `Encode`. That's Impeller turning our DisplayList into triangles and command buffers, on the CPU." |
 | 25 | Same | Search `Canvas::saveLayer`, then `QueueSubmit`. | "Sixty-four `saveLayer` per frame, our glowing dots. And two queue submissions per frame. Those are the explicit command buffers going to the GPU." |
 | 26 | Same | Select a frame on `1.raster`; show the thread-state track (Running vs Sleeping). | "And the thread state: running. Not sleeping, not waiting for the GPU. On this phone, the cost is the CPU preparing the frame." |
 | 27 | Perfetto: `perfetto-system/thrash-trace-all.txt` | Same zoom. | "All four fixes. Four point eight milliseconds a frame, zero layers, one submission, and 604 frames in five seconds: 120 frames a second." |
-| 27a | Slide: reading the budget | Point at the broken row. | "Now read the budget from those traces. Broken: UI 13 milliseconds, raster 28. Neither is close. And divide a thousand by 28: 36. That's the frame rate we measured. The slowest thread sets the pace." |
-| 27b | Same | Point at the middle row. | "Halfway through the fixes, UI is inside four milliseconds on 94 percent of frames, and we're still at 70 frames a second, because raster is at 14. A green UI bar doesn't help if raster is red. That's why you read the bars before touching code." |
-| 27c | Same | Point at the fixed row. | "Fixed: UI inside four on 98 percent of frames. Raster inside four on only 19 percent, but inside 8.3 on 99 percent. And UI plus raster went over 8.3 on more than a quarter of frames, while we still averaged 120. That's pipelining: the threads overlap. Four and four is the target for latency. 8.3 per thread is the limit for frame rate." |
 | 28 | Perfetto: `dart-timeline/devtools-timeline-8x-broken.perfetto-trace` | Search `KILN::Thrash`. | "This is the Dart timeline, the same events DevTools' Performance page reads, with paint tracking on. Our painters are named: `grid`, `strip`, `lines`, `dots`. The grid paints every frame." |
 | 29 | Perfetto: `dart-timeline/devtools-timeline-8x-isolate.perfetto-trace` | Search `KILN::Thrash::grid`. | "Isolate repaints on. Search for the grid: nothing. That's what a precise repaint boundary looks like in a trace: the event that shouldn't be there is gone." |
-| 30 | Slide: before / after | — | "So the method: the frame chart says which thread. The trace says which event. Your own named spans say which code." |
-
-## 30:30 — What Impeller didn't fix (1:30)
-
-| # | Screen | Do | Say |
-|---|---|---|---|
-| 31 | Slide: honest limits | — | "Three honest notes. First: not every fix helped on its own. Isolate repaints did nothing while 130,000 points were the problem. Fix the big cost first." |
-| 32 | Same | — | "Second: I can show you the CPU side of the GPU, the encoding and the submissions. What the Mali GPU did with them, this phone's driver doesn't expose to Perfetto. The render-pass cost on the GPU is the model, not my trace." |
-| 33 | Same | — | "Third: if you're wondering whether Skia would cope better. Same phone, same chart: 188 milliseconds a frame broken, 58 with every fix. Impeller made this workload possible. It didn't make it free." |
-
-## 32:00 — Takeaways (1:30)
-
-| # | Screen | Do | Say |
-|---|---|---|---|
-| 34 | Slide: takeaways | — | "One: demystify the engine. Skia compiled shaders just in time, in the frame. Impeller compiles them ahead of time, builds pipelines from them, tessellates your paths into triangles on the CPU and records explicit Vulkan command buffers." |
-| 35 | Same | — | "Two: profile low-level. Read the budget as about four milliseconds UI and four raster, and remember the slowest thread sets your frame rate. DevTools for the frame, Perfetto for the system." |
-| 36 | Same | — | "Three: tame your custom painters. Fewer points, fewer draws, no `saveLayer` you don't need, repaint boundaries where they save real work, and your own effects as build-time shaders. Prove every fix with numbers." |
-| 37 | Slide: closing | — | "Impeller made performance predictable. It didn't make expensive work free. Thread, event, code, fix, measure. Thank you." |
-
-## 33:30 — Q&A (6:30)
-
-- Keep the Perfetto tabs and the evidence slides ready.
-- Answers to likely questions: [Shader Storm script](shader-storm-script.md),
-  [Canvas Thrash script](canvas-thrash-script.md#questions-to-expect),
-  [Talk outline](talk-outline.md#questions-to-expect).
-- Kotlin and iOS questions: [Rosetta](../reference/rosetta.md).
-
----
 
 ## Say it precisely
 
@@ -287,7 +412,9 @@ challenged.
 | "These budget shares come from traces, and tracing slows frames" | Quoting them as the benchmark medians | Bench medians are separate: UI 3.4 ms, raster 6.5 ms p90 |
 | "Impeller has no raster cache" | "RepaintBoundary caches it" | Impeller draws every layer every frame; the boundary saves Dart re-recording |
 | "We keep at most two points per pixel column" | "We cache the path" | The win is less geometry |
-| "Impeller builds pipelines from precompiled shaders, mostly at startup, the rest on first use" | "Impeller never does anything at runtime" | Storm measured 40 pipelines built in the reveal frame, about 2 ms each |
+| "Impeller builds pipelines from precompiled shaders, mostly at startup, the rest on first use" | "Impeller never does anything at runtime" | Storm measured 40 pipelines built in the reveal frame, about 2 ms each. Impeller's README states the goal as building them up front; the trace shows some still built in the frame |
+| "A path is what you ask for; tessellation is the work Impeller does with it" | "Paths are tessellation" | A path is the input. Tessellation is CPU work on `1.raster`, every frame |
+| "At least 256,000 vertices a frame, by the engine's stroke rule" | "We measured 256,000 vertices" | 16 × 8,000 × 2 is worked out from `stroke_path_geometry.cc`; Impeller does not report its vertex count to Dart |
 | "A custom `.frag` is precompiled for Impeller; Skia gets SkSL text and compiles it on the device" | "A custom shader means no runtime compilation on any engine" | The APK bundle contains SPIR-V, GLSL ES and SkSL; Skia compiles the SkSL at first use |
 | "This is the pattern; we didn't time a custom shader on the phone" | Any millisecond figure for the custom shader | No on-device measurement exists for it |
 | "Command buffers are recorded on the raster thread and executed by the GPU asynchronously" | "Impeller renders on the GPU thread" | Flutter has no GPU thread |
@@ -305,6 +432,6 @@ challenged.
 | If… | Then… |
 |---|---|
 | A video won't play | Show the matching slide screenshot and narrate from the script; the numbers are on the slide |
-| ui.perfetto.dev won't load (no network) | Use the trace slides (screenshots of lines 23–29). Open the tabs before the talk: once loaded, the page works offline |
+| ui.perfetto.dev won't load (no network) | Use slide 28, which draws the real frames. Open the tabs before the talk: once loaded, the page works offline |
 | Running over time | Use the ⏱ cuts; then shorten Q&A |
 | Someone asks to see it live | "The recordings are from the stage phone; the repo has the scripts to reproduce every number on yours" |
