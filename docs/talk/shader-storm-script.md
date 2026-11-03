@@ -2,7 +2,7 @@
 
 What is on screen, what you do, and what you say for the Skia JIT vs Impeller AOT segment.
 Quoted lines are the intended wording; say them in your own voice, but keep the numbers
-and claims exactly as written. Every number below was measured on the stage phone and is
+and claims exactly as written. Every number below was measured on the Infinix test phone and is
 listed in [Measured evidence](#measured-evidence).
 
 **Length:** about 6 minutes. **Phones:** one, with both flavors installed. **Grid:** 144
@@ -20,10 +20,17 @@ tiles. What every panel means and what happens on each thread:
    adb shell pm clear dev.fluttercon.kiln
    ```
 
-3. Open **Kiln Skia** on the home screen. Mirror the phone on the projector.
-4. Tracing stays **off** for the live run. Tracing slows every frame and changes the
+3. **Check the backend.** Open **Kiln Impeller** and don't open Shader Storm. It must say
+   `(Vulkan)`. If it says `(OpenGLES)`, see the [Stage runbook](stage-runbook.md#failure-recovery):
+
+   ```text
+   adb logcat -d | grep "Impeller rendering backend"
+   ```
+
+4. Open **Kiln Skia** on the home screen. Mirror the phone on the projector.
+5. Tracing stays **off** for the live run. Tracing slows every frame and changes the
    numbers; the trace slides were recorded beforehand.
-5. Do not open Shader Storm while rehearsing after step 2. Any reveal fills the cache.
+6. Do not open Shader Storm while rehearsing after step 2. Any reveal fills the cache.
 
 ## How to read this script
 

@@ -17,8 +17,8 @@ such as a code editor extension.
 Rebuild with `python3 docs/talk/slides/build_pptx.py` (needs `python-pptx`, Pillow, and the photo, logos, fonts and images in `local/`). Colours come from the
 `THEMES` table, so one edit restyles a whole deck. Speaker notes live in `speaker_notes.json`, one entry per slide; the [Demo script](../demo-script.md) repeats them, so change both.
 
-`index.html` is the earlier browser version, with the older layout and text. It no longer matches the
-PowerPoint deck.
+`index.html` is an outdated browser draft, kept for reference and marked with a banner. It has claims that the
+[Fact check](../fact-check.md) corrects, so don't present from it.
 
 ## Design rules
 
@@ -45,7 +45,7 @@ video to a USB drive**; from a fresh clone, `local/` has to be restored from tha
 | `beyond-skia.pptx`, `beyond-skia-dark.pptx` | The decks, including the photo, logo, fonts and speaker notes | Yes |
 | `build_pptx.py` | Builds the decks | Yes |
 | `speaker_notes.json` | The speaker notes, one entry per slide | Yes |
-| `index.html`, `deck.css`, `deck.js` | Earlier browser deck and engine | Yes |
+| `index.html`, `deck.css`, `deck.js` | Outdated browser draft and engine, marked with a banner | Yes |
 | `trace-data.js` | Real frame timings from the stage phone's traces | Yes |
 | `fonts/` | Outfit and JetBrains Mono, with their open font licences | Yes |
 | `local/` | Source photo and logos, videos, installable fonts, screenshots, QR code, PDF, previews | **No** |

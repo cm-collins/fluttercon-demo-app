@@ -4,24 +4,32 @@ What is on screen, what you do, and what you say for the drawing-cost segment. Q
 are the intended wording; say them in your own voice, but keep the numbers and claims exactly
 as written.
 
-**Length:** about 7 minutes. **Phone:** the stage phone, **Kiln Impeller** only. **Follows:**
+**Length:** about 7 minutes. **Phone:** the demo phone, **Kiln Impeller** only. **Follows:**
 [Shader Storm](shader-storm-script.md), which ends on *"So if compiling shaders is no longer
 the problem, what is? Let's go break something."* What every panel means and why each fix
 works: [10 · Canvas Thrash explained](../notes/10-canvas-thrash.md).
 
 Counter values are exact: the scene is generated from the dial level, so they are the same
-on every run on the stage phone. Timings are medians from `thrash_bench.sh`; see
+on every run on the Infinix test phone. A phone with a different chart width changes the
+path points after Simplify paths, because that fix keeps two points per pixel column. Timings are medians from `thrash_bench.sh`; see
 [Measured evidence](#measured-evidence). If you demo on a different phone, re-run the bench
 there and replace the timings.
 
 ## Before you walk on
 
-1. Screen fixed at **120 Hz** for Kiln (Settings → Display → Screen Refresh Rate → **High**,
+1. **Check the backend.** With Kiln Impeller open, this must say `(Vulkan)`. If it says
+   `(OpenGLES)`, see the [Stage runbook](stage-runbook.md#failure-recovery):
+
+   ```text
+   adb logcat -d | grep "Impeller rendering backend"
+   ```
+
+2. Screen fixed at **120 Hz** for Kiln (Settings → Display → Screen Refresh Rate → **High**,
    then **Customize App Refresh Rate** → Kiln → 120 Hz). Check the header reads
    **120 Hz · 8.3 ms budget**.
-2. Kiln Impeller open on the home screen. Canvas Thrash always opens at **1×** with every fix
+3. Kiln Impeller open on the home screen. Canvas Thrash always opens at **1×** with every fix
    and X-ray off; if you rehearsed on it, go back to Home and open it again.
-3. Tracing **off**. X-ray **off** except in step 4.
+4. Tracing **off**. X-ray **off** except in step 4.
 
 ## How to read this script
 
@@ -220,10 +228,10 @@ repaints around **40–50/s**.
 > "Each line is drawn twice to cover the wrap as it scrolls. Sixteen extra draws are cheap;
 > 118,000 fewer points are not."
 
-## Counter values on the stage phone
+## Counter values on the Infinix test phone
 
 At 8×, fixes switched on top to bottom. Path point totals depend on the canvas width, so
-they apply to the stage phone only.
+they apply to the Infinix test phone only.
 
 | After | Draws | Layers | Path points | Grid repaints |
 |---|---|---|---|---|
@@ -237,7 +245,7 @@ At 1× with no fixes: 78 draws, 8 layers, 2,240 path points.
 
 ## Measured evidence
 
-Stage phone: Infinix X6873, Mali-G615 MC6, Vulkan 1.3, Android 16, 120 Hz. Flutter 3.47.8,
+Test phone: Infinix X6873, Mali-G615 MC6, Vulkan 1.3, Android 16, 120 Hz. Flutter 3.47.8,
 Impeller profile build. `tool/benchmark/thrash_bench.sh 3`, tracing off, X-ray off. Frame
 p90 over the last 120 frames, median of 3 rounds (range).
 

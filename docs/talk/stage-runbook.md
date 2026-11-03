@@ -1,16 +1,18 @@
 # Stage runbook
 
-How to run the talk. The demos run live on a mirrored phone from their scripts. This page also covers
-running them from a laptop alone, from recordings made on the test phone, which is the fallback. The trace walkthrough opens traces captured in the same session. The words are in
-the [Demo script](demo-script.md); this page is the setup and the recovery plan.
+How to run the talk. The demos run live on a mirrored phone, from their scripts. The recordings made
+on the Infinix test phone are the fallback, and every `>>> DEMO` cue in the speaker notes names its clip. The words are in the
+[Demo script](demo-script.md); this page is the setup and the recovery plan.
 
 ## What you need
 
 | Item | Where | Check |
 |---|---|---|
+| Demo phone | Both profile flavors installed, 120 Hz, logging Vulkan (see [Set up the phone](#set-up-the-phone)) | `adb logcat` shows `Using the Impeller rendering backend (Vulkan)` |
+| USB cable and `scrcpy` | Bag and laptop | The mirror keeps up at 8× |
 | Captures folder | `~/fluttercon-captures/2026-10-31-infinix-x6873/` (its README lists every file) | All three videos play to the end |
 | **Second copy** of the captures folder | USB drive and cloud storage | Opens on another machine |
-| Slides | [`slides/beyond-skia.pptx`](slides/beyond-skia.pptx) in Slide Show mode, with the PDF `local/beyond-skia.pdf` as the fallback. The fonts are embedded; install `slides/local/pptx/fonts/` too, as a backup | Inter shows on every slide; animations run |
+| Slides | [`slides/beyond-skia-dark.pptx`](slides/beyond-skia-dark.pptx) in Slide Show mode, with the PDF `local/beyond-skia-dark.pdf` as the fallback. Use `beyond-skia.pptx` in a very bright room. The fonts are embedded; install `slides/local/pptx/fonts/` too, as a backup | Inter shows on every slide; animations run |
 | Video player | VLC or mpv, with `slides/local/clips-stage/` open. Clips are numbered in playing order | Full screen, plays smoothly, and you can switch back to the slides quickly |
 | Browser with ui.perfetto.dev | Chrome or Edge | Loads with Wi-Fi off once cached (step 4 below) |
 | Laptop power, HDMI/USB-C adapter, clicker | Bag | Tested with the venue projector if possible |
@@ -19,20 +21,42 @@ The Canvas Thrash video is 253 MB; copy the folder, don't stream it.
 
 ## The evening before
 
-1. Open every video once in the player you'll use on stage. Note that `storm-skia-144.mp4`
-   reveals at about **0:10**, `storm-impeller-144.mp4` at about **0:04**, and the Canvas
-   Thrash steps are at the timestamps in the [Demo script](demo-script.md#1630--canvas-thrash-700).
-2. Rehearse the whole talk once against the clock with the videos and traces, not slides
-   alone.
-3. Charge everything. Turn off notifications and auto-updates on the laptop.
+1. Set up the phone, below, and run the backend check.
+2. Rehearse the whole talk once against the clock, with the live demos and the votes, not slides alone.
+3. Open every clip in `slides/local/clips-stage/` once in the player you'll use, so the fallback is ready.
+4. Charge everything. Turn off notifications and auto-updates on the laptop.
+
+## Set up the phone
+
+Numbers on a different phone will differ. Re-run the benches on it, or say the scoreboard came from your test phone.
+
+1. Install both profile flavors (`tool/benchmark/README.md`, "Before measuring").
+2. **Check the backend.** Clear the log, open **Kiln Impeller**, then read the line the engine wrote:
+
+   ```text
+   adb logcat -c
+   adb logcat -d | grep "Impeller rendering backend"
+   ```
+
+   It must say `(Vulkan)`. If it says `(OpenGLES)`, the Vulkan parts of the talk don't match this phone: use another phone, or run the demos from the recordings. [Fact check](fact-check.md#which-backend-an-android-phone-gets) lists the reasons and the commands to find which one applies.
+3. **Refresh rate fixed at 120 Hz for Kiln**, checked while Canvas Thrash animates
+   (`adb shell dumpsys SurfaceFlinger | grep activeMode`). On Infinix: Screen Refresh Rate →
+   High → Customize App Refresh Rate → Kiln and Kiln Skia → 120 Hz.
+4. **Auto-rotate off.** **Stay awake on.** Notifications silenced.
+5. `adb logcat -G 16M` before running any script.
+6. Mirror the phone (for example `scrcpy`) and check the mirror keeps up at 8×.
+7. Check whether the phone exposes GPU render stages (`adb shell perfetto --query | grep
+   gpu.renderstages`). If it does, a GPU trace can close the one gap in the talk.
 
 ## Thirty minutes before
 
-1. Laptop on power. Display mirrored, or presenter view with the video player and browser on
+1. Laptop on power. Display mirrored, or presenter view with the phone mirror, video player and browser on
    the projected screen.
 2. **Close Android Studio, the emulator and any `flutter run`.** They use the most memory and CPU on this laptop.
-3. Deck open on the cover in Slide Show mode; video player open on `01-broken-chart-8x.mp4`. Practise switching between them.
-4. **Perfetto tabs, for Q&A only.** Slide 28 already draws the real frames, so keep these to the
+3. Clear both apps' data so the Shader Storm reveals are cold, then run the backend check again. Don't open Shader Storm after this, because any reveal fills the cache:
+   `adb shell pm clear dev.fluttercon.kiln.skia && adb shell pm clear dev.fluttercon.kiln`
+4. Deck open on the cover in Slide Show mode, phone mirror beside it, and the clips folder open as the fallback. Practise switching between them.
+5. **Perfetto tabs, for Q&A only.** Slide 28 already draws the real frames, so keep these to the
    tabs you may need; each trace holds memory. Open https://ui.perfetto.dev once while online, then open each file
    below in its own tab (drag the file onto the page). Once loaded, the page keeps working
    without a network.
@@ -46,50 +70,40 @@ The Canvas Thrash video is 253 MB; copy the folder, don't stream it.
    | 5 (Q&A) | `perfetto-system/skia-144.txt` | Search `GrGLProgramBuilder::finalize` |
    | 6 (Q&A) | `perfetto-system/impeller-144.txt` | Search `PipelineVK::Create` |
 
-5. Turn Wi-Fi off and click through the tabs once to confirm they still work.
-6. Water. Phone on silent.
+6. Turn Wi-Fi off and click through the tabs once to confirm they still work.
+7. Water. Your own phone on silent.
 
 ## Timing cues
 
-| Clock | You should be starting |
-|---|---|
-| 06:00 | Shader Storm |
-| 12:00 | One frame on Vulkan |
-| 16:30 | Canvas Thrash |
-| 23:30 | Your own pre-compiled pathway |
-| 24:30 | Into the traces |
-| 32:00 | Takeaways |
+Estimated from the [run of show](demo-script.md#run-of-show). Replace them with your own times after the rehearsal.
 
-Running late: cut demo script line 27 (the fixed trace tab), then shorten Q&A.
+| Clock | Slide | You should be starting |
+|---|---|---|
+| 01:15 | 3 | How Flutter draws |
+| 04:45 | 6 | Before: Skia |
+| 07:45 | 8 | Now: Impeller |
+| 13:15 | 13 | The proof: Shader Storm |
+| 17:00 | 16 | Inside a frame |
+| 21:00 | 19 | What Impeller didn't fix: Canvas Thrash |
+| 28:15 | 26 | Your own shader |
+| 29:15 | 27 | Prove it: DevTools and Perfetto |
+| 33:00 | 30 | Finish |
+| 34:30 | 33 | Q&A |
+
+Running late: say slide 10 in one sentence, give the answers on slides 24 and 28 without a vote, then shorten Q&A. Keep slides 11, 23 and 29, because they carry promises from the abstract.
 
 ## Failure recovery
 
 | If… | Then… |
 |---|---|
-| A video won't play | Show the screenshot slide for that moment; the numbers are on it. Narrate from the segment script |
-| The video player freezes | Restart it; the timestamps are in the demo script. Keep talking from the script meanwhile |
-| A Perfetto tab is blank or the page won't load | Switch to the trace screenshot slides for lines 23–29 |
-| The projector crops the portrait video | Pause and point at what matters; the lanes and counters are in the lower half |
-| Laptop dies | Second copy on USB: slides PDF and videos run on any machine |
-| Someone asks for it live | "These are recordings from the stage phone. The scripts in the repo reproduce every number on your phone" |
-
-## If a phone becomes available
-
-Run the two demo segments live from their scripts and keep the recordings as fallback.
-Numbers on a different phone will differ: re-run the benches on it first and say which phone
-the scoreboard came from. Setup, from what went wrong on the Infinix:
-
-1. Install both profile flavors (`tool/benchmark/README.md`, "Before measuring").
-2. **Refresh rate fixed at 120 Hz for Kiln**, checked while Canvas Thrash animates
-   (`adb shell dumpsys SurfaceFlinger | grep activeMode`). On Infinix: Screen Refresh Rate →
-   High → Customize App Refresh Rate → Kiln and Kiln Skia → 120 Hz.
-3. **Auto-rotate off.** **Stay awake on.** Notifications silenced.
-4. `adb logcat -G 16M` before running any script.
-5. Clear both apps' data right before the talk so the Shader Storm reveals are cold:
-   `adb shell pm clear dev.fluttercon.kiln.skia && adb shell pm clear dev.fluttercon.kiln`.
-6. Mirror the phone (for example `scrcpy`) and check the mirror keeps up at 8×.
-7. Check whether the phone exposes GPU render stages (`adb shell perfetto --query | grep
-   gpu.renderstages`). If it does, a GPU trace can close the one gap in the talk.
+| The phone logs `(OpenGLES)` | Use another phone, or run the demos from the recordings. Don't describe the live run as Vulkan |
+| The phone or the mirror fails during a demo | Play the clip named in the `>>> DEMO` cue and carry on. Say it's a recording from your test phone |
+| A clip won't play | Stay on the slide and narrate from the segment script; the numbers are on the slide |
+| The video player freezes | Restart it. Keep talking from the script meanwhile |
+| A Perfetto tab is blank or the page won't load | Use slide 28, which draws the real frames |
+| The projector crops the portrait phone mirror | Pause and point at what matters; the lanes and counters are in the lower half |
+| Laptop dies | Second copy on USB: the slides PDF and the videos run on any machine |
+| No phone, and someone asks to see it live | "These are recordings from my test phone. The scripts in the repo reproduce every number on your phone" |
 
 ## After the talk
 

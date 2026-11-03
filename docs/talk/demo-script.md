@@ -54,7 +54,7 @@ If you run long, Q&A absorbs it.
 
 ## The deck
 
-**Slides:** [`slides/beyond-skia.pptx`](slides/beyond-skia.pptx), with a dark copy beside it. Each slide
+**Slides:** [`slides/beyond-skia-dark.pptx`](slides/beyond-skia-dark.pptx), with a light copy beside it. Each slide
 shows one idea, and the explanation is in your voice and the demo. **Clips:** `slides/local/clips-stage/`, played
 separately in a video player, so the deck itself carries no video.
 
@@ -355,7 +355,7 @@ CLICK: the slowest thread sets the rate.
 
 CLICK: halfway through the fixes, UI is inside four milliseconds on 94 percent of frames, and we're still at 70 frames a second, because raster is at 14. A green UI bar proves nothing if raster is red. That's why you read the bars before touching code.
 
-CLICK: fixed: raster is over the 4 millisecond target on 81 percent of frames, but inside 8.3 on 99 percent. And UI plus raster went over 8.3 on more than a quarter of frames, while we still averaged 120. That's the overlap from the start of the talk. Four and four is the target for latency. 8.3 per thread is the limit for frame rate.
+CLICK: fixed: raster is over the 4 millisecond target on 81 percent of frames, but inside 8.3 on 99 percent. And UI plus raster went over 8.3 on more than a quarter of frames, while we still averaged 120. That's the overlap from the start of the talk. Four and four is the target for latency. 8.3 per thread is the limit for frame rate. These are trace medians with tracing on; the benchmark figures, 3.4 and 6.5, are p90s with tracing off.
 
 ### 33:00 Finish
 

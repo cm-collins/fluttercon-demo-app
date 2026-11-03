@@ -1009,13 +1009,15 @@ def build(variant):
     # ------------------------------------------------------------ 23. Fixes 2 and 3
     s, t = page('Fixes 2 and 3: fewer draws, no layers.')
     rule(s, 640, 138, 640, 636)
-    for x, name, ch_, code_, verdict, hot in ((M, 'Batch draws', ('Draw calls', '640', '161', None), ['!!480 segments, 480 draws', 'canvas.drawPath(segment, paint);', '', '++All segments, one draw', 'canvas.drawVertices(', '  Vertices.raw(triangles, positions,', '    colors: colors),', '  BlendMode.dst, p);'], 'Raster 18.6 → 13.7 ms. A smaller win.', False),
-                                              (672, 'Glow without layers', ('Offscreen layers', '64', '0', None), ['!!Per dot: a pass, a blur, a composite', 'canvas.saveLayer(bounds,', '  Paint()..imageFilter = blur);', '', '++Same soft edge, in the main pass', 'canvas.drawCircle(c, r,', '  Paint()..shader =', '    Gradient.radial(...));'], 'Raster 13.7 → 6.6 ms. It halves.', True)):
-        display(s, x, 138, 530, 48, name, 36, ACC if hot else TEXT)
-        change(s, x, 196, 530, *ch_[:3], 48, ch_[3])
-        code(s, x, 296, 536, 270, code_, 20)
-        text(s, x, 580, 536, 40, verdict, 25, TEXT, MID, spacing=1.0)
-    source(s, 'Condensed from thrash_canvas.dart. Applied in order, at 8×, median of 3 rounds. 640: Fix 1 draws each line twice, up from 624.')
+    for x, name, ch_, raster_, code_, hot in ((M, 'Batch draws', ('Draw calls', '640', '161'), ('18.6', '13.7'),
+                                               ['!!Before: 480 draws', 'canvas.drawPath(segment, paint);', '++After: one draw', 'canvas.drawVertices(', '    vertices, BlendMode.dst, p);'], False),
+                                              (672, 'Glow without layers', ('saveLayer a frame', '64', '0'), ('13.7', '6.6'),
+                                               ['!!Before: per dot, a pass and a blur', 'canvas.saveLayer(bounds, blurPaint);', '++After: same glow, in the main pass', 'canvas.drawCircle(c, r, radialPaint);'], True)):
+        display(s, x, 138, 530, 48, name, 38, ACC if hot else TEXT)
+        change(s, x, 200, 530, *ch_, 48)
+        change(s, x, 296, 530, 'Raster p90', *raster_, 48, 'ms')
+        code(s, x, 416, 536, 200, code_, 21)
+    source(s, 'Code condensed from thrash_canvas.dart. Applied in order, at 8×, median of 3 rounds. 640 because Fix 1 draws each line twice.')
 
     # ------------------------------------------------------------ 24. Fix 4
     s, t = page('Fix 4: A RepaintBoundary, on its own?')
@@ -1118,19 +1120,15 @@ def build(variant):
         if j == 4:
             return dict(size=30, font=HEAD)
         return dict(size=28, font=BODY)
-    table(s, M, 158, (262, 176, 210, 300, 188), (40, 62, 62, 62),
+    table(s, M, 156, (262, 176, 210, 300, 188), (40, 64, 64, 64),
           [('', 'UI p50', 'Raster p50', '1000 ÷ raster', 'Measured'),
            ('Broken', '13.5 ms', '27.9 ms', '36 fps', '35.5 fps'),
            ('Halfway', '2.7 ms', '13.8 ms', '73 fps', '70.4 fps'),
            ('All fixes', '2.3 ms', '4.8 ms', '207, capped at 120', '119.8 fps')], bt_style, 'Budget from the traces')
-    for i, (h_, d) in enumerate((('The slowest thread sets the rate.', ''),
-                                 ('A green UI bar proves nothing.', 'Halfway: UI inside 4 ms on 94% of frames, still 70 fps.'),
-                                 ('The threads overlap.', 'Fixed: UI + raster passed 8.3 ms on 28% of frames, still 120.'))):
-        y = 412 + i * 78
-        a = display(s, M, y, 500, 44, h_, 30, TEXT)
-        b = text(s, 572, y + 3, 636, 60, d, 22, SUB, spacing=1.08)
-        t.click(fx(a), fx(b))
-    source(s, '5 s system traces at 8×, tracing on. Halfway is Simplify plus Batch. Bench p90s are separate: 3.4 and 6.5 ms.')
+    for i, h_ in enumerate(('The slowest thread sets the rate.', 'A green UI bar proves nothing.', 'The threads overlap.')):
+        a = display(s, M, 416 + i * 72, W, 60, h_, 46, TEXT)
+        t.click(fx(a))
+    source(s, '5 s system traces at 8×, tracing on. Halfway is Simplify plus Batch.')
 
     # ------------------------------------------------------------ 30. Limits
     s, t = page('Three honest limits.', 'Finish')

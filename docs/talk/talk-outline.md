@@ -5,7 +5,7 @@
 
 ## Core message
 
-> Impeller made performance **predictable**. It didn't make overdraw free.
+> Impeller made performance **predictable**. It didn't make expensive work free.
 
 ## Three takeaways (as registered)
 
@@ -29,16 +29,16 @@ journey
     title Audience journey through the talk
     section Hook
       A live chart, dropping frames on Impeller: 2: Audience
-      The 8.3 ms budget, 4 and 4: 4: Audience
-    section The jank Impeller fixed
-      Skia to Impeller, the history: 4: Audience
-      Shader Storm, 1.9 s vs 0.15 s: 5: Audience
-      One frame on Vulkan: 4: Audience
+      How a frame works, and the 8.3 ms budget: 4: Audience
+    section The jank Impeller tamed
+      The engine before, and compilation jank: 4: Audience
+      The engine now, and Vulkan on Android: 4: Audience
+      Shader Storm, 1.9 s against 0.15 s: 5: Audience
+      Inside a frame: 4: Audience
     section The jank it didn't
-      Threads and tools: 4: Audience
       Canvas Thrash, four fixes: 5: Audience
       Your own pre-compiled shader: 4: Audience
-      Into the traces: 5: Audience
+      DevTools and Perfetto: 5: Audience
     section Finish
       Honest limits: 4: Audience
       Takeaways and Q&A: 5: Audience
@@ -46,57 +46,70 @@ journey
 
 ## Time plan
 
+Estimates from the [Demo script](demo-script.md#run-of-show). Check them in a rehearsal.
+
 ```mermaid
 gantt
     title 40-minute run of show
     dateFormat mm:ss
     axisFormat %M:%S
     section Hook
-    Cold open                     :h1, 00:00, 1m
-    The budget                    :h2, after h1, 90s
-    section Impeller fixed this
-    How we got here               :a1, after h2, 210s
-    Shader Storm                  :a2, after a1, 6m
-    One frame on Vulkan           :a3, after a2, 150s
-    section Impeller did not fix this
-    Threads and tools             :b1, after a3, 2m
-    Canvas Thrash                 :b2, after b1, 7m
-    Your own pre-compiled pathway :b4, after b2, 1m
-    Into the traces               :b3, after b4, 6m
+    Cold open and map             :h1, 00:00, 75s
+    How Flutter draws             :h2, after h1, 210s
+    section The jank Impeller tamed
+    Before, Skia                  :a1, after h2, 180s
+    Now, Impeller                 :a2, after a1, 330s
+    The proof, Shader Storm       :a3, after a2, 225s
+    Inside a frame                :a4, after a3, 240s
+    section The jank it didn't
+    Canvas Thrash, four fixes     :b1, after a4, 435s
+    Your own shader               :b2, after b1, 60s
+    Prove it, DevTools, Perfetto  :b3, after b2, 225s
     section Finish
-    What Impeller didn't fix      :f1, after b3, 90s
-    Takeaways                     :f2, after f1, 90s
-    Q and A                       :f3, after f2, 390s
+    Limits, takeaways, close      :f1, after b3, 90s
+    Q and A                       :f2, after f1, 330s
 ```
 
-The line-by-line version is the [Demo script](demo-script.md). If time runs short, cut the
-fixed-trace tab in "Into the traces", then shorten Q&A.
+The line-by-line version is the [Demo script](demo-script.md). If time runs short, follow the cuts in the [Stage runbook](stage-runbook.md#timing-cues).
 
 ## Slide list
 
-| # | Slide | Notes |
-|---|---|---|
-| 1 | Title | Name, handle, event |
-| 2 | The budget | 120 Hz, 8.3 ms, split as ~4 ms UI and ~4 ms raster; screenshot of the two lanes |
-| 3 | Skia → Impeller concept video | [`skia-to-impeller-concept.mp4`](media/skia-to-impeller-concept.mp4) |
-| 4 | How we got here, 2018 to 2025 | Flutter 1.0 on Skia, SkSL warm-up 2020, Impeller iOS 2023, Android 2024, 3.29 in 2025 |
-| 5 | Renderer evidence | The two engine log lines: "Using the Impeller rendering backend (Vulkan)" / "opted out of Impeller"; Mali-G615 MC6, Vulkan 1.3 |
-| 6 | Skia trace of the reveal frame | 118 `GrGLProgramBuilder::finalize` in one 1.8 s frame on `1.raster` |
-| 7 | Impeller trace of the reveal frame | 40 `PipelineVK::Create`, 87 ms, 2.2 ms each |
-| 8 | Shader Storm scoreboard | Medians: 1,863 vs 145 ms at 144; repeat 18 vs 45 ms (Skia wins); relaunch |
-| 9 | Shaders → pipelines → triangles | Build-time shaders, pipelines at startup or first use, DisplayList, CPU tessellation |
-| 10 | Explicit command buffers | Raster thread records, queue submit, GPU executes while the next frame records; no raster cache |
-| 11 | Threads in 2026 | UI = Dart on main; Raster = Impeller on `1.raster`; GPU downstream |
-| 12 | Tools then and now | Systrace → Perfetto; DevTools embeds a Perfetto viewer |
-| 13 | Diagnosis method | Thread → event → code → fix → measure |
-| 14 | Canvas Thrash scoreboard | The five-row medians table; 36 → 120 fps |
-| 14b | Your own pre-compiled pathway | Three code panels: `depth_fill.frag` (core lines) → `pubspec.yaml` `shaders:` → load once, `setFloat` in `paint()`. Bottom strip: "503 B GLSL → 4,008 B bundle: SPIR-V (Impeller · Vulkan) · GLSL ES (Impeller · OpenGL ES) · SkSL (Skia, compiled on the device)". No timing on this slide |
-| 15 | Canvas Thrash trace: broken vs fixed | `Encode` 27 → 3.7 ms; `saveLayer` 64 → 0; `QueueSubmit` 2 → 1; `1.raster` running, not waiting |
-| 15b | Reading the budget | Three rows from the traces (see [Frame scheduling](../notes/05-frame-scheduling.md#reading-the-budget-from-a-trace)): UI and raster p50, share inside 4.17 ms and 8.33 ms, frame rate. Callout: 1000 ÷ 27.9 ms = 36 fps |
-| 16 | Honest limits | Isolate alone didn't help; GPU side not traced; Skia 188 / 58 ms |
-| 17 | Takeaways | The three registered takeaways |
-| 18 | Closing | Core message, repo link, sources |
-| B1–B4 | Backup screenshots | One per Perfetto tab in "Into the traces", in case the browser fails |
+| # | Slide | Point | Demo |
+|---|---|---|---|
+| 1 | Beyond Skia | Cover | Live: chart at 8× |
+| 2 | Impeller tamed one kind of jank. | The map: compilation jank and drawing cost |  |
+| 3 | Dart and the engine are different things. | Framework, engine, embedder |  |
+| 4 | One frame, from vsync to pixels. | Main thread records, `1.raster` prepares, GPU executes |  |
+| 5 | Every frame gets 8.3 ms. | About 4 + 4 ms target, 8.3 ms per thread limit, real broken frames | Concept video after |
+| 6 | Android before: Skia on OpenGL ES. | The old engine, with nothing compiled ahead |  |
+| 7 | Compilation jank. | 118 shaders in one 1.8 s frame, to scale |  |
+| 8 | Android now: Impeller on Vulkan. | Same picture: `impellerc`, Vulkan, tessellate |  |
+| 9 | Skia compiles late. Impeller compiles early. | JIT against AOT, across the build-to-frame timeline |  |
+| 10 | Impeller arrived one platform at a time. | iOS on Metal, Android, desktop |  |
+| 11 | On Android, Vulkan isn't guaranteed. | Android 10 is the minimum; the device checks; read the log |  |
+| 12 | A trade, not a free upgrade. | Before and now, on Android |  |
+| 13 | Same app. Same phone. Two renderers. | 1,863 against 145 ms; 23 against 48 ms | Live: Shader Storm; vote |
+| 14 | Skia's freeze grows. Impeller's barely does. | 13× shorter at 144 effects |  |
+| 15 | The cost shrank and moved. It didn't vanish. | 118 shaders against 40 pipelines, to scale |  |
+| 16 | Tessellation: how a path becomes triangles. | Path, points, vertices, triangles; at least 256,000 vertices at 8× |  |
+| 17 | The CPU records. The GPU executes. | Command buffers, queue, fence: GPU scheduling |  |
+| 18 | Why a layer costs more than a draw. | Render passes on tile-based GPUs; measured CPU side only |  |
+| 19 | What Impeller didn't fix. | Turning point | Live: dial 1× to 8× |
+| 20 | Nothing is compiling. This is pure drawing cost. | 129,920 points, 624 draws, 64 layers |  |
+| 21 | Which fix helps most, on its own? | Simplify paths wins | Vote; live: X-ray, Simplify |
+| 22 | Fix 1: Simplify paths. | Two points per pixel column |  |
+| 23 | Fixes 2 and 3: fewer draws, no layers. | `drawVertices`; a gradient instead of `saveLayer` | Live: both toggles |
+| 24 | Fix 4: A RepaintBoundary, on its own? | Saves Dart work, not GPU work | Vote; live: toggle |
+| 25 | Four fixes. From 36 fps to 120. | Raster 29.7 to 6.5 ms |  |
+| 26 | Your effects can be pre-compiled too. | `.frag`, `pubspec.yaml`, `FragmentProgram`; not timed |  |
+| 27 | DevTools: which thread, then which code. | The method; frames chart from an emulator |  |
+| 28 | Systrace, now Perfetto: 100 ms on the phone. | Real frames; running 24 of 28 ms | Vote |
+| 29 | Read the budget from the trace. | The slowest thread sets the rate |  |
+| 30 | Three honest limits. | Order matters, CPU side only, Skia copes worse |  |
+| 31 | Take this home. | The three registered takeaways |  |
+| 32 | Impeller made performance predictable. It didn't make expensive work free. | Close, with QR code to the repo |  |
+| 33 | Backup: Shader Storm medians | Q&A |  |
+| 34 | Backup: Canvas Thrash medians at 8× | Q&A |  |
 
 ## Questions to expect
 
@@ -104,10 +117,12 @@ fixed-trace tab in "Into the traces", then shorten Q&A.
 |---|---|
 | "Is 4 ms UI / 4 ms raster a hard rule?" | No. The threads pipeline, so each can reach 8.33 ms at 120 Hz without dropping. Four and four keeps the frame within one refresh and leaves headroom. |
 | "Are these different Flutter versions?" | No. They are two Android flavors of the same current-SDK app: identical Dart code, assets and profile mode; only renderer configuration and app identity differ. |
-| "Does Impeller compile anything at runtime?" | No new shaders. It builds pipeline objects from the precompiled shaders, mostly at startup; the rest on first use, inside the frame: 40 of them, about 2 ms each, in the Shader Storm reveal. |
-| "Is Impeller always faster than Skia?" | No. It is more predictable. Some effects (certain blurs) measured slower; fixes are in progress upstream. |
+| "Does Impeller compile anything at runtime?" | No new shader source. The shaders are compiled ahead of time. On Vulkan, the driver still finishes compiling when a pipeline is built, mostly at startup and the rest on first use: 40 of them, about 2 ms each, in the Shader Storm reveal. Impeller saves those to disk. |
+| "Is Impeller always faster than Skia?" | No. It is more predictable. In the same session, Skia's second reveal was faster: 23 ms against 48 ms. |
 | "Does RepaintBoundary cache on Impeller?" | It isolates repaints, so Dart stops re-recording that subtree (grid repaints → 0, UI 4.4 → 3.4 ms). There is no raster cache: raster barely moved (6.6 → 6.5 ms). Use `SnapshotWidget` deliberately. |
-| "Why not show the GPU timing directly?" | This phone's driver exposes only GPU memory to Perfetto, no render stages. The raster thread was CPU-bound anyway (running 90%+ of each frame). AGI or a Pixel with GPU render stages would show it. |
-| "What happens on devices without Vulkan?" | Below API 29: Skia on OpenGL ES. From API 29: Impeller on OpenGL ES. A phone with Vulkan can land there too, if a device check fails. Read the engine log rather than assuming. My Android 16 emulator logged Impeller on OpenGL ES. |
+| "Why not show the GPU timing directly?" | This phone's driver exposes only GPU memory to Perfetto, no render stages. The raster thread was CPU-bound anyway (running 24 of 28 ms on the median frame). AGI or a Pixel with GPU render stages would show it. |
+| "What happens on devices without Vulkan?" | Below API 29: Skia on OpenGL ES. From API 29: Impeller on OpenGL ES. A phone with Vulkan can land there too, if a device check fails. Read the engine log. See [Fact check](fact-check.md#which-backend-an-android-phone-gets). |
+| "What about iOS?" | Impeller is the only renderer there, on Metal. This talk measures Android. |
+| "Is 8,000 points realistic?" | It's my demo's stress setting, not a Flutter limit. The method is what carries over. |
 | "How does this compare to Compose?" | Same ideas: offscreen layers, main-thread work, a render thread. See [Rosetta](../reference/rosetta.md). |
 | "Do these numbers hold on low-end devices?" | The method holds; the numbers do not. Profile on the slowest device you support. |

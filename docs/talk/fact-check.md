@@ -111,7 +111,7 @@ CSV files, and the thread state from the raw trace. All match the slides except 
 | 18 | "About 9 ms" for layers | Raster 13.7 → 6.6 ms | Same source as slide 23, with tracing off |
 | 21 | Bars with no caveat | Batch and Isolate marked as within noise | Their run ranges overlap the no-fix run |
 | 22 | "About 330 pixels wide" | About 316 | 632 points ÷ 2 |
-| 23 | Glow is "the biggest win", Batch "the smallest" | "It halves", "a smaller win" | Simplify saves 11.1 ms, Glow 7.1 ms, and Isolate only 0.1 ms |
+| 23 | Glow is "the biggest win", Batch "the smallest" | The slide shows the raster change only; the notes say "cuts it in half" and "a smaller win" | Simplify saves 11.1 ms, Glow 7.1 ms, and Isolate only 0.1 ms |
 | 29 | 1000 ÷ raster: 72 and 208 | 73 and 207 | From the unrounded trace values |
 | Demo script | "Running 90–98% of every traced frame" | 24 of 28 ms; 70–99% across frames | Recomputed from the trace |
 
