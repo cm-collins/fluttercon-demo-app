@@ -1,6 +1,6 @@
 # Talk deck
 
-The slides for *Beyond Skia*: 32 slides plus 2 backup tables. The spoken words and the demo cues are
+The slides for *Beyond Skia*: 26 slides plus 2 backup tables. The spoken words and the demo cues are
 in the speaker notes and the [Demo script](../demo-script.md).
 
 | File | What it is |
@@ -14,7 +14,7 @@ in the speaker notes and the [Demo script](../demo-script.md).
 Animations only run in Slide Show mode in PowerPoint or LibreOffice Impress, never in a file preview
 such as a code editor extension.
 
-Rebuild with `python3 docs/talk/slides/build_pptx.py` (needs `python-pptx`, Pillow, and the photo, logos, fonts and images in `local/`). Colours come from the
+After any layout change, run `check_layout.py` on the deck: it checks every size against the scale, and looks for text that wraps, overflows or collides. Rebuild with `python3 docs/talk/slides/build_pptx.py` (needs `python-pptx`, Pillow, and the photo, logos, fonts and images in `local/`). Colours come from the
 `THEMES` table, so one edit restyles a whole deck. Speaker notes live in `speaker_notes.json`, one entry per slide; the [Demo script](../demo-script.md) repeats them, so change both.
 
 `index.html` is an outdated browser draft, kept for reference and marked with a banner. It has claims that the
@@ -24,11 +24,28 @@ Rebuild with `python3 docs/talk/slides/build_pptx.py` (needs `python-pptx`, Pill
 
 The slides support the speaker and the demo app. They don't replace them.
 
+- **No repeats.** Each idea appears once. If two slides compare the same thing, they become one.
 - **One idea per slide.** A title that states the point, one visual, and as few words as it takes. Explanations go in the speaker notes.
 - **Real material first.** Screens from the demo app, real traces, real numbers and real code.
+- **Relatable.** Each hard idea gets one everyday comparison in a plain line under the title, and code people recognise. Details stay in the notes.
 - **No decoration.** No cards, icon tiles, gradients, shadows, section labels or progress markers. Hairlines and space do the structure. Flat blocks appear only in diagrams and data.
-- **Grid.** 72 px side margins. The title starts at y=50. The source and the logo share the bottom line at y=664.
-- **Type.** Inter Tight SemiBold for headlines, Inter and Inter Medium for text, JetBrains Mono for code and thread names. Bold is never used, because the weights are their own families.
+- **Grid.** 72 px side margins and a 12-column grid with 32 px gutters (`gx` and `gw` in `build_pptx.py`). The title starts at y=44 and the subtitle at y=108. Content runs from y=132, or y=164 under a subtitle, down to y=640. The source and the logo share the bottom line at y=664.
+- **Type.** One scale, with each size doing one job:
+
+  | Size | Job |
+  |---|---|
+  | 160 | The one giant number, on slide 5 |
+  | 112 | Statement titles: slides 1 and 2 |
+  | 72 | Big numbers, and the titles on slides 15 and 26 |
+  | 52 | Slide titles and key numbers |
+  | 36 | Section headings and supporting statements |
+  | 28 | Subtitles, body text and table cells |
+  | 24 | Secondary text and dense tables |
+  | 22 | Code and thread names |
+  | 20 | Quiet labels and table headers |
+  | 16 | Source lines |
+
+  Inter Tight SemiBold for headlines, Inter and Inter Medium for text, JetBrains Mono for code and thread names. Bold is never used, because the weights are their own families.
 - **Fonts.** All four are embedded in each `.pptx`, so a machine without them still shows them in PowerPoint for Windows or Mac. Keynote and Google Slides ignore embedded fonts, so use the PDF there, or install the fonts.
 - **Colour.** Warm paper and ink in the light deck, near-black and warm white in the dark deck, and a grey. One ember accent marks the one thing to look at, usually what is over budget. The cover, the turning point (slide 19) and the close are ink in both decks.
 - **Tables.** Native and editable. A quiet header and a hairline under each row, with no fills.
@@ -44,6 +61,7 @@ video to a USB drive**; from a fresh clone, `local/` has to be restored from tha
 |---|---|---|
 | `beyond-skia.pptx`, `beyond-skia-dark.pptx` | The decks, including the photo, logo, fonts and speaker notes | Yes |
 | `build_pptx.py` | Builds the decks | Yes |
+| `check_layout.py` | Checks font sizes, fit and collisions | Yes |
 | `speaker_notes.json` | The speaker notes, one entry per slide | Yes |
 | `index.html`, `deck.css`, `deck.js` | Outdated browser draft and engine, marked with a banner | Yes |
 | `trace-data.js` | Real frame timings from the stage phone's traces | Yes |

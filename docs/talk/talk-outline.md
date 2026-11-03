@@ -55,18 +55,18 @@ gantt
     axisFormat %M:%S
     section Hook
     Cold open and map             :h1, 00:00, 75s
-    How Flutter draws             :h2, after h1, 210s
+    How Flutter draws             :h2, after h1, 195s
     section The jank Impeller tamed
-    Before, Skia                  :a1, after h2, 180s
-    Now, Impeller                 :a2, after a1, 330s
+    Before, Skia                  :a1, after h2, 135s
+    Now, Impeller                 :a2, after a1, 300s
     The proof, Shader Storm       :a3, after a2, 225s
-    Inside a frame                :a4, after a3, 240s
+    Inside a frame                :a4, after a3, 315s
     section The jank it didn't
-    Canvas Thrash, four fixes     :b1, after a4, 435s
+    Canvas Thrash, four fixes     :b1, after a4, 480s
     Your own shader               :b2, after b1, 60s
-    Prove it, DevTools, Perfetto  :b3, after b2, 225s
+    Prove it, DevTools, Perfetto  :b3, after b2, 210s
     section Finish
-    Limits, takeaways, close      :f1, after b3, 90s
+    Limits, takeaways, close      :f1, after b3, 75s
     Q and A                       :f2, after f1, 330s
 ```
 
@@ -78,38 +78,32 @@ The line-by-line version is the [Demo script](demo-script.md). If time runs shor
 |---|---|---|---|
 | 1 | Beyond Skia | Cover | Live: chart at 8× |
 | 2 | Impeller tamed one kind of jank. | The map: compilation jank and drawing cost |  |
-| 3 | Dart and the engine are different things. | Framework, engine, embedder |  |
-| 4 | One frame, from vsync to pixels. | Main thread records, `1.raster` prepares, GPU executes |  |
-| 5 | Every frame gets 8.3 ms. | About 4 + 4 ms target, 8.3 ms per thread limit, real broken frames | Concept video after |
-| 6 | Android before: Skia on OpenGL ES. | The old engine, with nothing compiled ahead |  |
-| 7 | Compilation jank. | 118 shaders in one 1.8 s frame, to scale |  |
-| 8 | Android now: Impeller on Vulkan. | Same picture: `impellerc`, Vulkan, tessellate |  |
-| 9 | Skia compiles late. Impeller compiles early. | JIT against AOT, across the build-to-frame timeline |  |
-| 10 | Impeller arrived one platform at a time. | iOS on Metal, Android, desktop |  |
-| 11 | On Android, Vulkan isn't guaranteed. | Android 10 is the minimum; the device checks; read the log |  |
-| 12 | A trade, not a free upgrade. | Before and now, on Android |  |
-| 13 | Same app. Same phone. Two renderers. | 1,863 against 145 ms; 23 against 48 ms | Live: Shader Storm; vote |
-| 14 | Skia's freeze grows. Impeller's barely does. | 13× shorter at 144 effects |  |
-| 15 | The cost shrank and moved. It didn't vanish. | 118 shaders against 40 pipelines, to scale |  |
-| 16 | Tessellation: how a path becomes triangles. | Path, points, vertices, triangles; at least 256,000 vertices at 8× |  |
-| 17 | The CPU records. The GPU executes. | Command buffers, queue, fence: GPU scheduling |  |
-| 18 | Why a layer costs more than a draw. | Render passes on tile-based GPUs; measured CPU side only |  |
-| 19 | What Impeller didn't fix. | Turning point | Live: dial 1× to 8× |
-| 20 | Nothing is compiling. This is pure drawing cost. | 129,920 points, 624 draws, 64 layers |  |
-| 21 | Which fix helps most, on its own? | Simplify paths wins | Vote; live: X-ray, Simplify |
-| 22 | Fix 1: Simplify paths. | Two points per pixel column |  |
-| 23 | Fixes 2 and 3: fewer draws, no layers. | `drawVertices`; a gradient instead of `saveLayer` | Live: both toggles |
-| 24 | Fix 4: A RepaintBoundary, on its own? | Saves Dart work, not GPU work | Vote; live: toggle |
-| 25 | Four fixes. From 36 fps to 120. | Raster 29.7 to 6.5 ms |  |
-| 26 | Your effects can be pre-compiled too. | `.frag`, `pubspec.yaml`, `FragmentProgram`; not timed |  |
-| 27 | DevTools: which thread, then which code. | The method; frames chart from an emulator |  |
-| 28 | Systrace, now Perfetto: 100 ms on the phone. | Real frames; running 24 of 28 ms | Vote |
-| 29 | Read the budget from the trace. | The slowest thread sets the rate |  |
-| 30 | Three honest limits. | Order matters, CPU side only, Skia copes worse |  |
-| 31 | Take this home. | The three registered takeaways |  |
-| 32 | Impeller made performance predictable. It didn't make expensive work free. | Close, with QR code to the repo |  |
-| 33 | Backup: Shader Storm medians | Q&A |  |
-| 34 | Backup: Canvas Thrash medians at 8× | Q&A |  |
+| 3 | One frame, from vsync to pixels. | Dart and the engine; records, prepares, executes |  |
+| 4 | Every frame gets 8.3 ms. | A train every 8.3 ms; about 4 + 4 ms target; real broken frames | Concept video after |
+| 5 | Compilation jank. | Skia on OpenGL ES; 118 shaders in one 1.8 s frame |  |
+| 6 | The Android engine, before and now. | One table: what's compiled ahead, Dart's thread, raster work, raster cache, GPU API |  |
+| 7 | Skia compiles late. Impeller compiles early. | The recipe and the kitchen; JIT against AOT |  |
+| 8 | On Android, Vulkan isn’t guaranteed. | The rollout; Android 10 is the minimum; the device checks; read the log |  |
+| 9 | Same app. Same phone. Two renderers. | 1,863 against 145 ms; 23 against 48 ms; 13× shorter, and it barely grows | Live: Shader Storm; vote |
+| 10 | The cost shrank and moved. It didn’t vanish. | 118 shaders against 40 pipelines, to scale |  |
+| 11 | Tessellation: how a path becomes triangles. | Path to triangles; the app's real X-ray lens; at least 256,000 vertices |  |
+| 12 | The CPU records. The GPU executes. | The waiter and the kitchen; from `drawCircle` to a command buffer |  |
+| 13 | Overdraw: painting the same pixel again. | Painting a wall three times; `Stack` code; not measured in the demo |  |
+| 14 | Why a layer costs more than a draw. | The firehose; render passes on tile-based GPUs; measured CPU side only |  |
+| 15 | What Impeller didn’t fix. | Turning point, then the bill: 129,920 points, 624 draws, 64 layers | Live: dial 1× to 8× |
+| 16 | Which fix helps most, on its own? | Simplify paths wins | Vote; live: X-ray, Simplify |
+| 17 | Fix 1: Simplify paths. | Two real screens that look the same: 129,920 against 12,032 points |  |
+| 18 | Fix 2: Batch draws. | 480 trips to the shop or one with a list; `drawVertices` | Live: toggle |
+| 19 | Fix 3: Glow without saveLayer. | A gradient instead of `saveLayer`; widgets that can trigger one | Live: toggle |
+| 20 | Fix 4: A RepaintBoundary, on its own? | A wall and a picture; saves Dart work, not GPU work | Vote; live: toggle |
+| 21 | Four fixes. From 36 fps to 120. | Raster 29.7 to 6.5 ms |  |
+| 22 | Your effects can be pre-compiled too. | `.frag`, `pubspec.yaml`, `FragmentProgram`; not timed |  |
+| 23 | DevTools: which thread, then which code. | The method; frames chart from an emulator |  |
+| 24 | Systrace, now Perfetto: read the budget. | Real frames; the budget table; running 24 of 28 ms; the slowest thread sets the rate | Vote |
+| 25 | Take this home. | Honest limits and the three registered takeaways |  |
+| 26 | Impeller made performance predictable. It didn’t make expensive work free. | Close, with QR code to the repo |  |
+| 27 | Backup: Shader Storm medians | Q&A |  |
+| 28 | Backup: Canvas Thrash medians at 8× | Q&A |  |
 
 ## Questions to expect
 
@@ -122,6 +116,7 @@ The line-by-line version is the [Demo script](demo-script.md). If time runs shor
 | "Does RepaintBoundary cache on Impeller?" | It isolates repaints, so Dart stops re-recording that subtree (grid repaints → 0, UI 4.4 → 3.4 ms). There is no raster cache: raster barely moved (6.6 → 6.5 ms). Use `SnapshotWidget` deliberately. |
 | "Why not show the GPU timing directly?" | This phone's driver exposes only GPU memory to Perfetto, no render stages. The raster thread was CPU-bound anyway (running 24 of 28 ms on the median frame). AGI or a Pixel with GPU render stages would show it. |
 | "What happens on devices without Vulkan?" | Below API 29: Skia on OpenGL ES. From API 29: Impeller on OpenGL ES. A phone with Vulkan can land there too, if a device check fails. Read the engine log. See [Fact check](fact-check.md#which-backend-an-android-phone-gets). |
+| "Why not use Android's Debug GPU overdraw?" | It colours Android views, and Flutter draws its own surface. DevTools is the place to look for offscreen layers. I haven't tested that setting on this app. |
 | "What about iOS?" | Impeller is the only renderer there, on Metal. This talk measures Android. |
 | "Is 8,000 points realistic?" | It's my demo's stress setting, not a Flutter limit. The method is what carries over. |
 | "How does this compare to Compose?" | Same ideas: offscreen layers, main-thread work, a render thread. See [Rosetta](../reference/rosetta.md). |
