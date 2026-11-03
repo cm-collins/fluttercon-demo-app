@@ -5,3 +5,6 @@
 # Python bytecode from tool/benchmark scripts
 __pycache__/
 *.pyc
+
+# Talk deck: videos, speaker photo and company logo stay out of this public repo
+docs/talk/slides/local/

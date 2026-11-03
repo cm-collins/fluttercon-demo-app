@@ -10,8 +10,8 @@ the [Demo script](demo-script.md); this page is the setup and the recovery plan.
 |---|---|---|
 | Captures folder | `~/fluttercon-captures/2026-10-31-infinix-x6873/` (its README lists every file) | All three videos play to the end |
 | **Second copy** of the captures folder | USB drive and cloud storage | Opens on another machine |
-| Slides | Exported to PDF as well as the deck | PDF opens offline |
-| Video player | One that can pause on a frame and jump to a timestamp (VLC, mpv) | Space pauses; arrow keys step |
+| Slides | [`slides/beyond-skia.pptx`](slides/beyond-skia.pptx) in Slide Show mode, with the PDF `local/beyond-skia.pdf` as the fallback. **Install the fonts first:** `slides/local/pptx/fonts/` | Inter shows on every slide; animations run |
+| Video player | VLC or mpv, with `slides/local/clips-stage/` open. Clips are numbered in playing order | Full screen, plays smoothly, and you can switch back to the slides quickly |
 | Browser with ui.perfetto.dev | Chrome or Edge | Loads with Wi-Fi off once cached (step 4 below) |
 | Laptop power, HDMI/USB-C adapter, clicker | Bag | Tested with the venue projector if possible |
 
@@ -21,7 +21,7 @@ The Canvas Thrash video is 253 MB; copy the folder, don't stream it.
 
 1. Open every video once in the player you'll use on stage. Note that `storm-skia-144.mp4`
    reveals at about **0:10**, `storm-impeller-144.mp4` at about **0:04**, and the Canvas
-   Thrash steps are at the timestamps in the [Demo script](demo-script.md#1500--canvas-thrash-700).
+   Thrash steps are at the timestamps in the [Demo script](demo-script.md#1630--canvas-thrash-700).
 2. Rehearse the whole talk once against the clock with the videos and traces, not slides
    alone.
 3. Charge everything. Turn off notifications and auto-updates on the laptop.
@@ -30,9 +30,10 @@ The Canvas Thrash video is 253 MB; copy the folder, don't stream it.
 
 1. Laptop on power. Display mirrored, or presenter view with the video player and browser on
    the projected screen.
-2. Slides open on the title slide.
-3. Video player open with the three videos queued.
-4. **Perfetto tabs.** Open https://ui.perfetto.dev once while online, then open each file
+2. **Close Android Studio, the emulator and any `flutter run`.** They use the most memory and CPU on this laptop.
+3. Deck open on the cover in Slide Show mode; video player open on `01-broken-chart-8x.mp4`. Practise switching between them.
+4. **Perfetto tabs, for Q&A only.** Slide 28 already draws the real frames, so keep these to the
+   tabs you may need; each trace holds memory. Open https://ui.perfetto.dev once while online, then open each file
    below in its own tab (drag the file onto the page). Once loaded, the page keeps working
    without a network.
 
@@ -52,12 +53,12 @@ The Canvas Thrash video is 253 MB; copy the folder, don't stream it.
 
 | Clock | You should be starting |
 |---|---|
-| 04:30 | Shader Storm |
-| 10:30 | One frame on Vulkan |
-| 15:00 | Canvas Thrash |
-| 22:00 | Your own pre-compiled pathway |
-| 23:00 | Into the traces |
-| 30:30 | Takeaways |
+| 06:00 | Shader Storm |
+| 12:00 | One frame on Vulkan |
+| 16:30 | Canvas Thrash |
+| 23:30 | Your own pre-compiled pathway |
+| 24:30 | Into the traces |
+| 32:00 | Takeaways |
 
 Running late: cut demo script line 27 (the fixed trace tab), then shorten Q&A.
 

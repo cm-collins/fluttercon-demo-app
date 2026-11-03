@@ -111,7 +111,7 @@ now carry the measured results (2026-10-31).
   Perfetto walkthrough, takeaways.
 - [x] **E2 · Abstract alignment.** Every promise in the abstract points at a real demo moment.
 - [x] **E3 · Stage runbook.** Setup checklist, fixed refresh rate, failure recovery.
-- [ ] **E4 · Slides.** Two Shader Storm trace slides, one Canvas Thrash trace slide.
+- [x] **E4 · Slides.** [`docs/talk/slides/`](../talk/slides/README.md): 48 slides and 2 backups. DevTools screens still to finish on the emulator.
 - [ ] 📱 **E5 · Rehearsal.** Three runs on the stage phone, backup videos, exported traces.
 
 ## Order

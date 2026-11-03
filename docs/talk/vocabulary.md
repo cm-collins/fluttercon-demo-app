@@ -144,7 +144,7 @@ historical, before Flutter 3.29.
 | **Offscreen pass / `saveLayer`** | "Extra layer" (vague) | Ties to render-pass cost |
 | **Ahead-of-time shaders** | "Zero compilation ever" | Driver still builds PSOs from shipped SPIR-V |
 | **~4 ms UI and ~4 ms raster** (target) | "Must be under 4 ms or you drop frames" | Threads pipeline; see frame scheduling note |
-| **Impeller on Vulkan** / **OpenGL ES backend** | "Fallback to Skia" | Skia is not the Android fallback since 3.29 |
+| **Impeller on Android 10+** / **legacy renderer below API 29** | "Skia is gone from Android" | Current Flutter docs: API 29+ gets Impeller; below that, the legacy OpenGL renderer |
 | **Main thread** (Dart since 3.29) | "UI thread" as a second thread | Threads merged; DevTools keeps the label "UI" |
 
 ---

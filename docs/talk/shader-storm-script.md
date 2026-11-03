@@ -172,7 +172,7 @@ stays green; the RASTER peak reads the same 1.8 s.
 
 > "Three runs each, medians. Cold, first use, 144 effects: Skia **1,863**, Impeller **145**.
 > With 48 effects, relaunch with the cache warm: both about **60**. Repeat inside the same
-> session: Skia is actually faster, **18** against **45**, because Impeller does some
+> session, at 144 effects: Skia is actually faster, **23** against **48**, because Impeller does some
 > per-frame work that Skia doesn't.
 >
 > So this is not 'Impeller is always faster'. It is: **Impeller moved the most expensive

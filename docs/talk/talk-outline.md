@@ -55,7 +55,7 @@ gantt
     Cold open                     :h1, 00:00, 1m
     The budget                    :h2, after h1, 90s
     section Impeller fixed this
-    How we got here               :a1, after h2, 2m
+    How we got here               :a1, after h2, 210s
     Shader Storm                  :a2, after a1, 6m
     One frame on Vulkan           :a3, after a2, 150s
     section Impeller did not fix this
@@ -66,7 +66,7 @@ gantt
     section Finish
     What Impeller didn't fix      :f1, after b3, 90s
     Takeaways                     :f2, after f1, 90s
-    Q and A                       :f3, after f2, 8m
+    Q and A                       :f3, after f2, 390s
 ```
 
 The line-by-line version is the [Demo script](demo-script.md). If time runs short, cut the
@@ -108,6 +108,6 @@ fixed-trace tab in "Into the traces", then shorten Q&A.
 | "Is Impeller always faster than Skia?" | No. It is more predictable. Some effects (certain blurs) measured slower; fixes are in progress upstream. |
 | "Does RepaintBoundary cache on Impeller?" | It isolates repaints, so Dart stops re-recording that subtree (grid repaints → 0, UI 4.4 → 3.4 ms). There is no raster cache: raster barely moved (6.6 → 6.5 ms). Use `SnapshotWidget` deliberately. |
 | "Why not show the GPU timing directly?" | This phone's driver exposes only GPU memory to Perfetto, no render stages. The raster thread was CPU-bound anyway (running 90%+ of each frame). AGI or a Pixel with GPU render stages would show it. |
-| "What happens on devices without Vulkan?" | Since 3.29, Impeller falls back to its own OpenGL ES backend, not to Skia; check the badge. |
+| "What happens on devices without Vulkan?" | It depends on the Android version: below API 29, the legacy renderer; check the engine log rather than assuming. My Android 16 emulator logged Impeller on OpenGL ES. |
 | "How does this compare to Compose?" | Same ideas: offscreen layers, main-thread work, a render thread. See [Rosetta](../reference/rosetta.md). |
 | "Do these numbers hold on low-end devices?" | The method holds; the numbers do not. Profile on the slowest device you support. |
