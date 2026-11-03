@@ -8,3 +8,4 @@ __pycache__/
 
 # Talk deck: videos, speaker photo and company logo stay out of this public repo
 docs/talk/slides/local/
+docs/talk/slides/*.pptx

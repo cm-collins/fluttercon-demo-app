@@ -1,0 +1,9 @@
+<!doctype html><meta charset=utf-8><style>html,body{margin:0;background:#0b0b0c}canvas{display:block}</style><script src="data.js"></script>
+<canvas id=c width=2208 height=720 style="width:1104px;height:360px"></canvas><script>
+const m=new URLSearchParams(location.search).get('m'),g=document.getElementById('c').getContext('2d');g.scale(2,2);g.fillStyle='#0b0b0c';g.fillRect(0,0,1104,360);
+const data=m==='jank'?T.skia_all:T.none.slice(0,179),max=m==='jank'?1819.5:44,bw=1104/data.length,B=352;
+data.forEach((f,i)=>{const h=Math.max(f[1]/max*332,1.5),x=i*bw;g.save();if(f[1]>8.33&&(m!=='jank'||f[1]>500)){g.shadowColor='#ff5c28';g.shadowBlur=m==='jank'?22:6;g.fillStyle='#ff5c28';}else g.fillStyle='#6f6e6a';const big=m==='jank'&&f[1]>500;g.fillRect(big?x-2:x,B-h,big?7:Math.max(bw-1,1.2),h);g.restore();});
+if(m!=='jank'){const y=B-8.33/max*332;g.setLineDash([5,6]);g.strokeStyle='rgba(255,255,255,.85)';g.lineWidth=1.5;g.beginPath();g.moveTo(0,y);g.lineTo(1104,y);g.stroke();}
+g.setLineDash([]);g.strokeStyle='#38383c';g.lineWidth=2;g.beginPath();g.moveTo(0,B+1);g.lineTo(1104,B+1);g.stroke();
+document.title='done';
+</script>

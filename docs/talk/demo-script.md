@@ -12,7 +12,7 @@ Every promise in the registered abstract is mapped to a moment here in
 [Abstract alignment](abstract-alignment.md). Term definitions: [Talk vocabulary](vocabulary.md). Where each claim comes from: [Fact check](fact-check.md).
 
 **Stage setup: the demo app carries the talk.** The slides stay quiet: one idea, few words. Run the
-demos on a mirrored phone from their scripts. The recordings in `slides/local/clips-stage/` are the fallback if
+demos on a mirrored phone from their scripts. The recordings in `~/Documents/fluttercon/demo-clips/` are the fallback if
 there is no phone or the phone fails, and every `>>> DEMO` cue below names its clip. Slides 4 and 27 draw real frames from the captured traces. Captures live in
 `~/fluttercon-captures/2026-10-31-infinix-x6873/` (see its README). Before the session, follow
 the [Stage runbook](stage-runbook.md).
@@ -54,8 +54,8 @@ If you run long, use the cuts in the [Stage runbook](stage-runbook.md#timing-cue
 
 ## The deck
 
-**Slides:** [`slides/beyond-skia-dark.pptx`](slides/beyond-skia-dark.pptx), with a light copy beside it. Each slide
-has one message and one visual. The explanation is in your voice and the demo. **Clips:** `slides/local/clips-stage/`, played
+**Slides:** `~/Documents/fluttercon/Beyond-Skia.pptx`, with a light copy in `light-version/`. Each slide
+has one message and one visual. The explanation is in your voice and the demo. **Clips:** `~/Documents/fluttercon/demo-clips/`, played
 separately in a video player, so the deck itself carries no video.
 
 | When | Demo on the phone, or play this clip | Then |
@@ -92,7 +92,7 @@ Say these in your own words.
 
 ## Slide by slide
 
-These words match the speaker notes in the deck. Say them in your own voice, but keep the facts. The everyday comparisons are suggestions, so swap in your own.
+These words match the speaker notes in the deck. Say them in your own voice, but keep the facts. The everyday comparisons are suggestions, so swap in your own. The animations on slides 4, 5, 14, 16, 20, 21, 22, 23 and 27 start and loop by themselves.
 
 ### 00:00 Cold open
 
@@ -100,7 +100,7 @@ These words match the speaker notes in the deck. Say them in your own voice, but
 
 Hi, I'm Collins. Let me show you a chart.
 
->>> DEMO, phone: Kiln → Canvas Thrash → tap 8×. Let it run red. No phone: play 01-broken-chart-8x.mp4 from local/clips-stage/.
+>>> DEMO, phone: Kiln → Canvas Thrash → tap 8×. Let it run red. No phone: play 01-broken-chart-8x.mp4 from the demo-clips folder.
 
 **Slide 2: Impeller tamed one kind of jank.**
 
@@ -124,13 +124,13 @@ CLICK: the GPU runs those commands later, on its own schedule, then Android puts
 
 Think of a train that leaves every 8.3 milliseconds, on time, like the SGR. If your frame isn't on the platform, it doesn't wait, and the screen shows the old frame again. That's a dropped frame. At 120 hertz that's the budget: 8.3 milliseconds. Those lines are the deadlines.
 
-CLICK: budget about 4 milliseconds for UI and 4 for raster, and the whole frame lands in one refresh. Strictly, the threads overlap. While raster draws this frame, Dart can already build the next. So each thread can stretch to 8.3 and you still hit 120, but every frame arrives later and you have no headroom. Four and four is the target. 8.3 per thread is the limit.
+The animation plays by itself. First the target: about 4 milliseconds for UI and 4 for raster, and the whole frame lands in one refresh, so every tick shows a new frame. Strictly, the threads overlap. While raster draws this frame, Dart can already build the next. So each thread can stretch to 8.3 and you still hit 120, but every frame arrives later and you have no headroom. Four and four is the target. 8.3 per thread is the limit.
 
-CLICK: this is the chart you just saw, real frames from a trace. Raster is 28 milliseconds. A thousand divided by 28 is 36 frames a second, and that is what we measured. The slowest thread sets your frame rate.
+Then the chart you just saw, real frames from a trace. Raster is 28 milliseconds. Look at the bottom row: the screen shows the same frame again and again. A thousand divided by 28 is 36 frames a second, and that is what we measured. The slowest thread sets your frame rate.
 
 Hold on to that. Now let's go back to where a frame could suddenly take almost two seconds.
 
->>> AFTER THIS SLIDE: play 02-skia-to-impeller-concept.mp4 from local/clips-stage/, then come back and press Next.
+>>> AFTER THIS SLIDE: play 02-skia-to-impeller-concept.mp4 from the demo-clips folder, then come back and press Next.
 
 ### 04:30 Before: Skia
 
@@ -142,7 +142,7 @@ So what is compilation jank? You've felt it: you open a screen for the first tim
 
 A new combination appears on screen. Skia writes SkSL, that's translated to GLSL, the driver compiles it on the raster thread, inside your frame, and the frame misses its deadline.
 
-CLICK: how bad? That tiny mark is one frame's budget. Each block is one program from a real Skia trace, to scale: 118 of them, about 14.5 milliseconds each, in one frame. 1.8 seconds.
+How bad? The animation is at real speed, and it plays by itself. That thin white bar is one frame's budget. Each block is one program from a real Skia trace, to scale: 118 of them, about 14.5 milliseconds each, in one frame. 1.8 seconds.
 
 It happens once per shader, per install, and a Flutter upgrade resets the cache. You rarely see it, because your own phone is already warm. And no amount of optimising Dart touches it. The UI bar stays green while the app is frozen.
 
@@ -241,7 +241,7 @@ So here's who does what. Look at the one in colour: tessellating paths is on the
 
 Those triangles don't go straight to the GPU. Think of a waiter: they write your order down, and the kitchen cooks it later. You wrote one drawCircle. The raster thread writes a list: begin a render pass, bind a pipeline, bind buffers, draw, and so on. That's a command buffer. On Vulkan this is explicit, so Impeller writes each command itself.
 
-CLICK: watch one frame go through. Raster records. It submits to the queue and moves on. The GPU executes while the raster thread is already on the next frame. A fence tells the CPU when the GPU has finished.
+The animation plays by itself. Watch one frame go through. Raster records. It submits to the queue and moves on. The GPU executes while the raster thread is already on the next frame. A fence tells the CPU when the GPU has finished.
 
 That is GPU scheduling. The CPU records, the GPU executes, fences keep them in step. No single command is slow. Volume is the cost.
 
@@ -259,7 +259,7 @@ Two honest points. Impeller and the GPU skip some of this for you: a solid colou
 
 Most mobile GPUs are tile-based. They split the screen into tiles and draw each one in fast on-chip memory. Writing out to main memory is slow and costs battery, so the ideal frame is one render pass: clear, all your draws on the chip, resolve the anti-aliasing on the chip, store once.
 
-CLICK: now add one saveLayer with a blur. The GPU has to store what it has drawn, switch to an offscreen target, draw and blur there, then load everything back to composite it. The Flutter docs compare it to making a firehose change direction. The docs list ShaderMask and ColorFilter as widgets that might trigger a saveLayer, and some Chip and Text cases.
+Now the animation adds one saveLayer with a blur. The GPU has to store what it has drawn, switch to an offscreen target, draw and blur there, then load everything back to composite it. The Flutter docs compare it to making a firehose change direction. The docs list ShaderMask and ColorFilter as widgets that might trigger a saveLayer, and some Chip and Text cases.
 
 I need to be honest about one thing. What I measured is the CPU side: 64 saveLayer and two queue submits per frame, and taking them out cut raster from 13.7 to 6.6 milliseconds. What the Mali GPU did with those passes, this phone's driver doesn't expose. So the GPU side here is the model, not my trace.
 
@@ -291,7 +291,7 @@ Why does Simplify win? Look at one pixel column of one line. Each line in the de
 
 **Slide 20: Fix 1: Simplify paths.**
 
-So keep only what you can see. CLICK: keep the lowest and highest in each column, build the path once, then only move it. Look at the two charts. Can you see the difference? Path points go from 130,000 to 12,000.
+So keep only what you can see. The animation does it live: keep the lowest and highest in each column, build the path once, then only move it. Look at the two charts. Can you see the difference? Path points go from 130,000 to 12,000.
 
 Each line goes from 8,000 points to 632. Both bars drop: raster 29.7 to 18.6, UI 15.9 to 6.3. Raster, because there's less to tessellate. UI by even more, which surprised me: building an 8,000-point path in Dart every frame was most of the UI time.
 
@@ -299,7 +299,7 @@ Each line goes from 8,000 points to 632. Both bars drop: raster 29.7 to 18.6, UI
 
 Fix 2. >>> DEMO, phone: turn on Batch draws. Imagine going to the shop 480 times, once per item, when you could take a list and go once. The heat strip was 480 segments, each its own path, its own paint and its own draw.
 
-CLICK: now every segment is two triangles, all in one drawVertices call. Same picture. Draw calls go from 640 to 161. But it's a smaller raster win, 18.6 to 13.7, because on Vulkan a draw is a few small commands, not a trip to the driver. The count starts at 640, not 624, because Fix 1 draws each line twice to cover the scroll.
+Now every segment is two triangles, all in one drawVertices call. Same picture. Draw calls go from 640 to 161. But it's a smaller raster win, 18.6 to 13.7, because on Vulkan a draw is a few small commands, not a trip to the driver. The count starts at 640, not 624, because Fix 1 draws each line twice to cover the scroll.
 
 **Slide 22: Fix 3: Glow without saveLayer.**
 
@@ -341,9 +341,9 @@ Each pair is one frame. Red is late. Raster is the taller one, so that's where I
 
 **Slide 27: Systrace, now Perfetto: 5 s of frames.**
 
-Now the system's view, in Perfetto, which replaced Systrace. Every bar here is one real raster frame from five seconds of the broken chart. Every one is far above the 8.3 line. It never rests.
+Now the system's view, in Perfetto, which replaced Systrace. This plays by itself, at real speed. Every bar is one real raster frame from five seconds of the broken chart. Every one is far above the 8.3 line. It never rests.
 
-CLICK: all four fixes, same scale. Short bars, under the line. 179 frames became 604. In the trace, raster goes from 28 to 4.8 milliseconds, and almost all of that is SurfaceFrame Encode, 27 down to 3.7: Impeller turning our DisplayList into triangles and command buffers. 64 saveLayer down to zero. Two queue submits down to one.
+Below it, all four fixes, same scale. Short bars, under the line. 179 frames became 604. In the trace, raster goes from 28 to 4.8 milliseconds, and almost all of that is SurfaceFrame Encode, 27 down to 3.7: Impeller turning our DisplayList into triangles and command buffers. 64 saveLayer down to zero. Two queue submits down to one.
 
 VOTE: so in the broken case, is the raster thread waiting on the GPU? Hands up.
 

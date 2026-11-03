@@ -39,7 +39,7 @@ has no line number, the talk does not deliver it.
 
 ## Promise → delivery map
 
-Slide numbers refer to the [deck](slides/beyond-skia.pptx) and the [Demo script](demo-script.md); segment scripts
+Slide numbers refer to the deck (`~/Documents/fluttercon/Beyond-Skia.pptx`) and the [Demo script](demo-script.md); segment scripts
 are linked where the detail lives. Evidence files are in `~/fluttercon-captures/2026-10-31-infinix-x6873/`.
 
 | # | Promise in the abstract | Delivered at | What the audience sees | Evidence file | Status |

@@ -1,0 +1,27 @@
+<!doctype html><meta charset=utf-8><style>html,body{margin:0;background:#0b0b0c}canvas{display:block}</style>
+<canvas id=c width=2560 height=1440 style="width:1280px;height:720px"></canvas><script>
+(async()=>{await document.fonts.load('500 40px "Inter Display"');await document.fonts.load('400 24px Inter');await document.fonts.load('500 24px Inter');
+const g=document.getElementById('c').getContext('2d');g.scale(2,2);g.fillStyle='#0b0b0c';g.fillRect(0,0,1280,720);
+const show=new URLSearchParams(location.search).get('v');
+const CY='#4fc3f7',EM='#ff5c28',PA='#f4f3ef',AS='#aeada8',IN='#0b0b0c';g.letterSpacing='-.3px';
+const HEAD=s=>`500 ${s}px "Inter Display"`,BODY=s=>`400 ${s}px Inter`,MID=s=>`500 ${s}px Inter`;
+function plate(x,y,w,h,kind,label,value){
+ const edge=kind==='cyan'?'#1f6f96':kind==='ember'?'#9c3514':kind==='ghost'?'#0b0b0c':'#050506',top=kind==='cyan'?CY:kind==='ember'?EM:kind==='ghost'?'#0b0b0c':'#2a2b30';
+ if(kind!=='ghost'){g.save();g.shadowColor=kind==='cyan'?'rgba(79,195,247,.42)':kind==='ember'?'rgba(255,92,40,.42)':'rgba(0,0,0,.6)';g.shadowBlur=kind==='plain'?10:26;g.shadowOffsetY=6;g.fillStyle=top;g.fillRect(x,y,w,h);g.restore();g.fillStyle=edge;g.fillRect(x,y+h,w,8);}
+ g.fillStyle=top;g.fillRect(x,y,w,h);
+ if(kind==='plain'){const gr=g.createLinearGradient(x,y,x,y+h);gr.addColorStop(0,'rgba(255,255,255,.07)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(x,y,w,h);g.strokeStyle='rgba(255,255,255,.10)';g.lineWidth=1;g.strokeRect(x+.5,y+.5,w-1,h-1);}
+ if(kind==='ghost'){g.save();g.setLineDash([7,7]);g.strokeStyle='#55555a';g.lineWidth=2;g.strokeRect(x+1,y+1,w-2,h-2);g.restore();}
+ const solid=kind==='cyan'||kind==='ember';
+ g.textBaseline='alphabetic';g.fillStyle=solid?'rgba(11,11,12,.72)':AS;g.font=MID(20);g.fillText(label,x+22,y+30);
+ g.fillStyle=solid?IN:(kind==='ghost'?AS:PA);g.font=HEAD(29);
+ if(Array.isArray(value)){let cx=x+22;for(const [s,c] of value){g.fillStyle=c;g.fillText(s,cx,y+64);cx+=g.measureText(s).width;}}else g.fillText(value,x+22,y+64);
+}
+const X=[72,656],W=552,Y0=206,H=76,STEP=86,LB=['Compiled ahead','Dart runs on','1.raster','Raster cache','GPU API'];
+g.font=HEAD(36);g.fillStyle=AS;g.fillText('Before: Skia',X[0],190);
+const B=[['ghost','Nothing'],['plain','1.ui, its own thread'],['ember','Writes and compiles shaders'],['plain','Automatic'],['plain','OpenGL ES: the driver decides']];
+B.forEach(([k,v],i)=>plate(X[0],Y0+i*STEP,W,H,k,LB[i],v));
+if(show==='now'){g.font=HEAD(36);g.fillStyle=CY;g.fillText('Now: Impeller',X[1],190);
+ const N=[['cyan','impellerc: SPIR-V, Metal, GLSL ES'],['plain','The main thread, since 3.29'],['plain',[['Binds pipelines, ',PA],['tessellates',EM],[', records',PA]]],['plain',[['None',EM]]],['plain',[['Vulkan',CY],[': explicit commands',PA]]]];
+ N.forEach(([k,v],i)=>plate(X[1],Y0+i*STEP,W,H,k,LB[i],v));}
+document.title='done';})();
+</script>

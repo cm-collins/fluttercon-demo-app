@@ -10,10 +10,11 @@ on the Infinix test phone are the fallback, and every `>>> DEMO` cue in the spea
 |---|---|---|
 | Demo phone | Both profile flavors installed, 120 Hz, logging Vulkan (see [Set up the phone](#set-up-the-phone)) | `adb logcat` shows `Using the Impeller rendering backend (Vulkan)` |
 | USB cable and `scrcpy` | Bag and laptop | The mirror keeps up at 8× |
+| Slide animations | Slides 4, 5, 14, 16, 20, 21, 22, 23 and 27 | Each starts and loops by itself in Slide Show mode |
 | Captures folder | `~/fluttercon-captures/2026-10-31-infinix-x6873/` (its README lists every file) | All three videos play to the end |
 | **Second copy** of the captures folder | USB drive and cloud storage | Opens on another machine |
-| Slides | [`slides/beyond-skia-dark.pptx`](slides/beyond-skia-dark.pptx) in Slide Show mode, with the PDF `local/beyond-skia-dark.pdf` as the fallback. Use `beyond-skia.pptx` in a very bright room. The fonts are embedded; install `slides/local/pptx/fonts/` too, as a backup | Inter shows on every slide; animations run |
-| Video player | VLC or mpv, with `slides/local/clips-stage/` open. Clips are numbered in playing order | Full screen, plays smoothly, and you can switch back to the slides quickly |
+| Slides | `~/Documents/fluttercon/Beyond-Skia.pptx` in Slide Show mode, with `Beyond-Skia.pdf` beside it as the fallback. Use `light-version/` in a very bright room. The fonts are embedded; install `fonts/` too, as a backup | Inter shows on every slide; animations run |
+| Video player | VLC or mpv, with `~/Documents/fluttercon/demo-clips/` open. Clips are numbered in playing order | Full screen, plays smoothly, and you can switch back to the slides quickly |
 | Browser with ui.perfetto.dev | Chrome or Edge | Loads with Wi-Fi off once cached (step 4 below) |
 | Laptop power, HDMI/USB-C adapter, clicker | Bag | Tested with the venue projector if possible |
 
@@ -23,7 +24,7 @@ The Canvas Thrash video is 253 MB; copy the folder, don't stream it.
 
 1. Set up the phone, below, and run the backend check.
 2. Rehearse the whole talk once against the clock, with the live demos and the votes, not slides alone.
-3. Open every clip in `slides/local/clips-stage/` once in the player you'll use, so the fallback is ready.
+3. Open every clip in `~/Documents/fluttercon/demo-clips/` once in the player you'll use, so the fallback is ready.
 4. Charge everything. Turn off notifications and auto-updates on the laptop.
 
 ## Set up the phone

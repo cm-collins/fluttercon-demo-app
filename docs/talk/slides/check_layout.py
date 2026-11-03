@@ -1,25 +1,21 @@
-#!/usr/bin/env python3
-"""Checks a deck: font sizes on the scale, text fits its box and margins, nothing collides.
-
-usage (from this folder): python3 check_layout.py beyond-skia-dark.pptx
-"""
+"""Layout audit: font sizes on the scale, left edges on the grid, text fits its box, nothing collides."""
 import sys,re
 from collections import Counter
 from PIL import ImageFont
 from pptx import Presentation
 F='local/pptx/fonts/'
-FACE={'Inter Tight SemiBold':'InterTight-600.ttf','Inter':'Inter-400.ttf','Inter Medium':'Inter-500.ttf','JetBrains Mono':'JetBrainsMono-400.ttf',None:'Inter-400.ttf'}
+FACE={'Inter Display Medium':'InterDisplay-500.ttf','Inter':'Inter-400.ttf','Inter Medium':'Inter-500.ttf','JetBrains Mono':'JetBrainsMono-400.ttf',None:'Inter-400.ttf'}
 cache={}
 def font(face,sz):
     k=(face,sz)
     if k not in cache: cache[k]=ImageFont.truetype(F+FACE.get(face,'Inter-400.ttf'),int(sz*4))
     return cache[k]
-SCALE={16,20,24,28,36,56,72,112,160}
+SCALE={18,20,24,28,36,60,72,104,160}
 G=(1136+32)/12
 GRID={72+k*G for k in range(13)}
 SLACK=1.05   # PowerPoint and LibreOffice measure text slightly differently
 def run_width(r,txt,title=False,sz=None):
-    f=r.font; face=f.name or ('Inter Tight SemiBold' if title else 'Inter')
+    f=r.font; face=f.name or ('Inter Display Medium' if title else 'Inter')
     s=sz or f.size.pt/0.75
     w=font(face,s).getlength(txt)/4
     spc=r._r.get_or_add_rPr().get('spc')
@@ -101,10 +97,10 @@ for n,s in enumerate(p.slides,1):
         else: rx0,rx1=L,L+wid
         if rx1>1208.5 and n not in (1,) : issues.append((n,'past right margin',round(rx1),tf.text[:40]))
         if rx0<71.5 and n!=1: issues.append((n,'past left margin',round(rx0),tf.text[:40]))
-        if title and first and first==56:
+        if title and first and first==60:
             lines=sum(para_lines(pp,Wd,True)[0] for pp in tf.paragraphs)
             if lines>1: issues.append((n,'title wraps',lines,tf.text[:40]))
-        if name=='Tag':
+        if name in ('Tag','Explanation'):
             lines=sum(para_lines(pp,Wd,False)[0] for pp in tf.paragraphs)
             if lines>1: issues.append((n,name+' wraps',lines,tf.text[:50]))
         if x.shape_type!=1: rects.append((rx0,top,rx1,bottom,tf.text[:28],grp))

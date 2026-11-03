@@ -109,6 +109,7 @@ The sources are in `slides/visuals/` and the output in `slides/local/visuals/`. 
 
 | Slide | Picture | Real | Drawn or approximate |
 |---|---|---|---|
+| 2 | The two small charts | Every raster frame from the traces: a Skia run with its one 1.82 s frame, and the 179 frames of the broken chart against the 8.3 ms line | Each chart has its own scale, as the slide says |
 | 5 | The 1.8 s wall | Start and length of all 118 programs, from `skia-144.txt`; the 8.3 ms bar, to the same scale | The 3D look; bar height has no meaning |
 | 11 | The mountain | Nothing: original artwork for teaching (`make_mountain.py`) | All of it |
 | 12 | Path to triangles | A stretch of the demo's simplified line, from `thrash_scene.dart` | The stroke is widened so the triangles can be seen |
@@ -116,6 +117,7 @@ The sources are in `slides/visuals/` and the output in `slides/local/visuals/`. 
 | 19 | One pixel column | The points, from `thrash_scene.dart`, and 25 points a column | The vertical scale |
 | 20 | The two charts | Every point of all 16 lines, full and simplified, from `thrash_scene.dart` | The layout of the lines on the chart |
 | 22 | The layers | Dot positions use the demo's own formula and data; 64 layers | The chart layout and the height of each layer |
+| 30 | The band behind the close | The demo's chart | Squeezed and dimmed, as decoration (`make_close.py`) |
 | 27 | Five seconds of frames | Every `GPURasterizer::Draw` in `thrash-trace-none.txt` and `thrash-trace-all.txt`: start, length, and the 8.3 ms line, to one scale | Nothing, except bars above 44 ms would be clipped |
 
 ## Why the deck doesn't copy ChatGPT's overdraw examples
