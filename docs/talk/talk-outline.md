@@ -1,7 +1,7 @@
 # Talk outline
 
 **Beyond Skia: Deep-Dive GPU Scheduling and Profiling with Impeller on Android 10+**
-40 minutes · recorded demos from a 120 Hz Android phone, real traces · mixed Flutter, Kotlin and iOS audience
+40 minutes · demos on a mirrored 120 Hz Android phone, with recordings as fallback, real traces · mixed Flutter, Kotlin and iOS audience
 
 ## Core message
 
@@ -108,6 +108,6 @@ fixed-trace tab in "Into the traces", then shorten Q&A.
 | "Is Impeller always faster than Skia?" | No. It is more predictable. Some effects (certain blurs) measured slower; fixes are in progress upstream. |
 | "Does RepaintBoundary cache on Impeller?" | It isolates repaints, so Dart stops re-recording that subtree (grid repaints → 0, UI 4.4 → 3.4 ms). There is no raster cache: raster barely moved (6.6 → 6.5 ms). Use `SnapshotWidget` deliberately. |
 | "Why not show the GPU timing directly?" | This phone's driver exposes only GPU memory to Perfetto, no render stages. The raster thread was CPU-bound anyway (running 90%+ of each frame). AGI or a Pixel with GPU render stages would show it. |
-| "What happens on devices without Vulkan?" | It depends on the Android version: below API 29, the legacy renderer; check the engine log rather than assuming. My Android 16 emulator logged Impeller on OpenGL ES. |
+| "What happens on devices without Vulkan?" | Below API 29: Skia on OpenGL ES. From API 29: Impeller on OpenGL ES. A phone with Vulkan can land there too, if a device check fails. Read the engine log rather than assuming. My Android 16 emulator logged Impeller on OpenGL ES. |
 | "How does this compare to Compose?" | Same ideas: offscreen layers, main-thread work, a render thread. See [Rosetta](../reference/rosetta.md). |
 | "Do these numbers hold on low-end devices?" | The method holds; the numbers do not. Profile on the slowest device you support. |

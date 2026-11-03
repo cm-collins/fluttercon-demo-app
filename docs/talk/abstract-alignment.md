@@ -47,8 +47,8 @@ are linked where the detail lives. Evidence files are in `~/fluttercon-captures/
 | P1 | Definitive transition to Impeller, AOT shader compilation | Slides 6–15 | Concept video, engine before and now, compilation jank, rollout timeline, Skia 1,863 ms vs Impeller 145 ms first reveal | `bench/storm.csv`, `videos/storm-*.mp4` | ✅ measured |
 | P2 | Rock-solid 120 fps on high-refresh Android | Slides 5, 25, 29 | 8.3 ms budget; broken ~36 fps → fixed 604 frames in 5 s (120 fps) | `traces/perfetto-system/thrash-trace-all.txt` | ✅ measured |
 | P3 | Shift how engineers diagnose, isolate, fix | Slides 2, 20–29 | Thread → event → code → fix → measure, applied to every fix | Canvas Thrash script | ✅ |
-| P4 | How Impeller interacts with Vulkan on Android 10+ | Slides 9, 10, 13, 17 | Architecture, pipeline and command-buffer slides; log line "Using the Impeller rendering backend (Vulkan)"; Mali-G615, Vulkan 1.3 | `evidence/` | ✅ |
-| P5 | How Impeller schedules GPU pipelines | Slides 10, 15 | 40 `PipelineVK::Create` in the reveal frame, 2.2 ms each, on `1.raster`; 30 → 40 as effects triple | `traces/perfetto-system/impeller-144.txt` | ✅ measured |
+| P4 | How Impeller interacts with Vulkan on Android 10+ | Slides 8, 9, 11, 13, 17 | Architecture, pipeline and command-buffer slides; log line "Using the Impeller rendering backend (Vulkan)"; Mali-G615, Vulkan 1.3 | `evidence/` | ✅ |
+| P5 | How Impeller schedules GPU pipelines | Slides 9, 15 | 40 `PipelineVK::Create` in the reveal frame, 2.2 ms each, on `1.raster`; 30 → 40 as effects triple | `traces/perfetto-system/impeller-144.txt` | ✅ measured |
 | P6 | Tessellation of vector paths into triangles | Slides 16, 21, 22 | Tessellation built step by step; X-ray triangle lens; path points 129,920 → 12,032; `Encode` 27 → 13 ms | video 0:32–0:59; `thrash-trace-*.txt` | ✅ modelled + measured indirectly |
 | P7 | Explicit command buffers under heavy stress | Slides 17, 18, 28 | `SurfaceFrame::Encode` dominates the raster frame; `QueueSubmit` 2 → 1 per frame when layers go | `thrash-trace-none.txt`, `thrash-trace-all.txt` | ⚠️ CPU side measured; GPU execution explained, not traced |
 | P8 | Intentionally thrash a real-time canvas | Slides 1, 19, 20 | Dial 1× → 8×, both lanes red | `videos/thrash-impeller-stage.mp4` 0:00–0:32 | ✅ |
@@ -57,7 +57,7 @@ are linked where the detail lives. Evidence files are in `~/fluttercon-captures/
 | P11 | Precise repaint boundary isolation | Slide 24 | Grid repaints → 0/s; `KILN::Thrash::grid` absent from the timeline; UI 4.4 → 3.4 ms | `devtools-timeline-8x-isolate.perfetto-trace` | ✅ measured |
 | P12 | Layer complexity reduction | Slides 18, 23 | Layers 64 → 0; raster 13.7 → 6.6 ms; `saveLayer` 64 → 0 per frame in the trace | `thrash-trace-simplifyPaths+batchDraws.txt` vs `-all.txt` | ✅ measured |
 | P13 | Confidence to ship | Slides 25, 28–30 | Medians with ranges, honest limits, scripts to reproduce | `bench/`, `tool/benchmark/` | ✅ |
-| T1 | Skia JIT vs Impeller AOT pipeline mechanics on Vulkan | Slides 10, 13–15 | 118 Skia programs vs 40 Impeller pipelines in one reveal frame | `skia-144.txt`, `impeller-144.txt` | ✅ measured |
+| T1 | Skia JIT vs Impeller AOT pipeline mechanics on Vulkan | Slides 9, 13–15 | 118 Skia programs vs 40 Impeller pipelines in one reveal frame | `skia-144.txt`, `impeller-144.txt` | ✅ measured |
 | T2 | Read ~4 ms UI / ~4 ms raster allocations | Slides 5, 29 | Bench, fixed: UI 3.4 ms (under 4), raster 6.5 ms (under 8.3, over 4). Traces: budget shares for three states; 1000 ÷ raster = frame rate; 120 fps with UI + raster over 8.3 ms on 28% of frames | `bench/thrash-impeller.csv`, `summaries.txt` | ✅ measured; raster ends between the target and the limit, and the talk says so |
 | T3 | Custom painter patterns, precompiled pathways, avoid `saveLayer()` | Slides 22–24, 26, 31 | Decimated cached paths, one `drawVertices`, gradient glow instead of `saveLayer` + blur (measured); your own `.frag` → `pubspec` → `FragmentProgram`, and the APK bundle with SPIR-V, GLSL ES and SkSL | `thrash_canvas.dart`; bench; `depth_fill.frag` and its built asset | ✅ patterns measured; custom shader shown as code and build output, not timed |
 
@@ -69,7 +69,7 @@ are linked where the detail lives. Evidence files are in `~/fluttercon-captures/
 | DevTools UI walkthrough ("Master advanced Flutter DevTools") | No phone left to attach DevTools to; the frames chart, Frame analysis and Timeline Events have not been captured | **Open: the biggest gap left.** Needs the [10-minute capture](../notes/06-profiling-playbook.md#devtools-capture-for-the-talk-10-minutes-any-android-phone) on any Android phone. Until then, the same Dart timeline events open in Perfetto (see the Perfetto section of the demo script) |
 | Expected / Actual Timeline | The captures used `atrace` text, which has no frame timeline | Not claimed. Frame rate comes from the raster slices instead |
 | Raster at 6.5 ms is over the 4 ms raster target | Measured | Say it: inside the 8.3 ms frame, at 120 fps, with less headroom than four and four |
-| Batch draws is a small win | Measured: 18.6 → 13.7 ms, overlapping ranges | The script calls it the smallest win of the four |
+| Batch draws is a small win | Measured: 18.6 → 13.7 ms, overlapping ranges | The script calls it a smaller win. Alone, it is within run-to-run noise |
 
 ## Wording guardrails for the abstract's claims
 
@@ -79,7 +79,8 @@ The abstract uses some shorthand. These are the precise versions to say on stage
 |---|---|---|
 | "~4ms UI / ~4ms Raster" | "UI means Dart frame work on the platform main thread; Raster means Impeller work on `1.raster`. Target about 4 ms each so the frame lands within one refresh. Each can stretch to 8.33 ms without dropping, but you lose latency and headroom." | DevTools labels phases as UI/Raster; main and raster are the actual CPU threads, and consecutive frames pipeline ([Frame scheduling](../notes/05-frame-scheduling.md)) |
 | "Skia's JIT shader compilation" | "Skia generated and compiled shaders just in time, during frames" | Skia generated SkSL at runtime; the driver compiled it on first use |
-| "Impeller's AOT pipeline mechanics" | "Shaders compiled at engine build time; pipelines built from them mostly at startup, and the rest on first use" | Storm measured 40 `PipelineVK::Create` inside the 144-tile reveal frame, about 2 ms each: cheap, not zero |
+| "Impeller's AOT pipeline mechanics" | "Shaders compiled at engine build time; pipelines built from them mostly at startup, and the rest on first use, when the Vulkan driver finishes the compile" | Storm measured 40 `PipelineVK::Create` inside the 144-tile reveal frame, about 2 ms each: cheap, not zero |
+| "On Android 10+ (API 29+)" | "Android 10 is the minimum. The engine then checks the device and picks Vulkan or OpenGL ES" | Emulators, older Adreno, some MediaTek and Exynos chips and others stay on OpenGL ES: [Fact check](fact-check.md#which-backend-an-android-phone-gets) |
 | "Skia JIT versus Impeller AOT on Vulkan" | "The Skia comparison demonstrates first-use generation on OpenGL ES; the following segment explains Impeller's AOT pipeline mechanics on Vulkan" | Do not imply that both comparison APKs use the same graphics backend |
 | "Prevent frame drops under heavy stress" | "Keep the recorded work small enough that the raster thread finishes inside its budget" | Command buffers don't prevent drops by themselves; less recorded work does |
 | "Android Systrace" | "Systrace, now Perfetto" | Perfetto replaced Systrace in Android 10 and opens Systrace files |

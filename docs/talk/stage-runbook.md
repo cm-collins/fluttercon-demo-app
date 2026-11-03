@@ -1,7 +1,7 @@
 # Stage runbook
 
-How to run the talk from a laptop alone. Both demos play from recordings made on the stage
-phone, and the trace walkthrough opens traces captured in the same session. The words are in
+How to run the talk. The demos run live on a mirrored phone from their scripts. This page also covers
+running them from a laptop alone, from recordings made on the test phone, which is the fallback. The trace walkthrough opens traces captured in the same session. The words are in
 the [Demo script](demo-script.md); this page is the setup and the recovery plan.
 
 ## What you need
@@ -10,7 +10,7 @@ the [Demo script](demo-script.md); this page is the setup and the recovery plan.
 |---|---|---|
 | Captures folder | `~/fluttercon-captures/2026-10-31-infinix-x6873/` (its README lists every file) | All three videos play to the end |
 | **Second copy** of the captures folder | USB drive and cloud storage | Opens on another machine |
-| Slides | [`slides/beyond-skia.pptx`](slides/beyond-skia.pptx) in Slide Show mode, with the PDF `local/beyond-skia.pdf` as the fallback. **Install the fonts first:** `slides/local/pptx/fonts/` | Inter shows on every slide; animations run |
+| Slides | [`slides/beyond-skia.pptx`](slides/beyond-skia.pptx) in Slide Show mode, with the PDF `local/beyond-skia.pdf` as the fallback. The fonts are embedded; install `slides/local/pptx/fonts/` too, as a backup | Inter shows on every slide; animations run |
 | Video player | VLC or mpv, with `slides/local/clips-stage/` open. Clips are numbered in playing order | Full screen, plays smoothly, and you can switch back to the slides quickly |
 | Browser with ui.perfetto.dev | Chrome or Edge | Loads with Wi-Fi off once cached (step 4 below) |
 | Laptop power, HDMI/USB-C adapter, clicker | Bag | Tested with the venue projector if possible |

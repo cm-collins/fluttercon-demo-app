@@ -76,7 +76,7 @@ historical, before Flutter 3.29.
 | **JIT (shaders)** | Skia: shaders created and compiled **when the app runs**, on first encounter. | "Just in time, mid-race." |
 | **AOT (shaders)** | Impeller: shaders compiled by **`impellerc` at engine build time**; app ships SPIR-V/Metal/GLSL ES archives. | Concept video kiln; pipeline slide. |
 | **`impellerc`** | Offline compiler: GLSL 4.60 → SPIR-V and backend formats. Same path for engine and app `.frag` files in `pubspec.yaml`. | Impeller's built-in shaders, compiled when the engine is built (Shader Storm). |
-| **Pipeline (PSO)** | **Pipeline state object**: shader + fixed GPU state (blend, depth, formats). Impeller selects a **pre-built** pipeline per draw type. Vulkan may still **create** the PSO on first use, but **no new shader source** mid-frame. | Slide 10; say "pick a pipeline," not "compile a shader in the frame." |
+| **Pipeline (PSO)** | **Pipeline state object**: shader + fixed GPU state (blend, depth, formats). Impeller selects a **pre-built** pipeline per draw type. Vulkan may still **create** the PSO on first use, when the driver compiles the SPIR-V for the chip, but **no new shader source** mid-frame. | Slide 9; say "pick a pipeline," not "compile a shader in the frame." |
 | **Runtime compilation (careful)** | Do **not** claim zero driver work. Do claim: **no Skia-style shader generation during `paint()`**. | See [Say it precisely](demo-script.md#say-it-precisely). |
 | **Custom fragment shader lifecycle** | Flutter compiles a declared `.frag` asset during the app build. Retain its `FragmentShader` and change only uniforms per frame. Skia can still compile the platform shader while loading, so preload before animation. | Precompiled removes shader generation; it does **not** make extra draws, geometry, layers, blur or asset loading free. |
 
@@ -144,7 +144,7 @@ historical, before Flutter 3.29.
 | **Offscreen pass / `saveLayer`** | "Extra layer" (vague) | Ties to render-pass cost |
 | **Ahead-of-time shaders** | "Zero compilation ever" | Driver still builds PSOs from shipped SPIR-V |
 | **~4 ms UI and ~4 ms raster** (target) | "Must be under 4 ms or you drop frames" | Threads pipeline; see frame scheduling note |
-| **Impeller on Android 10+** / **legacy renderer below API 29** | "Skia is gone from Android" | Current Flutter docs: API 29+ gets Impeller; below that, the legacy OpenGL renderer |
+| **Impeller from Android 10** / **Skia on OpenGL ES below API 29** | "Skia is gone from Android" or "Android 10+ means Vulkan" | Flutter 3.47.8 source: API 29+ gets Impeller, on Vulkan if the device passes its checks and on OpenGL ES if not. See [Fact check](fact-check.md#which-backend-an-android-phone-gets) |
 | **Main thread** (Dart since 3.29) | "UI thread" as a second thread | Threads merged; DevTools keeps the label "UI" |
 
 ---

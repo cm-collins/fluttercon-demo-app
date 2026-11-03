@@ -211,7 +211,7 @@ By situation, 48 tiles and 144 tiles (the stage grid):
 | Repeat in the same session | 18 ms (16–20) | 45 ms (44–49) | 23 ms (22–26) | 48 ms (44–56) |
 | Relaunch, disk cache kept | 58 ms (55–60) | 66 ms (63–69) | 102 ms (101–103) | 73 ms (68–78) |
 
-144-tile traces, tracing on: Skia built 118 programs in the reveal frame (1,714 ms, 14.6 ms
+144-tile traces, tracing on: Skia built 118 programs in the reveal frame (1,714 ms, about 14.5 ms
 each); Impeller built 40 pipelines (87 ms, 2.2 ms each). Both on `1.raster`.
 
 From system traces of the cold reveal frame, 48 tiles:

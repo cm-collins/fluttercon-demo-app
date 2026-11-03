@@ -122,7 +122,7 @@ repaints around **40–50/s**.
 > "Now every segment is two triangles, all of them in **one `drawVertices` call**. Draws
 > from 640 to **161**. Every draw call carries a fixed cost, so the engine does less
 > bookkeeping for the same picture. And these are triangles already, so there's nothing left
-> to cut up. Raster drops to about 14 milliseconds: the smallest win of the four. On Vulkan a
+> to cut up. Raster drops to about 14 milliseconds: a smaller win. On Vulkan a
 > draw call is cheap; it's a few commands in a command buffer, not a trip to the driver."
 
 ## 6. Fix 3 · Glow without layers (1:00)
@@ -139,7 +139,7 @@ repaints around **40–50/s**.
 
 > "Same soft glow, drawn as a circle with a radial gradient that fades to transparent: one
 > ordinary draw, no layer. Layers: **zero**. Look at the markers: they look the same.
-> Raster: from 14 milliseconds to under 7. The biggest raster win.
+> Raster: from 14 milliseconds to under 7. It halves.
 >
 > And here's what the trace says about *where* that cost was. The raster thread was busy the
 > whole time, not waiting for the GPU. Setting up 64 offscreen passes, 64 blurs, 64
