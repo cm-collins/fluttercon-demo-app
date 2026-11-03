@@ -1,0 +1,21 @@
+<!doctype html><meta charset=utf-8><style>html,body{margin:0;background:#0b0b0c;overflow:hidden}canvas{display:block}</style>
+<script src="data.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+const W=1280,H=720,r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});r.setSize(W,H);r.setPixelRatio(2);document.body.append(r.domElement);r.toneMapping=THREE.ACESFilmicToneMapping;
+const s=new THREE.Scene();s.background=new THREE.Color(0x09090b);const c=new THREE.PerspectiveCamera(26,W/H,1,6000);c.position.set(-560,660,1200);c.lookAt(0,240,0);c.setViewOffset(W,H,290,-20,W,H);
+function tex(draw,w,h){const cv=document.createElement('canvas');cv.width=w;cv.height=h;draw(cv.getContext('2d'),w,h);const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=16;return t;}
+function plate(w,h,y,z,t,edge){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:.97,side:THREE.DoubleSide}));m.rotation.x=-Math.PI/2;m.position.set(0,y,z);s.add(m);const e=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(w,h)),new THREE.LineBasicMaterial({color:edge}));e.rotation.x=-Math.PI/2;e.position.set(0,y+.3,z);s.add(e);}
+const PW=330,PH=620,PIN=new URLSearchParams(location.search).get('pin');
+plate(PW,PH,0,0,tex((g,w,h)=>{const gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,'#21527f');gr.addColorStop(.6,'#3a8fc9');gr.addColorStop(1,'#d9794a');g.fillStyle=gr;g.fillRect(0,0,w,h);g.fillStyle='rgba(0,0,0,.12)';for(let i=0;i<6;i++){g.beginPath();g.moveTo(0,h*.6+i*44);g.lineTo(w*.45,h*.34+i*46);g.lineTo(w,h*.62+i*44);g.lineTo(w,h);g.lineTo(0,h);g.fill();}},660,1240),0x7f9ab6);
+plate(PW-44,240,170,40,tex((g,w,h)=>{g.fillStyle='#454b59';g.fillRect(0,0,w,h);g.fillStyle='#7c8496';g.fillRect(40,300,w-80,24);g.fillRect(40,350,w-210,24);},572,480),0xaab2c2);
+plate(PW-90,84,340,40,tex((g,w,h)=>{g.fillStyle='#0d0e12';g.fillRect(0,0,w,h);g.fillStyle='#f4f3ef';g.font='600 76px Inter, sans-serif';g.textBaseline='middle';g.fillText('KSh 900',28,h/2+4);},480,168),0xf4f3ef);
+if(PIN){const px=[-30,40];s.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(px[0],-40,px[1]),new THREE.Vector3(px[0],470,px[1])]),new THREE.LineBasicMaterial({color:0xff5c28})));
+for(const y of [0,170,340]){const d=new THREE.Mesh(new THREE.SphereGeometry(9,24,24),new THREE.MeshBasicMaterial({color:0xff5c28}));d.position.set(px[0],y+1,px[1]);s.add(d);}}
+const comp=new EffectComposer(r);comp.setPixelRatio(2);comp.setSize(W,H);comp.addPass(new RenderPass(s,c));comp.addPass(new UnrealBloomPass(new THREE.Vector2(W,H),.18,.4,.85));comp.addPass(new OutputPass());comp.render();document.title='done';
+</script>

@@ -3,8 +3,8 @@
 
 usage: python3 build_pptx.py        (needs python-pptx, Pillow, and the files in local/)
 
-The slides stay out of the speaker's way: one idea, few words, real data and real screens from the
-demo app. The explanation lives in the speaker's voice, so speaker notes come from speaker_notes.json.
+Every slide has one message and one visual, and nothing else. The explanation lives in the speaker's
+voice and the demo app, so speaker notes come from speaker_notes.json.
 The fonts are embedded in each file. Sizes are in pixels on a 1280 x 720 slide.
 """
 import json
@@ -31,19 +31,20 @@ L = os.path.join(HERE, 'local')
 A = os.path.join(L, 'pptx')
 REPO = 'https://github.com/cm-collins/fluttercon-demo-app'
 
-# One ink, one paper, one grey, and one accent. The accent marks the one thing to look at.
-TEXT, BG, SUB, CARD, ACC, HAIR = TC.TEXT_1, TC.BACKGROUND_1, TC.TEXT_2, TC.BACKGROUND_2, TC.ACCENT_1, TC.ACCENT_2
+# Ink, paper and grey, plus two colours with fixed meanings: ember is the cost, or late; cyan is Impeller, or on time.
+TEXT, BG, SUB, CARD, ACC, HAIR, COOL = TC.TEXT_1, TC.BACKGROUND_1, TC.TEXT_2, TC.BACKGROUND_2, TC.ACCENT_1, TC.ACCENT_2, TC.ACCENT_3
 THEMES = {
     'light': dict(dk1='141414', lt1='F7F6F2', dk2='6B6A66', lt2='E9E7E0', accent1='D63C0A', accent2='D5D3CB',
-                  accent3='141414', accent4='6B6A66', accent5='D63C0A', accent6='D5D3CB', hlink='141414', folHlink='6B6A66'),
+                  accent3='0277BD', accent4='6B6A66', accent5='D63C0A', accent6='D5D3CB', hlink='141414', folHlink='6B6A66'),
     'dark': dict(dk1='F4F3EF', lt1='0B0B0C', dk2='8E8D89', lt2='1D1D1F', accent1='FF5C28', accent2='2C2C2E',
-                 accent3='F4F3EF', accent4='8E8D89', accent5='FF5C28', accent6='2C2C2E', hlink='F4F3EF', folHlink='8E8D89'),
+                 accent3='4FC3F7', accent4='8E8D89', accent5='FF5C28', accent6='2C2C2E', hlink='F4F3EF', folHlink='8E8D89'),
 }
 INK = RGBColor(0x0B, 0x0B, 0x0C)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 PAPER = RGBColor(0xF4, 0xF3, 0xEF)
 ASH = RGBColor(0x9A, 0x99, 0x95)
 EMBER = RGBColor(0xFF, 0x5C, 0x28)
+CYAN = RGBColor(0x4F, 0xC3, 0xF7)
 GREY = RGBColor(0x55, 0x55, 0x52)
 
 HEAD, BODY, MID, MONO = 'Inter Tight SemiBold', 'Inter', 'Inter Medium', 'JetBrains Mono'
@@ -55,12 +56,12 @@ NS = {'a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
 FONT_REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/font'
 
 # The grid: side margins, the title line, and the line shared by the source and the logo.
-M, W, RIGHT_EDGE, TITLE_Y, TITLE_SIZE, FOOT_Y = 72, 1136, 1208, 44, 52, 664
-SUB_Y, CT, CT_SUB, CB = 108, 132, 164, 640  # subtitle line, content top without and with a subtitle, content bottom
+M, W, RIGHT_EDGE, TITLE_Y, TITLE_SIZE, FOOT_Y = 72, 1136, 1208, 48, 56, 664
+CT, CB = 156, 636  # the content area: every slide has one message and one visual, inside these lines
 GUT = 32  # a 12-column grid with 32 px gutters: gx(k) is the left edge of column k, gw(n) the width of n columns
 
 # The only font sizes in the deck, by job.
-T_SOURCE, T_LABEL, T_CODE, T_SMALL, T_BODY, T_H3, T_H1, T_NUM, T_HERO, T_MEGA = 16, 20, 22, 24, 28, 36, 52, 72, 112, 160
+T_TAG, T_LABEL, T_CODE, T_BODY, T_H3, T_H1, T_NUM, T_HERO, T_MEGA = 16, 20, 24, 28, 36, 56, 72, 112, 160
 LEFT, RIGHT, CENTER = PP_ALIGN.LEFT, PP_ALIGN.RIGHT, PP_ALIGN.CENTER
 
 
@@ -266,7 +267,7 @@ def box(slide, x, y, w, h, fill=CARD, name=None):
     return shape
 
 
-def label_box(slide, x, y, w, h, value, fill, color, size=T_SMALL, font=MID, name=None):
+def label_box(slide, x, y, w, h, value, fill, color, size=T_CODE, font=MID, name=None):
     """A flat block of a diagram with words inside it."""
     b = box(slide, x, y, w, h, fill, name or value.replace('\n', ' '))
     tf = b.text_frame
@@ -489,16 +490,14 @@ def build(variant):
         slide.notes_slide.notes_text_frame.text = speech[len(prs.slides) - 1]
         return slide, tl
 
-    def page(title, section=None, sub=None):
+    def page(title, section=None):
         s, t = new(section)
         set_title(s, title)
-        if sub:
-            text(s, M, SUB_Y, W, 40, sub, T_BODY, SUB, spacing=1.0, name='Subtitle')
         return s, t
 
-    def source(s, value, w=980, color=SUB):
-        """Where the numbers came from: one quiet line, level with the logo."""
-        return text(s, M, FOOT_Y, w, 24, value, T_SOURCE, color, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, name='Source')
+    def tag(s, value, color=SUB):
+        """Only where honesty needs it: a few quiet words, level with the logo."""
+        return text(s, M, FOOT_Y, 980, 24, value, T_TAG, color, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, name='Tag')
 
     def code(s, x, y, w, h, lines):
         """Code on the page, with no panel around it. `!!` is the broken version and `++` the fixed one."""
@@ -512,43 +511,43 @@ def build(variant):
             elif line.startswith(('//', '#')):
                 c = SUB
             out.append([(line, {'color': c})])
-        return text(s, x, y, w, h, out, T_CODE, TEXT, MONO, spacing=1.2, name='Code')
+        return text(s, x, y, w, h, out, T_CODE, TEXT, MONO, spacing=1.22, name='Code')
 
-    def change(s, x, y, w, label, a, b, size=T_H1, unit=None, color=TEXT):
-        """A measured change: a quiet label, the old value in grey, the new value in full ink."""
-        one = text(s, x, y, w, 26, label, T_LABEL, SUB, spacing=1.0)
-        runs = [(a, {'color': SUB}), (' → ', {'color': SUB}), (b, {'color': color})]
-        if unit:
-            runs.append((' ' + unit, {'color': SUB, 'size': T_SMALL, 'track': 0}))
-        two = text(s, x, y + 28, w, size * 1.25, [runs], size, TEXT, HEAD, spacing=1.0, track=-size * 0.9)
-        return one, two
+    def result(s, y, a, b, unit, size=T_NUM):
+        """One measured change, large."""
+        return text(s, M, y, W, size * 1.3, [[(a, {'color': SUB}), (' → ', {'color': SUB}), (b, {}), (' ' + unit, {'color': SUB, 'size': T_BODY, 'track': 0})]], size, TEXT, HEAD, spacing=1.0, track=-size)
 
-    def tall(s, path, crop, alt, top=CT, bottom=CB):
-        """A phone screen on the right: top and bottom on the content lines, right edge on the margin."""
-        from PIL import Image
-        nw, nh = Image.open(path).size
-        w_ = (bottom - top) * (nw * (1 - crop[0] - crop[2])) / (nh * (1 - crop[1] - crop[3]))
-        return shot(s, path, RIGHT_EDGE - w_, top, w_, crop, radius=14, alt=alt)
+    def vis(name):
+        return os.path.join(L, 'visuals', f'{name}.jpg')
+
+    def full(s, name, alt, at=2):
+        """A full-screen picture behind everything else on the slide."""
+        art = s.shapes.add_picture(vis(name), 0, 0, px(1280), px(720))
+        art._element.find('.//' + qn('p:cNvPr')).set('descr', alt)
+        s.shapes._spTree.remove(art._element)
+        s.shapes._spTree.insert(at, art._element)
+        return art
+
+    def logo_on_art(s):
+        pic = s.shapes.add_picture(os.path.join(L, 'fluttercon-dark.png'), px(RIGHT_EDGE - 116), px(FOOT_Y + 2), px(116), px(20))
+        pic._element.find('.//' + qn('p:cNvPr')).set('descr', 'FlutterCon logo')
+
+    def ink_code(s, x, y, w, h, lines):
+        out = []
+        for line in lines:
+            c = PAPER
+            if line.startswith('!!'):
+                line, c = '// ' + line[2:].strip(), EMBER
+            elif line.startswith('++'):
+                line, c = '// ' + line[2:].strip(), CYAN
+            out.append([(line, {'color': c})])
+        return text(s, x, y, w, h, out, T_CODE, PAPER, MONO, spacing=1.22, name='Code')
 
     def mix(c1, c2, amount):
         """A step between two theme colours, for the overdraw heat picture."""
         slot = {BG: 'lt1', ACC: 'accent1', SUB: 'dk2', TEXT: 'dk1'}
         one, two = THEMES[variant][slot[c1]], THEMES[variant][slot[c2]]
         return RGBColor(*[int(int(one[i:i + 2], 16) * (1 - amount) + int(two[i:i + 2], 16) * amount) for i in (0, 2, 4)])
-
-    def glow(s, cx, cy, r, value='4FC3F7'):
-        """The demo's glowing marker: a soft radial fade with a bright core."""
-        o = s.shapes.add_shape(MSO_SHAPE.OVAL, px(cx - r), px(cy - r), px(2 * r), px(2 * r))
-        o.line.fill.background()
-        o.fill.background()
-        sp = o._element.spPr
-        sp.remove(sp.find(qn('a:noFill')))
-        sp.find(qn('a:prstGeom')).addnext(etree.fromstring(f'''<a:gradFill xmlns:a="{NS['a']}" rotWithShape="1"><a:gsLst><a:gs pos="0"><a:srgbClr val="{value}"/></a:gs><a:gs pos="100000"><a:srgbClr val="0B0B0C"/></a:gs></a:gsLst><a:path path="circle"><a:fillToRect l="50000" t="50000" r="50000" b="50000"/></a:path></a:gradFill>'''))
-        c = s.shapes.add_shape(MSO_SHAPE.OVAL, px(cx - 12), px(cy - 12), px(24), px(24))
-        c.fill.solid()
-        c.fill.fore_color.rgb = WHITE
-        c.line.fill.background()
-        return o, c
 
     def table(s, x, y, widths, heights, rows, style=None, name='Table'):
         """A native table with no boxes: a quiet header, and a hairline under each row."""
@@ -615,500 +614,388 @@ def build(variant):
 
     # ------------------------------------------------------------ 2. The map
     s, t = new()
-    set_title(s, 'Impeller tamed\none kind of jank.', T_HERO, M, 84, W, 280)
-    rule(s, M, 396, RIGHT_EDGE, 396, TEXT, 1)
-    text(s, gx(0), 420, gw(6), 32, 'Tamed', T_SMALL, SUB, spacing=1.0)
-    display(s, gx(0), 456, gw(6), 66, 'Compilation jank', T_H1, SUB)
-    text(s, gx(6), 420, gw(6), 32, 'Still yours to fix', T_SMALL, SUB, spacing=1.0)
-    display(s, gx(6), 456, gw(6), 66, 'Drawing cost', T_H1, ACC)
+    set_title(s, 'Impeller tamed\none kind of jank.', T_HERO, M, 96, W, 280)
+    rule(s, M, 430, RIGHT_EDGE, 430, TEXT, 1)
+    display(s, gx(0), 462, gw(6), 72, 'Compilation jank', T_H1, SUB)
+    display(s, gx(6), 462, gw(6), 72, 'Drawing cost', T_H1, ACC)
 
-    # ------------------------------------------------------------ 3. One frame, and who does what
-    s, t = page('One frame, from vsync to pixels.', 'How Flutter draws', sub='Dart is your code. The engine is the C++ underneath it, inside your app.')
-    text(s, M, CT_SUB + 16, W, 28, 'vsync: the screen’s tick, time for a new frame', T_LABEL, SUB, spacing=1.0)
-    rule(s, M, 216, RIGHT_EDGE, 216, TEXT, 1)
-    for i, (thread, verb, how, hot) in enumerate((('Dart, on the main thread', 'Records', 'paint() draws nothing. It writes a DisplayList.', False),
-                                                  ('Engine, on 1.raster', 'Prepares', 'Pipelines, triangles, commands. This is CPU time.', True),
-                                                  ('GPU hardware', 'Executes', 'Later, on its own schedule. Not a Flutter thread.', False))):
+    # ------------------------------------------------------------ 3. One frame
+    s, t = page('One frame, from vsync to pixels.', 'How Flutter draws')
+    rule(s, M, 268, RIGHT_EDGE, 268, TEXT, 1)
+    for i, (who, verb, hot) in enumerate((('Dart', 'Records', False), ('Engine, on 1.raster', 'Prepares', True), ('GPU', 'Executes', False))):
         x, w_ = gx(i * 4), gw(4)
-        a = rule(s, x, 216, x, 230, TEXT, 1)
-        b = text(s, x, 246, w_, 30, thread, T_SMALL, SUB, spacing=1.0)
-        c = display(s, x, 290, w_, 92, verb, T_NUM, ACC if hot else TEXT)
-        d = text(s, x, 394, w_, 180, how, T_BODY, SUB, spacing=1.18)
-        t.click(fx(a), fx(b), fx(c), fx(d, delay=120))
+        a = rule(s, x, 268, x, 288, TEXT, 1)
+        b = text(s, x, 304, w_, 40, who, T_BODY, SUB, spacing=1.0)
+        c = display(s, x, 352, w_, 92, verb, T_NUM, ACC if hot else TEXT)
+        t.click(fx(a), fx(b), fx(c))
 
     # ------------------------------------------------------------ 4. The budget
-    s, t = page('Every frame gets 8.3 ms.', sub='A train leaves every 8.3 ms. Miss it, and the screen shows the old frame again.')
-    X0, X1 = gx(3), RIGHT_EDGE
+    s, t = page('Every frame gets 8.3 ms.')
+    X0, X1 = gx(2), RIGHT_EDGE
     K = (X1 - X0) / 33.32
     for i in range(5):
         x = X0 + i * 8.33 * K
-        rule(s, x, 196, x, CB)
-        if i:
-            text(s, x - 78, CT_SUB, 72, 26, ('8.3', '16.7', '25', '33.3')[i - 1], T_LABEL, SUB, MONO, RIGHT, spacing=1.0)
-    text(s, X0, CT_SUB, 90, 26, '0 ms', T_LABEL, SUB, MONO, spacing=1.0)
-    rows = ((208, 'Target', ['4 + 4 ms', '120 fps'], [(i * 8.33, 4) for i in range(4)], [(i * 8.33 + 4, 4) for i in range(4)], SUB, TEXT, TEXT),
-            (352, 'Limit', ['8.3 ms each', '120 fps'], [(i * 8.33, 8.33) for i in range(4)], [((i + 1) * 8.33, 8.33) for i in range(3)], SUB, TEXT, TEXT),
-            (496, 'Measured', ['28 ms raster', '36 fps'], trace['broken']['ui'], trace['broken']['raster'], SUB, ACC, ACC))
-    for y, name, how, ui, raster, c1, c2, c3 in rows:
-        a = display(s, M, y, gw(2) + 20, 46, name, T_H3, c3)
-        b = text(s, M, y + 50, gw(2) + 4, 56, how, T_LABEL, SUB, spacing=1.1)
-        l1 = text(s, X0 - 92, y + 8, 80, 28, 'UI', T_LABEL, SUB, MONO, RIGHT, spacing=1.0)
-        l2 = text(s, X0 - 92, y + 66, 80, 28, 'Raster', T_LABEL, SUB, MONO, RIGHT, spacing=1.0)
-        g1 = blocks(s, ui, y, 48, c1, X0, K, X1, f'{name}: UI')
-        g2 = blocks(s, raster, y + 58, 48, c2, X0, K, X1, f'{name}: raster')
-        t.click(fx(a), fx(b), fx(l1), fx(l2), fx(g1, 'left', dur=600), fx(g2, 'left', dur=600, delay=150))
-    source(s, 'Top rows drawn to scale. Bottom row: real frames from a system trace on the phone.')
+        rule(s, x, 204, x, CB)
+    text(s, X0, 170, 8.33 * K - 8, 28, '8.3 ms', T_LABEL, SUB, align=RIGHT, spacing=1.0)
+
+    def lane(y, spans, color, words=None, on=None):
+        group = blocks(s, spans, y, 76, color, X0, K, X1, words or 'Frames')
+        label = text(s, X0 + spans[0][0] * K + 10, y, min(spans[0][1], 30) * K - 16, 76, words, T_LABEL, on, MID, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0) if words else None
+        return group, label
+    ON_INK, ON_ACC = (WHITE if not dark else INK), (WHITE if not dark else INK)
+    a = display(s, M, 222, gw(2) + 20, 50, 'Target', T_H3, TEXT)
+    g1, l1 = lane(222, [(i * 8.33, 4) for i in range(4)], SUB, 'UI', WHITE if not dark else INK)
+    g2, l2 = lane(304, [(i * 8.33 + 4, 4) for i in range(4)], COOL, 'Raster', ON_INK)
+    t.click(fx(a), fx(g1, 'left', dur=600), fx(l1), fx(g2, 'left', dur=600, delay=150), fx(l2, delay=150))
+    b = display(s, M, 428, gw(2) + 20, 50, 'Measured', T_H3, ACC)
+    g3, _ = lane(428, trace['broken']['ui'], SUB)
+    g4, l4 = lane(510, [(sp[0], sp[1]) for sp in trace['broken']['raster']], ACC, 'Raster 28 ms: 36 fps', ON_ACC)
+    t.click(fx(b), fx(g3, 'left', dur=600), fx(g4, 'left', dur=600, delay=150), fx(l4, delay=600))
 
     # ------------------------------------------------------------ 5. Compilation jank
-    s, t = page('Compilation jank.', 'Before: Skia', sub='The first time a new effect appears, the app stops to compile it.')
-    flow = text(s, M, CT_SUB + 2, W, 32, [[('new paint + blend + clip', {'color': TEXT}), ('  →  SkSL  →  GLSL  →  driver compile  →  ', {'color': SUB}), ('missed frame', {'color': ACC})]], T_CODE, TEXT, MONO, spacing=1.0)
-    t.click(fx(flow))
-    num = display(s, gx(0), 208, gw(6), 196, '1.8 s', T_MEGA, ACC, name='One frame')
-    cap = text(s, gx(6), 244, gw(6), 110, ['118 shaders, compiled inside', 'one frame. About 14.5 ms each.'], T_H3, TEXT, HEAD, spacing=1.14, track=-30)
-    PK = W / 1820
-    prog = s.shapes.add_group_shape()
-    for i in range(118):
-        r = prog.shapes.add_shape(MSO_SHAPE.RECTANGLE, px(M + i * 14.525 * PK), px(412), px(14.6 * PK - 1.6), px(112))
-        r.fill.solid()
-        paint(r.fill.fore_color, ACC)
-        r.line.fill.background()
-    prog.name = '118 Skia programs in one frame, drawn to scale'
-    bud = box(s, M, 544, max(8.33 * PK, 5.2), 36, TEXT, 'One frame budget, 8.3 ms, to the same scale')
-    budl = text(s, M + 20, 544, 800, 36, '8.3 ms: one frame’s budget, same scale', T_SMALL, TEXT, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
-    t.click(fx(num), fx(cap, delay=150), fx(prog, 'left', dur=1100, delay=250), fx(bud, delay=1100), fx(budl, delay=1100))
-    source(s, 'Real Skia trace on the Infinix, to scale: 1,714 ms of programs in a 1,820 ms frame. 144 new effects.')
+    s, t = new('Before: Skia', ink)
+    set_title(s, 'Compilation jank.', color=PAPER)
+    art = full(s, 'wall', 'One real Skia frame in 3D: 118 shaders side by side, to scale, beside a tiny white bar for one frame’s budget')
+    num = display(s, gx(0), 130, gw(6), 196, '1.8 s', T_MEGA, EMBER, name='One frame')
+    cap = text(s, gx(6), 186, gw(6), 110, ['118 shaders compiled', 'inside one frame.'], T_H3, PAPER, HEAD, spacing=1.14, track=-30)
+    budl = text(s, M, 584, 700, 36, 'White bar: one frame’s 8.3 ms budget, same scale.', T_CODE, PAPER, spacing=1.0)
+    t.click(fx(art), fx(num, delay=200), fx(cap, delay=350), fx(budl, delay=700))
+    tag(s, 'Real Skia trace, to scale.', ASH)
 
     # ------------------------------------------------------------ 6. The engine, before and now
     s, t = page('The Android engine, before and now.', 'Now: Impeller')
     BX_, NX_, BW_, NW_ = gx(3), gx(7), gw(4), gw(5)
     display(s, BX_, CT, BW_, 46, 'Before: Skia', T_H3, SUB)
-    now_head = display(s, NX_, CT, NW_, 46, 'Now: Impeller', T_H3, TEXT)
-    rule(s, M, 184, RIGHT_EDGE, 184, TEXT)
+    now_head = display(s, NX_, CT, NW_, 46, 'Now: Impeller', T_H3, COOL)
+    rule(s, M, 212, RIGHT_EDGE, 212, TEXT)
     now_cells = [now_head]
-    for i, (label, was, now, hot_was, hot_now) in enumerate((('Compiled ahead', 'Nothing', 'impellerc: SPIR-V, Metal, GLSL ES', False, False),
-                                                             ('Dart runs on', '1.ui', 'The main thread, since 3.29', False, False),
-                                                             ('1.raster', 'Writes and compiles shaders, then draws', 'Binds pipelines, tessellates, records commands', True, True),
-                                                             ('Raster cache', 'Automatic', 'None', False, True),
-                                                             ('GPU API', 'OpenGL ES: the driver decides', 'Vulkan: explicit commands', False, False))):
-        y = 184 + i * 90
-        text(s, gx(0), y, gw(3), 90, label, T_BODY, TEXT, HEAD, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, track=-20)
-        text(s, BX_, y, BW_, 90, was, T_BODY, ACC if hot_was else SUB, anchor=MSO_ANCHOR.MIDDLE, spacing=1.08)
-        now_cells.append(text(s, NX_, y, NW_, 90, now, T_BODY, ACC if hot_now else TEXT, MID, anchor=MSO_ANCHOR.MIDDLE, spacing=1.08))
-        rule(s, M, y + 90, RIGHT_EDGE, y + 90)
+    for i, (label, was, now, hot) in enumerate((('Shaders', 'Compiled in the frame', 'Compiled with the engine', False),
+                                                ('Paths', 'GPU and mask techniques', 'Tessellated on the CPU', True),
+                                                ('Raster cache', 'Automatic', 'None', True),
+                                                ('GPU API', 'OpenGL ES', 'Vulkan', False))):
+        y = 212 + i * 104
+        text(s, gx(0), y, gw(3), 104, label, T_BODY, TEXT, HEAD, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, track=-20)
+        text(s, BX_, y, BW_, 104, was, T_BODY, SUB, anchor=MSO_ANCHOR.MIDDLE, spacing=1.08)
+        now_cells.append(text(s, NX_, y, NW_, 104, now, T_BODY, ACC if hot else TEXT, MID, anchor=MSO_ANCHOR.MIDDLE, spacing=1.08))
+        rule(s, M, y + 104, RIGHT_EDGE, y + 104)
     t.click(*[fx(x, delay=i * 120) for i, x in enumerate(now_cells)])
-    source(s, 'Android, simplified. iOS and macOS use Metal. Dart moved in 3.29, separately: my Skia build does it too.')
 
     # ------------------------------------------------------------ 7. Late and early
-    s, t = page('Skia compiles late. Impeller compiles early.', sub='Skia writes the recipe after you order. Impeller preps the kitchen first.')
-    stages = ('Engine build', 'App build', 'App start', 'First use', 'Every frame')
+    s, t = page('Skia compiles late. Impeller compiles early.')
     col_x = [gx(2 + 2 * i) for i in range(5)]
     CWD = gw(2)
-    for x, st in zip(col_x, stages):
-        text(s, x, CT_SUB, CWD + 20, 26, st, T_LABEL, SUB, spacing=1.0)
-    rule(s, M, 196, RIGHT_EDGE, 196, TEXT)
+    for x, st in zip(col_x, ('Engine build', 'App build', 'App start', 'First use', 'Every frame')):
+        text(s, x, CT + 8, CWD + 24, 30, st, T_LABEL, SUB, spacing=1.0)
+    rule(s, M, 200, RIGHT_EDGE, 200, TEXT)
     rule(s, M, 412, RIGHT_EDGE, 412)
-    display(s, gx(0), 212, gw(2) + 16, 46, 'Skia', T_H3, TEXT)
-    text(s, gx(0), 260, gw(2), 28, 'JIT', T_CODE, SUB, MONO, spacing=1.0)
-    display(s, gx(0), 428, gw(2) + 16, 46, 'Impeller', T_H3, TEXT)
-    text(s, gx(0), 476, gw(2), 28, 'AOT', T_CODE, SUB, MONO, spacing=1.0)
-    CH = 184
-    skia = (text(s, col_x[0], 212, CWD, CH, 'Nothing yet', T_SMALL, SUB),
-            text(s, col_x[1], 212, CWD, CH, 'Your .frag stays as SkSL text', T_SMALL, SUB, spacing=1.12),
-            text(s, col_x[2], 212, CWD, CH, 'Warm-up, if you wrote one', T_SMALL, SUB, spacing=1.12),
-            label_box(s, col_x[3], 212, CWD, CH, 'Write and compile, in the frame\n14.5 ms each', ACC, WHITE if not dark else INK, T_SMALL),
-            text(s, col_x[4], 212, CWD, CH, 'Bind the cached program', T_SMALL, SUB, spacing=1.12))
-    t.click(*[fx(x, delay=i * 70) for i, x in enumerate(skia)])
-    imp = (label_box(s, col_x[0], 428, CWD, CH, 'impellerc: engine shaders', TEXT, BG, T_SMALL),
-           label_box(s, col_x[1], 428, CWD, CH, 'impellerc: your .frag', TEXT, BG, T_SMALL),
-           text(s, col_x[2], 428, CWD, CH, 'Most pipelines are built', T_SMALL, TEXT, spacing=1.12),
-           text(s, col_x[3], 428, CWD, CH, 'A missing pipeline: 2.2 ms each, in the frame', T_SMALL, TEXT, spacing=1.12),
-           text(s, col_x[4], 428, CWD, CH, 'Bind a built pipeline', T_SMALL, TEXT, spacing=1.12))
-    t.click(*[fx(x, delay=i * 70) for i, x in enumerate(imp)])
-    source(s, 'A pipeline is shader code plus fixed GPU state. On Vulkan, the driver finishes the compile when it is built. Infinix traces.')
+    FG_ACC = WHITE if not dark else INK
+    for y, name, kind in ((228, 'Skia', 'JIT'), (440, 'Impeller', 'AOT')):
+        display(s, gx(0), y, gw(2) + 16, 46, name, T_H3, TEXT)
+        text(s, gx(0), y + 50, gw(2), 32, kind, T_CODE, SUB, MONO, spacing=1.0)
+    a = label_box(s, col_x[3], 228, CWD, 156, 'Compile, in the frame', ACC, FG_ACC, T_CODE)
+    t.click(fx(a))
+    b = label_box(s, col_x[0], 440, CWD, 156, 'Compile the engine’s shaders', COOL, FG_ACC, T_CODE)
+    c = label_box(s, col_x[1], 440, CWD, 156, 'Compile your .frag', COOL, FG_ACC, T_CODE)
+    d = text(s, col_x[3], 440, CWD, 156, 'Small remainder: 2.2 ms a pipeline', T_CODE, TEXT, spacing=1.1)
+    t.click(fx(b), fx(c, delay=150), fx(d, delay=300))
 
     # ------------------------------------------------------------ 8. Which backend
-    s, t = page('On Android, Vulkan isn’t guaranteed.', sub='The default since Flutter 3.27, on Android 10+ (API 29+). There’s a catch.')
-    rule(s, M, CT_SUB, RIGHT_EDGE, CT_SUB, TEXT)
+    s, t = page('On Android, Vulkan isn’t guaranteed.')
+    rule(s, M, CT + 12, RIGHT_EDGE, CT + 12, TEXT)
+    rows_ = []
     for i, (when, what, c) in enumerate((('Android 9 or older', 'Skia on OpenGL ES', SUB),
                                          ('Android 10+, a device check fails', 'Impeller on OpenGL ES', ACC),
-                                         ('Android 10+, every check passes', 'Impeller on Vulkan', TEXT))):
-        y = CT_SUB + i * 80
-        text(s, gx(0), y, gw(6), 80, when, T_BODY, SUB if i == 0 else TEXT, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
-        text(s, gx(6), y, gw(6), 80, what, T_H3, c, HEAD, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, track=-30)
-        rule(s, M, y + 80, RIGHT_EDGE, y + 80)
-    checks = text(s, M, 424, W, 28, 'The checks, in this engine', T_LABEL, SUB, spacing=1.0)
-    what_ = text(s, M, 456, W, 76, ['Emulator. Huawei. MediaTek with a vendor API below 32. Adreno 650 or older.', 'Some Exynos chips. No working Vulkan 1.1 with the extensions Impeller needs.'], T_SMALL, TEXT, spacing=1.2)
-    t.click(fx(checks), fx(what_))
-    proof = text(s, M, 556, W, 32, 'adb logcat | grep "Impeller rendering backend"', T_CODE, ACC, MONO, spacing=1.0)
+                                         ('Android 10+, every check passes', 'Impeller on Vulkan', COOL))):
+        y = CT + 12 + i * 104
+        a = text(s, gx(0), y, gw(6), 104, when, T_BODY, SUB if i == 0 else TEXT, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
+        b = text(s, gx(6), y, gw(6), 104, what, T_H3, c, HEAD, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, track=-30)
+        ln = rule(s, M, y + 104, RIGHT_EDGE, y + 104)
+        if i:
+            rows_ += [a, b, ln]
+    t.click(*[fx(x, delay=i * 60) for i, x in enumerate(rows_)])
+    proof = text(s, M, 520, W, 44, 'adb logcat | grep "Impeller rendering backend"', T_CODE, ACC, MONO, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
     t.click(fx(proof))
-    source(s, 'From the Flutter 3.47.8 engine source. My Impeller numbers ran on Vulkan, per the log.')
 
-    # ------------------------------------------------------------ 9. Scoreboard, and how it grows
+    # ------------------------------------------------------------ 9. Scoreboard
     s, t = page('Same app. Same phone. Two renderers.', 'The proof')
-    phone_ = tall(s, os.path.join(L, 'poster-impeller-cold.png'), (0, 0.035, 0, 0.012), 'Shader Storm in the demo app, on the phone, before a reveal')
-    END = phone_.left / 9525 - GUT
-    CX = (gx(2), gx(5))
-    text(s, CX[0], CT, gw(3), 30, 'First reveal', T_SMALL, SUB, spacing=1.0)
-    text(s, CX[1], CT, gw(3), 30, 'Second time', T_SMALL, SUB, spacing=1.0)
+    CX = (gx(3), gx(8))
+    text(s, CX[0], CT + 4, gw(4), 32, 'First reveal', T_BODY, SUB, spacing=1.0)
+    text(s, CX[1], CT + 4, gw(4), 32, 'Second time', T_BODY, SUB, spacing=1.0)
 
     def score(x, y, value, color=TEXT):
-        return text(s, x, y, gw(3), 120, [[(value, {'color': color}), (' ms', {'size': T_SMALL, 'color': SUB, 'track': 0})]], T_NUM, TEXT, HEAD, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, track=-80)
-    rule(s, M, 172, END, 172, TEXT)
-    rule(s, M, 300, END, 300)
-    rule(s, M, 428, END, 428)
-    text(s, gx(0), 172, gw(2), 128, 'Skia', T_H3, SUB, HEAD, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, track=-30)
-    text(s, gx(0), 300, gw(2) + 16, 128, 'Impeller', T_H3, TEXT, HEAD, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, track=-30)
-    a = score(CX[0], 176, '1,863', ACC)
+        return text(s, x, y, gw(5), 150, [[(value, {'color': color}), (' ms', {'size': T_BODY, 'color': SUB, 'track': 0})]], T_HERO, TEXT, HEAD, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, track=-120)
+    rule(s, M, 200, RIGHT_EDGE, 200, TEXT)
+    rule(s, M, 356, RIGHT_EDGE, 356)
+    rule(s, M, 512, RIGHT_EDGE, 512)
+    text(s, gx(0), 200, gw(3), 156, 'Skia', T_H3, SUB, HEAD, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, track=-30)
+    text(s, gx(0), 356, gw(3), 156, 'Impeller', T_H3, TEXT, HEAD, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, track=-30)
+    a = score(CX[0], 203, '1,863', ACC)
     t.click(fx(a))
-    b_ = score(CX[1], 176, '23', SUB)
+    b_ = score(CX[1], 203, '23', SUB)
     t.click(fx(b_))
-    c = score(CX[0], 304, '145')
-    d = score(CX[1], 304, '48')
+    c = score(CX[0], 359, '145', COOL)
+    d = score(CX[1], 359, '48', COOL)
     t.click(fx(c), fx(d, delay=250))
-    e = display(s, M, 452, END - M, 66, '13× shorter', T_H1, TEXT)
-    f = text(s, M, 530, END - M, 90, ['It barely grows. From 48 to 144 new effects:', 'Skia 687 → 1,863 ms. Impeller 127 → 145 ms.'], T_SMALL, SUB, spacing=1.2)
-    t.click(fx(e), fx(f, delay=200))
-    source(s, 'Worst frame, median of 3 rounds. Infinix X6873, Mali-G615, 120 Hz. Skia on OpenGL ES, Impeller on Vulkan.')
+    e = display(s, M, 532, W, 72, '13× shorter.', T_H1, TEXT)
+    t.click(fx(e))
+    tag(s, 'Worst frame, median of 3 rounds. Infinix X6873, 120 Hz.')
 
     # ------------------------------------------------------------ 10. The cost moved
     s, t = page('The cost shrank and moved. It didn’t vanish.')
     TK = W / 1714
-    a1 = display(s, M, CT + 8, gw(8), 46, 'Skia: 118 shaders', T_H3, TEXT)
-    a2 = display(s, gx(8), CT + 8, gw(4), 46, '1,714 ms', T_H3, ACC, RIGHT)
+    a1 = display(s, M, CT + 16, gw(8), 46, 'Skia: 118 shaders', T_H3, TEXT)
+    a2 = display(s, gx(8), CT + 16, gw(4), 46, '1,714 ms', T_H3, ACC, RIGHT)
     g = s.shapes.add_group_shape()
     for i in range(118):
-        r = g.shapes.add_shape(MSO_SHAPE.RECTANGLE, px(M + i * 14.53 * TK), px(190), px(14.53 * TK - 1.6), px(88))
+        r = g.shapes.add_shape(MSO_SHAPE.RECTANGLE, px(M + i * 14.53 * TK), px(226), px(14.53 * TK - 1.6), px(124))
         r.fill.solid()
         paint(r.fill.fore_color, ACC)
         r.line.fill.background()
     g.name = '118 Skia programs, to scale'
-    b1 = display(s, M, 316, gw(8), 46, 'Impeller: 40 pipelines', T_H3, TEXT)
-    b2 = display(s, gx(8), 316, gw(4), 46, '87 ms', T_H3, TEXT, RIGHT)
-    b3 = box(s, M, 368, 87 * TK, 88, TEXT, '40 Impeller pipelines, to scale')
-    c1 = text(s, M, 504, W, 84, 'Both on the raster thread, both in the frame. Impeller only builds from shaders it already compiled.', T_BODY, SUB, spacing=1.18)
-    t.click(fx(a1), fx(a2), fx(g, 'left', dur=900), fx(b1, delay=500), fx(b2, delay=500), fx(b3, 'left', dur=400, delay=500), fx(c1, delay=900))
-    source(s, 'System traces of one cold reveal on the Infinix, tracing on, drawn to scale.')
+    b1 = display(s, M, 398, gw(8), 46, 'Impeller: 40 pipelines', T_H3, TEXT)
+    b2 = display(s, gx(8), 398, gw(4), 46, '87 ms', T_H3, COOL, RIGHT)
+    b3 = box(s, M, 452, 87 * TK, 124, COOL, '40 Impeller pipelines, to scale')
+    t.click(fx(a1), fx(a2), fx(g, 'left', dur=900), fx(b1, delay=500), fx(b2, delay=500), fx(b3, 'left', dur=400, delay=500))
+    tag(s, 'Real traces of one cold reveal, to scale.')
 
-    # ------------------------------------------------------------ 11. Tessellation
-    s, t = page('Tessellation: how a path becomes triangles.', 'Inside a frame', sub='The GPU only fills triangles, so the CPU cuts every path into them.')
-    WX = lambda v: gx(0) + 12 + (v - 10) * (gw(8) - 24) / 450
-    WY = lambda v: 292 + (v - 30) * 1.25
-    steps = (('Path', 'What you ask for'), ('Points', 'Curves flatten'), ('Vertices', 'Two per point'), ('Triangles', 'v − 2 of them'))
-    pts, edges = strip_edges(16)
-    head_ = []
-    for i, (h_, d) in enumerate(steps):
-        x = gx(i * 2)
-        h1 = text(s, x, CT_SUB, gw(2) + 24, 36, h_, T_BODY, TEXT, HEAD, spacing=1.0, track=-20)
-        h2 = text(s, x, CT_SUB + 38, gw(2) + 24, 28, d, T_LABEL, SUB, spacing=1.0)
-        head_.append((h1, h2))
-    path = polyline(s, [(WX(a), WY(b)) for a, b in bezier()], TEXT, 3, 'The path')
-    points = dots(s, [(WX(a), WY(b)) for a, b in pts], TEXT, 9, 'Flattened points')
-    verts = dots(s, [(WX(a), WY(b)) for e in edges for a, b in e], ACC, 8, 'Vertices')
-    tris = s.shapes.add_group_shape()
-    zig = [(WX(a), WY(b)) for e in edges for a, b in e]
-    for i in range(len(zig) - 1):
-        ln = tris.shapes.add_connector(1, px(zig[i][0]), px(zig[i][1]), px(zig[i + 1][0]), px(zig[i + 1][1]))
-        paint(ln.line.color, TEXT)
-        ln.line.width = fs(1)
-    for i in range(len(edges) - 1):
-        for side in (0, 1):
-            ln = tris.shapes.add_connector(1, px(WX(edges[i][side][0])), px(WY(edges[i][side][1])), px(WX(edges[i + 1][side][0])), px(WY(edges[i + 1][side][1])))
-            paint(ln.line.color, TEXT)
-            ln.line.width = fs(1)
-    tris.name = 'Triangle strip'
-    t.click(fx(head_[0][0]), fx(head_[0][1]), fx(path, 'left', dur=900))
-    t.click(fx(head_[1][0]), fx(head_[1][1]), fx(points, 'left', dur=700))
-    t.click(fx(head_[2][0]), fx(head_[2][1]), fx(verts, 'left', dur=700))
-    t.click(fx(head_[3][0]), fx(head_[3][1]), fx(tris, 'left', dur=900))
-    lens = shot(s, os.path.join(A, 'clips', 'xray.png'), gx(8), CT_SUB, gw(4), (0.174, 0.134, 0.424, 0.744), alt='The X-ray lens in the demo app: a price line cut into triangles')
-    lens_cap = text(s, gx(8), 416, gw(4), 84, 'The app’s X-ray lens: a model of these steps, on the real path.', T_LABEL, SUB, spacing=1.14)
-    bottom = text(s, M, 552, W, 54, [[('The demo at 8×: 16 lines × 8,000 points × 2 = ', {'color': SUB}), ('256,000+', {'color': ACC}), (' vertices.', {'color': SUB})]], T_H3, TEXT, HEAD, spacing=1.0, track=-30)
-    t.click(fx(lens), fx(lens_cap), fx(bottom, delay=200))
-    source(s, 'Illustration. On the CPU, every frame. Vertex count worked out from stroke_path_geometry.cc, not measured.')
+    # ------------------------------------------------------------ 11. The mountain
+    s, t = new('Inside a frame', ink)
+    set_title(s, 'To the GPU, everything is triangles.', T_H1, M, TITLE_Y, W, 72, PAPER)
+    full(s, 'mountain', 'The same mountain twice: on the left as a mesh of triangles, on the right as finished pixels')
+    logo_on_art(s)
 
-    # ------------------------------------------------------------ 12. Command buffers
-    s, t = page('The CPU records. The GPU executes.', sub='The waiter writes the order. The kitchen cooks later. That’s GPU scheduling.')
-    code(s, gx(0), CT_SUB, gw(5), 400, ['// You write', 'canvas.drawCircle(c, r, paint);', '', '// Impeller records', 'begin render pass', '  bind pipeline', '  bind vertex buffer', '  bind uniforms', '  draw', 'end render pass', 'submit to queue, fence'])
-    LX, BX = gx(5), gx(6) + GUT
+    # ------------------------------------------------------------ 12. Tessellation
+    s, t = new(layout=ink)
+    set_title(s, 'Tessellation: how a path becomes triangles.', color=PAPER)
+    stages = [full(s, f'tess-{i + 1}', a, 2 + i) for i, a in enumerate(('A stretch of the demo’s real line', 'The line as points', 'Two vertices at each point', 'The vertices joined into a triangle strip'))]
+    head_ = [text(s, gx(i * 3), CT + 4, gw(3), 46, h_, T_H3, PAPER, HEAD, spacing=1.0, track=-30) for i, h_ in enumerate(('Path', 'Points', 'Vertices', 'Triangles'))]
+    for art, h_ in zip(stages, head_):
+        t.click(fx(art, dur=500), fx(h_))
+    bottom = text(s, M, 586, W, 54, [[('256,000+', {'color': EMBER}), (' vertices, on the CPU, every frame.', {'color': PAPER})]], T_H3, PAPER, HEAD, spacing=1.0, track=-30)
+    t.click(fx(bottom))
+    tag(s, 'The demo’s real line; stroke widened to show it. The count is worked out from the stroke rule, not measured.', ASH)
+    logo_on_art(s)
+
+    # ------------------------------------------------------------ 13. Who does what
+    s, t = page('Who does what.')
+    for x, w_, heading, lines in ((gx(0), gw(6), 'The CPU', ['Replays the DisplayList', 'Gets the pipelines', [('Tessellates paths', {'color': ACC})], 'Fills the vertex buffers', 'Records and submits commands']),
+                                  (gx(6), gw(6), 'The GPU', ['Runs the vertex shaders', 'Turns triangles into pixels', 'Runs the fragment shaders', 'Writes the finished image'])):
+        rule(s, x, CT + 8, x + w_, CT + 8, TEXT)
+        display(s, x, CT + 28, w_, 72, heading, T_H1, TEXT)
+        text(s, x, CT + 112, w_, 320, lines, T_BODY, SUB, spacing=1.0, gap=22)
+
+    # ------------------------------------------------------------ 14. Command buffers
+    s, t = page('The CPU records. The GPU executes.')
+    code(s, gx(0), CT + 12, gw(4), 360, ['// A command buffer', 'begin render pass', '  bind pipeline', '  bind vertex buffer', '  bind uniforms', '  draw', 'end render pass', 'submit, with a fence'])
+    LX, BX = gx(4), gx(5) + 36
     BW = RIGHT_EDGE - BX
-    rule(s, LX, CT_SUB, RIGHT_EDGE, CT_SUB, TEXT)
-    for name, y in (('1.raster', 180), ('queue', 300), ('GPU', 420)):
-        text(s, LX, y, BX - LX - 8, 84, name, T_CODE, SUB, MONO, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
-        rule(s, LX, y + 102, RIGHT_EDGE, y + 102)
+    rule(s, LX, CT + 12, RIGHT_EDGE, CT + 12, TEXT)
+    for name, y in (('1.raster', 188), ('queue', 318), ('GPU', 448)):
+        text(s, LX, y, BX - LX - 8, 96, name, T_CODE, SUB, MONO, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
+        rule(s, LX, y + 114, RIGHT_EDGE, y + 114)
     fxs = []
-    for i, (off, c) in enumerate(((0, TEXT), (250, SUB))):
+    for i, (off, c) in enumerate(((0, TEXT), (300, SUB))):
         d0 = i * 900
-        r1 = box(s, BX + off, 180, 200, 84, c, f'Frame {i + 1}: recorded')
-        r2 = box(s, BX + off + 202, 300, 12, 84, c, f'Frame {i + 1}: submitted')
-        r3 = box(s, BX + off + 220, 420, 190 if i == 0 else BW - off - 220, 84, c, f'Frame {i + 1}: executed')
+        r1 = box(s, BX + off, 188, 250, 96, c, f'Frame {i + 1}: recorded')
+        r2 = box(s, BX + off + 252, 318, 14, 96, c, f'Frame {i + 1}: submitted')
+        r3 = box(s, BX + off + 272, 448, 220 if i == 0 else BW - off - 272, 96, c, f'Frame {i + 1}: executed')
         fxs += [fx(r1, 'left', dur=500, delay=d0), fx(r2, delay=d0 + 450), fx(r3, 'left', dur=500, delay=d0 + 550)]
-    fence = rule(s, BX + 410, 420, BX + 410, 560, TEXT, 1, 'dash')
-    fword = text(s, BX + 420, 530, 120, 28, 'fence', T_CODE, TEXT, MONO, spacing=1.0)
-    t.click(*fxs, fx(fence, delay=1500), fx(fword, delay=1500))
-    source(s, 'Illustration of the order of work, not a measured trace.')
+    t.click(*fxs)
+    tag(s, 'Illustration of the order of work.')
 
-    # ------------------------------------------------------------ 13. Overdraw
-    s, t = page('Overdraw: painting the same pixel again.', sub='Like painting a wall three times. Only the last coat shows.')
+    # ------------------------------------------------------------ 15. Overdraw
+    s, t = new(layout=ink)
+    set_title(s, 'Overdraw: painting the same pixel again.', color=PAPER)
+    full(s, 'stack', 'A screen pulled apart into three layers: an image, a card and text')
+    pin = full(s, 'stack-pin', 'The same layers, with one pixel marked on each', 3)
+    ink_code(s, gx(6), 214, gw(6), 300, ['Stack(', '  children: [', '    Image.asset(\'bg.png\'),    // 1×', '    Card(                     // 2×', '      child: Text(\'KSh 900\'), // 3×', '    ),', '  ],', ')'])
+    t.click(fx(pin, dur=500))
+    text(s, gx(6), FOOT_Y, 440, 24, 'Illustration. Overdraw isn’t measured in my demo.', T_TAG, ASH, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, name='Tag')
+    logo_on_art(s)
 
-    def screen(x, heat):
-        y0, w0, h0 = 198, gw(3), 430
-        ON = WHITE if not dark else INK
-        fills = (mix(BG, ACC, 0.22), mix(BG, ACC, 0.55), ACC) if heat else (mix(BG, SUB, 0.45), BG if dark else WHITE, TEXT)
-        shapes = [box(s, x, y0, w0, h0, fills[0], 'Background image')]
-        shapes.append(box(s, x + 24, y0 + 180, w0 - 48, 170, fills[1], 'Card'))
-        shapes.append(box(s, x + 48, y0 + 250, w0 - 96, 48, fills[2], 'Text'))
-        if heat:
-            shapes.append(text(s, x + 14, y0 + 12, 80, 36, '1×', T_BODY, TEXT, HEAD, spacing=1.0))
-            shapes.append(text(s, x + 38, y0 + 192, 80, 36, '2×', T_BODY, TEXT, HEAD, spacing=1.0))
-            shapes.append(text(s, x + 48, y0 + 250, w0 - 96, 48, '3×', T_BODY, ON, HEAD, CENTER, MSO_ANCHOR.MIDDLE, spacing=1.0))
-        return shapes
-    text(s, gx(0), CT_SUB, gw(3), 26, 'What you see', T_LABEL, SUB, spacing=1.0)
-    screen(gx(0), False)
-    cap = text(s, gx(3), CT_SUB, gw(3), 26, 'How often it’s drawn', T_LABEL, SUB, spacing=1.0)
-    t.click(fx(cap), *[fx(x) for x in screen(gx(3), True)])
-    code(s, gx(6), 198, gw(6), 260, ['Stack(', '  children: [', '    Image.asset(\'bg.png\'),      // 1×', '    Card(                       // 2×', '      child: Text(\'KSh 1,200\'), // 3×', '    ),', '  ],', ')'])
-    text(s, gx(6), 476, gw(6), 156, 'The image behind the card still costs work. The engine and GPU skip some of it, so measure before you fix.', T_BODY, TEXT, spacing=1.16)
-    source(s, 'Illustration. Impeller merges full-screen solid colours into the clear; Mali can kill hidden pixels. Not measured in my demo.')
-
-    # ------------------------------------------------------------ 14. The layer
-    s, t = page('Why a layer costs more than a draw.', sub='The GPU wants to run like a firehose. A layer makes it change direction.')
+    # ------------------------------------------------------------ 16. The layer
+    s, t = page('Why a layer costs more than a draw.')
     FG = WHITE if not dark else INK
-    display(s, M, CT_SUB, W, 44, 'One render pass', T_H3, TEXT)
+    display(s, M, CT + 12, W, 46, 'One render pass', T_H3, TEXT)
     x = M
     for w_, words, hot in ((110, 'Clear', False), (746, 'All draws, in fast tile memory', False), (130, 'Resolve', False), (150, 'Store once', True)):
-        label_box(s, x, 212, w_ - 3, 76, words, ACC if hot else CARD, FG if hot else TEXT)
+        label_box(s, x, 222, w_ - 3, 104, words, ACC if hot else CARD, FG if hot else TEXT)
         x += w_
-    head2 = display(s, M, 312, W, 44, 'With one saveLayer', T_H3, TEXT)
+    head2 = display(s, M, 376, W, 46, 'With one saveLayer', T_H3, TEXT)
     second = []
     x = M
     for w_, words, hot in ((150, 'Draws so far', False), (116, 'Store', True), (316, 'Offscreen pass: draw and blur', False), (116, 'Store', True), (116, 'Load', True), (176, 'Composite', False), (146, 'Store', True)):
-        second.append(label_box(s, x, 360, w_ - 3, 76, words, ACC if hot else CARD, FG if hot else TEXT))
+        second.append(label_box(s, x, 432, w_ - 3, 104, words, ACC if hot else CARD, FG if hot else TEXT))
         x += w_
     t.click(fx(head2), *[fx(b_, 'left', dur=250, delay=i * 130) for i, b_ in enumerate(second)])
-    text(s, M, 468, W, 40, 'Measured: 64 saveLayer a frame. Removing them cut raster from 13.7 to 6.6 ms.', T_BODY, TEXT, MID, spacing=1.0)
-    text(s, M, 516, W, 40, 'The GPU side is the model. This phone’s driver doesn’t expose it.', T_BODY, SUB, spacing=1.0)
-    source(s, 'Illustration, not to scale. The accent marks a trip to main memory.')
+    tag(s, 'Illustration: the Vulkan model, not my trace. The accent marks a trip to main memory.')
 
-    # ------------------------------------------------------------ 15. What it didn't fix, and the bill
+    # ------------------------------------------------------------ 17. What it didn't fix, and the bill
     s, t = new('What Impeller didn’t fix', ink)
-    set_title(s, 'What Impeller\ndidn’t fix.', T_NUM, M, 44, gw(8), 170, PAPER)
-    text(s, M, 216, gw(8), 40, 'If compiling shaders isn’t the problem, what is?', T_BODY, ASH, spacing=1.0)
+    set_title(s, 'What Impeller\ndidn’t fix.', T_NUM, M, 84, gw(8), 180, PAPER)
     bill = []
-    for x, w_, val, name, c in ((gx(0), gw(3), '129,920', 'path points', EMBER), (gx(3), gw(2), '624', 'draw calls', PAPER), (gx(5), gw(3), '64', 'offscreen layers', PAPER)):
-        bill.append(display(s, x, 286, w_ + 20, 90, val, T_NUM, c))
-        bill.append(text(s, x, 378, w_ + 20, 32, name, T_SMALL, ASH, spacing=1.0))
-    bill.append(text(s, M, 446, gw(8), 40, [[('UI 15.9 ms.  ', {'color': PAPER}), ('Raster 29.7 ms.  ', {'color': EMBER}), ('Budget 8.3 ms.', {'color': ASH})]], T_BODY, PAPER, MID, spacing=1.0))
-    bill.append(text(s, M, 506, gw(8) + 20, 100, 'Nothing is compiling. This is pure drawing cost.', T_H3, PAPER, HEAD, spacing=1.08, track=-30))
+    for x, w_, val, name, c in ((gx(0), gw(3), '129,920', 'path points', EMBER), (gx(3), gw(2), '624', 'draw calls', PAPER), (gx(5), gw(3), '64', 'layers', PAPER)):
+        bill.append(display(s, x, 320, w_ + 20, 92, val, T_NUM, c))
+        bill.append(text(s, x, 414, w_ + 20, 36, name, T_BODY, ASH, spacing=1.0))
+    bill.append(text(s, M, 500, gw(8) + 10, 60, 'Nothing is compiling.', T_H3, PAPER, HEAD, spacing=1.0, track=-30))
     t.click(*[fx(x, delay=i * 60) for i, x in enumerate(bill)])
-    source(s, 'My demo’s dial, not a Flutter limit: 8× is 16 lines of 8,000 points. Canvas Thrash, p90, median of 3 rounds.', color=ASH)
     shot(s, os.path.join(L, 'poster-thrash-broken.png'), RIGHT_EDGE - 300, 0, 300, (0, 0.045, 0, 0.02), alt='Canvas Thrash in the demo app at 8×: both lanes red')
 
-    # ------------------------------------------------------------ 16. The vote
+    # ------------------------------------------------------------ 18. The vote
     s, t = page('Which fix helps most, on its own?')
     BX2, BASE = gx(4), gx(10) + 40
     BK2 = (BASE - BX2) / 29.7
-    text(s, BASE - 300, CT + 2, 294, 26, 'No fixes: 29.7 ms', T_LABEL, TEXT, align=RIGHT, spacing=1.0)
-    rule(s, M, 164, RIGHT_EDGE, 164, TEXT)
+    text(s, BASE - 300, CT + 4, 294, 26, 'No fixes: 29.7 ms', T_LABEL, SUB, align=RIGHT, spacing=1.0)
+    rule(s, M, 190, RIGHT_EDGE, 190, TEXT)
     fxs = []
-    for i, (name, why, v) in enumerate((('Simplify paths', 'Fewer points', 18.6), ('Batch draws', 'Fewer draw calls', 28.6), ('Glow without layers', 'No offscreen passes', 21.2), ('Isolate repaints', 'Less Dart re-recording', 25.2))):
-        y = 180 + i * 114
-        display(s, gx(0), y, gw(4) + 20, 46, name, T_H3, TEXT)
-        text(s, gx(0), y + 50, gw(4), 30, why, T_SMALL, SUB, spacing=1.0)
+    for i, (name, v) in enumerate((('Simplify paths', 18.6), ('Batch draws', 28.6), ('Glow without layers', 21.2), ('Isolate repaints', 25.2))):
+        y = 190 + i * 110
+        text(s, gx(0), y, gw(4) + 20, 110, name, T_H3, TEXT, HEAD, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, track=-30)
         hot = i == 0
-        b = box(s, BX2, y + 4, v * BK2, 74, ACC if hot else CARD, f'{name}: {v} ms')
-        n = text(s, BASE + 16, y + 4, RIGHT_EDGE - BASE - 16, 74, str(v), T_H3, ACC if hot else TEXT, HEAD, RIGHT, MSO_ANCHOR.MIDDLE, spacing=1.0, track=-30)
+        b = box(s, BX2, y + 16, v * BK2, 78, COOL if hot else CARD, f'{name}: {v} ms')
+        n = text(s, BASE + 16, y, RIGHT_EDGE - BASE - 16, 110, str(v), T_H3, COOL if hot else TEXT, HEAD, RIGHT, MSO_ANCHOR.MIDDLE, spacing=1.0, track=-30)
         fxs += [fx(b, 'left', dur=700, delay=i * 120), fx(n, delay=500 + i * 120)]
     t.click(*fxs)
-    rule(s, BASE, 164, BASE, CB, TEXT, 1.5)
-    source(s, 'Raster p90 at 8×, each fix alone, median of 3 rounds. Batch and Isolate are within noise. None reaches 8.3 ms.')
+    rule(s, BASE, 190, BASE, CB, TEXT, 1.5)
 
-    # ------------------------------------------------------------ 17. Fix 1
-    s, t = page('Fix 1: Simplify paths.', sub='Same chart. Can you see the difference?')
-    CROP = (0.03, 0.112, 0.03, 0.525)
-    shot(s, os.path.join(L, 'poster-thrash-broken.png'), gx(0), CT_SUB, gw(3), CROP, radius=8, alt='The chart at 8× with 129,920 path points')
-    text(s, gx(0), 396, gw(3), 30, '129,920 path points', T_SMALL, ACC, MID, spacing=1.0)
-    a_ = shot(s, os.path.join(L, 'poster-thrash-simplify.png'), gx(3), CT_SUB, gw(3), CROP, radius=8, alt='The same chart with 12,032 path points')
-    b_ = text(s, gx(3), 396, gw(3), 30, '12,032 path points', T_SMALL, TEXT, MID, spacing=1.0)
-    ch = [change(s, gx(6), CT_SUB + i * 94, gw(6), lab, a, b, T_H1, u) for i, (lab, a, b, u) in enumerate((('Points a line, at the demo’s 8× setting', '8,000', '632', None), ('Raster p90', '29.7', '18.6', 'ms'), ('UI p90', '15.9', '6.3', 'ms')))]
-    t.click(fx(a_), fx(b_), *[fx(x, delay=400) for pair in ch for x in pair])
-    code(s, gx(0), 456, gw(6), 170, ['!!A new path, every frame', 'final path = Path();', 'for (var k = 0; k < n; k++) // n = 8,000', '  path.lineTo(x(k), y(k));'])
-    code(s, gx(6), 456, gw(6), 170, ['++Simplify once, then only move it', 'final xy = decimate(series, plot.width);', 'canvas..translate(shift, 0)', '      ..drawPath(cached, stroke);'])
-    source(s, 'Real screens from the app at 8×. Code condensed from thrash_canvas.dart. p90, median of 3 rounds.')
+    # ------------------------------------------------------------ 19. One pixel column
+    s, t = new(layout=ink)
+    set_title(s, 'One pixel column. 25 points.', color=PAPER)
+    full(s, 'macro', 'One pixel column of the demo’s line, on a pixel grid, holding 25 real points')
+    text(s, M, 300, gw(6) - 40, 150, '8,000 points a line, on a chart 316 pixels wide.', T_H3, PAPER, HEAD, spacing=1.14, track=-30)
+    tag(s, 'Real points from the demo. The vertical scale is approximate.', ASH)
+    logo_on_art(s)
 
-    # ------------------------------------------------------------ 18. Fix 2
-    s, t = page('Fix 2: Batch draws.', sub='480 trips to the shop, or one trip with a list.')
-    BARS = 30
-    SW_, BH = gw(6) / BARS, 72
-    heights = [0.5 + 0.25 * math.sin(k / BARS * 6 * math.pi) + 0.15 * math.sin(k / BARS * 40 * math.pi) for k in range(BARS)]
-    text(s, gx(0), CT_SUB, gw(6), 30, 'Before: 480 draws', T_SMALL, ACC, MID, spacing=1.0)
-    before_ = s.shapes.add_group_shape()
-    for k, v in enumerate(heights):
-        r = before_.shapes.add_shape(MSO_SHAPE.RECTANGLE, px(gx(0) + k * SW_), px(198 + BH * (1 - v)), px(SW_ - 5), px(BH * v))
-        r.fill.solid()
-        paint(r.fill.fore_color, ACC)
-        r.line.fill.background()
-    before_.name = 'Heat strip: each segment is its own draw'
-    a_ = text(s, gx(0), 288, gw(6), 30, 'After: 1 draw', T_SMALL, TEXT, MID, spacing=1.0)
-    after_ = s.shapes.add_group_shape()
-    for k, v in enumerate(heights):
-        r = after_.shapes.add_shape(MSO_SHAPE.RECTANGLE, px(gx(0) + k * SW_), px(322 + BH * (1 - v)), px(SW_ + 0.5), px(BH * v))
-        r.fill.solid()
-        paint(r.fill.fore_color, TEXT)
-        r.line.fill.background()
-    after_.name = 'Heat strip: all segments in one draw'
-    ch = [change(s, gx(6), CT_SUB + i * 118, gw(6), lab, a, b, T_H1, u) for i, (lab, a, b, u) in enumerate((('Draw calls', '640', '161', None), ('Raster p90', '18.6', '13.7', 'ms')))]
-    t.click(fx(a_), fx(after_, 'left', dur=700), *[fx(x, delay=400) for pair in ch for x in pair])
-    code(s, gx(0), 430, gw(6), 180, ['!!Before: one draw per segment', 'for (final segment in segments) {', '  canvas.drawPath(segment, paint);', '}'])
-    code(s, gx(6), 430, gw(6), 180, ['++After: two triangles each, one draw', 'canvas.drawVertices(', '  Vertices.raw(triangles, positions,', '    colors: colors),', '  BlendMode.dst, p);'])
-    source(s, 'Illustration of the heat strip. Code condensed from thrash_canvas.dart. Starts at 640 because Fix 1 draws each line twice.')
+    # ------------------------------------------------------------ 20. Fix 1
+    s, t = page('Fix 1: Simplify paths.')
+    shot(s, vis('chart-full'), gx(0), CT + 12, gw(6), alt='The chart at 8×, drawn with all 129,920 path points')
+    text(s, gx(0), 490, gw(6), 56, '129,920 points', T_H3, ACC, HEAD, spacing=1.0, track=-30)
+    a_ = shot(s, vis('chart-dec'), gx(6), CT + 12, gw(6), alt='The same chart, drawn with 12,032 path points')
+    b_ = text(s, gx(6), 490, gw(6), 56, '12,032 points', T_H3, COOL, HEAD, spacing=1.0, track=-30)
+    t.click(fx(a_), fx(b_, delay=200))
+    tag(s, 'Both drawn from the demo’s real data.')
 
-    # ------------------------------------------------------------ 19. Fix 3
-    s, t = page('Fix 3: Glow without saveLayer.', sub='The same glow, without the detour.')
-    box(s, gx(0), CT_SUB, gw(6), 216, INK, 'The glow, before and after')
-    cx1, cx2 = gx(0) + gw(6) * 0.25, gx(0) + gw(6) * 0.75
-    glow(s, cx1, CT_SUB + 92, 68)
-    glow(s, cx2, CT_SUB + 92, 68)
-    text(s, cx1 - 130, CT_SUB + 174, 260, 28, 'saveLayer + blur', T_LABEL, ASH, MONO, CENTER, spacing=1.0)
-    text(s, cx2 - 130, CT_SUB + 174, 260, 28, 'radial gradient', T_LABEL, PAPER, MONO, CENTER, spacing=1.0)
-    ch = [change(s, gx(6), CT_SUB + i * 74, gw(6), lab, a, b, T_H3, u) for i, (lab, a, b, u) in enumerate((('saveLayer a frame', '64', '0', None), ('Raster p90', '13.7', '6.6', 'ms'), ('QueueSubmit a frame', '2', '1', None)))]
-    code(s, gx(0), 402, gw(6), 70, ['!!Before, per dot: a pass and a blur', 'canvas.saveLayer(bounds, blurPaint);'])
-    code(s, gx(6), 402, gw(6), 70, ['++After: same soft edge, main pass', 'canvas.drawCircle(c, r, radialPaint);'])
-    rule(s, M, 486, RIGHT_EDGE, 486)
-    text(s, M, 504, W, 32, 'You may have this in your app. These can trigger a saveLayer:', T_SMALL, SUB, spacing=1.0)
-    text(s, M, 544, W, 32, [[('Opacity', {}), (' · ', {'color': SUB}), ('ShaderMask', {}), (' · ', {'color': SUB}), ('ColorFilter', {}), (' · ', {'color': SUB}), ('Clip.antiAliasWithSaveLayer', {})]], T_CODE, TEXT, MONO, spacing=1.0)
-    source(s, 'Illustration of the marker. Code condensed from thrash_canvas.dart. Widget list from Flutter’s performance best practices.')
+    # ------------------------------------------------------------ 20. Fix 2
+    s, t = page('Fix 2: Batch draws.')
+    code(s, gx(0), CT + 24, gw(6), 180, ['!!Before: one draw per segment', 'for (final segment in segments) {', '  canvas.drawPath(segment, paint);', '}'])
+    a_ = code(s, gx(6), CT + 24, gw(6), 180, ['++After: one draw', 'canvas.drawVertices(', '  vertices, BlendMode.dst, paint);'])
+    r_ = result(s, 400, '640', '161', 'draw calls')
+    t.click(fx(a_), fx(r_, delay=300))
 
-    # ------------------------------------------------------------ 20. Fix 4
+    # ------------------------------------------------------------ 22. Fix 3
+    s, t = new(layout=ink)
+    set_title(s, 'Fix 3: Glow without saveLayer.', color=PAPER)
+    full(s, 'layers', 'The chart with 64 offscreen layers floating above it, one for each glowing dot')
+    text(s, M, 150, gw(5), 100, [[('64', {'color': EMBER}), (' → ', {'color': ASH}), ('0', {'color': CYAN})]], T_NUM, PAPER, HEAD, spacing=1.0, track=-70)
+    text(s, M, 244, gw(5), 36, 'layers a frame', T_BODY, ASH, spacing=1.0)
+    ink_code(s, M, 300, gw(5), 170, ['!!Before: a pass and a blur', 'canvas.saveLayer(b, blur);', '++After: same glow, main pass', 'canvas.drawCircle(c, r, g);'])
+    text(s, M, 494, gw(5), 30, 'These can trigger a saveLayer too:', T_LABEL, ASH, spacing=1.0)
+    text(s, M, 526, gw(5), 72, ['Opacity  ShaderMask  ColorFilter', 'Clip.antiAliasWithSaveLayer'], T_LABEL, PAPER, MONO, spacing=1.2)
+    tag(s, 'Dots placed by the demo’s own formula. The layout and layer heights are illustrative.', ASH)
+    logo_on_art(s)
+
+    # ------------------------------------------------------------ 22. Fix 4
     s, t = page('Fix 4: A RepaintBoundary, on its own?')
-    code(s, M, SUB_Y + 4, W, 32, ['RepaintBoundary(child: CustomPaint(painter: ThrashGridPainter(ledger)))'])
-    a = display(s, M, 156, W, 92, 'Alone at 8×: almost nothing.', T_NUM, TEXT)
+    code(s, M, CT + 12, W, 40, ['RepaintBoundary(child: CustomPaint(painter: gridPainter))'])
+    a = display(s, M, 262, W, 92, 'Alone at 8×: almost nothing.', T_NUM, TEXT)
     t.click(fx(a))
-    r_ = rule(s, M, 264, RIGHT_EDGE, 264)
-    h_ = text(s, M, 280, W, 32, 'After the other fixes', T_SMALL, SUB, spacing=1.0)
-    trio = [change(s, gx(i * 4), 324, gw(4), lab, a_, b_, T_H1, u) for i, (lab, a_, b_, u) in enumerate((('UI', '4.4', '3.4', 'ms'), ('Raster', '6.6', '6.5', 'ms'), ('Grid repaints', '120', '0', 'a second')))]
-    t.click(fx(r_), fx(h_), *[fx(x, delay=150) for pair in trio for x in pair])
-    ans = display(s, M, 460, W, 130, ['On Impeller, a RepaintBoundary', 'saves Dart work, not GPU work.'], T_H1, ACC)
+    ans = display(s, M, 430, W, 140, ['On Impeller, it saves Dart work,', 'not GPU work.'], T_H1, ACC)
     t.click(fx(ans))
 
-    # ------------------------------------------------------------ 21. The result
+    # ------------------------------------------------------------ 23. The result
     s, t = page('Four fixes. From 36 fps to 120.')
-    phone_ = tall(s, os.path.join(L, 'poster-thrash-fixed.png'), (0, 0.045, 0, 0.012), 'Canvas Thrash at 8× with all four fixes on')
-    END = phone_.left / 9525 - GUT
-    BWD = (END - M - 4 * 16) / 5
-    base, unit_ = 548, 11.8
+    BWD = (W - 4 * GUT) / 5
+    base, unit_ = 586, 12.4
     limit_y = base - 8.33 * unit_
     for i, (v, lab) in enumerate((('29.7', 'No fixes'), ('18.6', '+ Simplify'), ('13.7', '+ Batch'), ('6.6', '+ Glow'), ('6.5', '+ Isolate'))):
-        x = M + i * (BWD + 16)
+        x = M + i * (BWD + GUT)
         h = float(v) * unit_
         over = float(v) > 8.33
-        b = box(s, x, base - h, BWD, h, ACC if over else TEXT, f'{lab}: {v} ms')
-        n = display(s, x, (base - h - 48) if over else (limit_y - 48), BWD, 46, v, T_H3, TEXT)
-        text(s, x, base + 8, BWD + 12, 28, lab, T_LABEL, SUB, spacing=1.0)
+        b = box(s, x, base - h, BWD, h, ACC if over else COOL, f'{lab}: {v} ms')
+        n = display(s, x, (base - h - 52) if over else (limit_y - 52), BWD, 48, v, T_H3, TEXT)
+        text(s, x, base + 10, BWD, 34, lab, T_CODE, SUB, spacing=1.0)
         t.click(fx(b, 'up', dur=500), fx(n))
-    rule(s, M, limit_y, END, limit_y, TEXT, 1.5, 'dash')
-    text(s, M, 604, END - M, 30, 'UI 3.4 ms from 15.9. Layers 0 from 64. Path points 10,112 from 129,920.', T_LABEL, SUB, spacing=1.0)
-    source(s, 'Raster p90 in ms at 8×. The line is 8.3 ms. Frame rates from 5 s system traces: 35.5 and 119.8 fps.')
+    rule(s, M, limit_y, RIGHT_EDGE, limit_y, TEXT, 1.5, 'dash')
+    tag(s, 'Raster p90 in ms at 8×, median of 3 rounds. The line is 8.3 ms.')
 
-    # ------------------------------------------------------------ 22. Your own shader
+    # ------------------------------------------------------------ 24. Your own shader
     s, t = page('Your effects can be pre-compiled too.', 'Your own shader')
-    code(s, gx(0), CT, gw(7), 470, ['# pubspec.yaml', 'flutter:', '  shaders: [shaders/depth_fill.frag]', '', '// Once, before it is needed', 'final program = await', '    FragmentProgram.fromAsset(path);', 'final shader = program.fragmentShader();', '', '// paint(): uniforms only, one draw', 'canvas.drawPath(depth,', '    Paint()..shader = shader);'])
+    code(s, gx(0), CT + 16, gw(7), 340, ['# pubspec.yaml', 'shaders: [shaders/depth_fill.frag]', '', '// Once, before it is needed', 'final program = await', '    FragmentProgram.fromAsset(path);', '', '// paint(): one draw', 'canvas.drawPath(depth, shaderPaint);'])
     RX, RW = gx(7), gw(5)
-    rule(s, RX, CT, RIGHT_EDGE, CT, TEXT)
-    text(s, RX, CT + 16, RW, 26, 'depth_fill.frag, in the APK', T_LABEL, SUB, spacing=1.0)
-    text(s, RX, CT + 46, RW, 70, [[('503 B', {'color': SUB}), (' → ', {'color': SUB}), ('4,008 B', {})]], T_H1, TEXT, HEAD, spacing=1.0, track=-50)
-    for i, (a, b, hot) in enumerate((('SPIR-V', 'For Vulkan. Already compiled.', False), ('GLSL ES', 'For Impeller’s OpenGL backend.', False), ('SkSL', 'For Skia. Compiled on the phone, at first use.', True))):
-        y = 266 + i * 118
-        rule(s, RX, y, RIGHT_EDGE, y)
-        text(s, RX, y + 14, RW, 32, a, T_CODE, ACC if hot else TEXT, MONO, spacing=1.0)
-        text(s, RX, y + 48, RW, 66, b, T_SMALL, SUB, spacing=1.1)
-    source(s, 'Code condensed. This custom shader was not timed on the phone.')
+    text(s, RX, CT + 16, RW, 90, [[('503 B', {'color': SUB}), (' → ', {'color': SUB}), ('4,008 B', {})]], T_H1, TEXT, HEAD, spacing=1.0, track=-50)
+    text(s, RX, CT + 112, RW, 200, ['SPIR-V for Vulkan', 'GLSL ES for OpenGL ES', [('SkSL for Skia', {'color': ACC})]], T_BODY, SUB, spacing=1.0, gap=20)
+    tag(s, 'This shader wasn’t timed on the phone.')
 
-    # ------------------------------------------------------------ 23. DevTools
+    # ------------------------------------------------------------ 25. DevTools
     s, t = page('DevTools: which thread, then which code.', 'Prove it')
-    shot(s, os.path.join(L, 'devtools-frames-8x.png'), 0, CT, 1280, (0, 0.03, 0, 0.75), alt='Flutter DevTools frames chart at 8×: every frame is red, and raster is taller than UI')
+    shot(s, os.path.join(L, 'devtools-frames-8x.png'), 0, CT - 8, 1280, (0, 0.03, 0, 0.75), alt='Flutter DevTools frames chart at 8×: every frame is red, and raster is taller than UI')
     STEP5 = (W + GUT) / 5
-    for i, (n, w_) in enumerate((('1', 'Which thread?'), ('2', 'Which event?'), ('3', 'Which code?'), ('4', 'One fix.'), ('5', 'Measure again.'))):
+    for i, w_ in enumerate(('Which thread?', 'Which event?', 'Which code?', 'One fix.', 'Measure again.')):
         x = M + i * STEP5
-        rule(s, x, 336, x + STEP5 - GUT, 336, TEXT)
-        text(s, x, 350, 200, 28, n, T_LABEL, SUB, MONO, spacing=1.0)
-        display(s, x, 382, STEP5 - GUT + 8, 100, w_.split(' '), T_H3, ACC if i == 4 else TEXT)
-    code(s, M, 524, W, 32, ["Timeline.timeSync('KILN::Thrash::grid', () { ... })"])
-    source(s, 'Emulator in debug mode: read the shape, ignore the milliseconds.')
+        rule(s, x, 384, x + STEP5 - GUT, 384, TEXT)
+        display(s, x, 404, STEP5 - GUT + 8, 110, w_.split(' '), T_H3, ACC if i == 4 else TEXT)
+    tag(s, 'Emulator in debug mode: read the shape, not the milliseconds.')
 
-    # ------------------------------------------------------------ 24. Perfetto and the budget
-    s, t = page('Systrace, now Perfetto: read the budget.', sub='Target about 4 ms UI, 4 ms raster. Limit 8.3 ms a thread.')
-    TX = gx(2)
-    TK2 = (RIGHT_EDGE - TX) / 100
-    t_ = 0.0
-    while t_ <= 100:
-        rule(s, TX + t_ * TK2, 160, TX + t_ * TK2, 318)
-        t_ += 8.33
+    # ------------------------------------------------------------ 26. Perfetto
+    s, t = new(layout=ink)
+    set_title(s, 'Systrace, now Perfetto: 5 s of frames.', color=PAPER)
+    shot(s, vis('sky-none'), 0, 150, 1280, alt='Every raster frame in five seconds of the broken chart: tall bars, far above the 8.3 ms line')
+    text(s, M, 124, gw(6), 36, 'Broken: 179 frames', T_BODY, EMBER, MID, spacing=1.0)
+    g1 = shot(s, vis('sky-all'), 0, 412, 1280, alt='Every raster frame in five seconds of the fixed chart: short bars, under the 8.3 ms line')
+    a = text(s, M, 390, gw(6), 36, 'Fixed: 604 frames', T_BODY, CYAN, MID, spacing=1.0)
+    t.click(fx(a), fx(g1, 'left', dur=1000))
+    ans = display(s, M, 556, W, 72, 'No. It’s running for 24 of its 28 ms.', T_H1, PAPER)
+    t.click(fx(ans))
+    tag(s, 'Every bar is one raster frame, same scale. The dashed line is 8.3 ms. Recorded with atrace, tracing on.', ASH)
 
-    def lanes_(y, name, ui, raster, c):
-        a = text(s, M, y, 110, 34, name, T_SMALL, c, MID, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
-        l1 = text(s, TX - 90, y, 80, 34, 'main', T_LABEL, SUB, MONO, RIGHT, MSO_ANCHOR.MIDDLE, spacing=1.0)
-        l2 = text(s, TX - 90, y + 38, 80, 34, 'raster', T_LABEL, SUB, MONO, RIGHT, MSO_ANCHOR.MIDDLE, spacing=1.0)
-        g1 = blocks(s, ui, y, 34, SUB, TX, TK2, RIGHT_EDGE, f'{name}: main thread')
-        g2 = blocks(s, raster, y + 38, 34, c, TX, TK2, RIGHT_EDGE, f'{name}: raster thread')
-        return a, l1, l2, g1, g2
-    lanes_(164, 'Broken', trace['broken']['ui'], trace['broken']['raster'], ACC)
-    a, l1, l2, g1, g2 = lanes_(244, 'Fixed', trace['fixed']['ui'], trace['fixed']['raster'], TEXT)
-    t.click(fx(a), fx(l1), fx(l2), fx(g1, 'left', dur=800), fx(g2, 'left', dur=800))
+    # ------------------------------------------------------------ 27. The budget, read
+    s, t = page('Read the budget from the trace.')
 
     def bt_style(i, j, val):
         if j == 0:
-            return dict(size=T_SMALL, font=HEAD, color=ACC if i == 1 else TEXT)
+            return dict(size=T_H3, font=HEAD, color=ACC if i == 1 else (COOL if i == 3 else TEXT))
         if j == 2:
-            return dict(size=T_SMALL, font=HEAD, color=ACC if i < 3 else TEXT)
-        if j == 6:
-            return dict(size=T_SMALL, font=HEAD)
-        return dict(size=T_SMALL, color=TEXT)
-    first = TX - M
-    rest = (RIGHT_EDGE - TX) / 6
-    bt = table(s, M, 326, (first, rest, rest, rest, rest, rest, rest), (30, 40, 40, 40),
-               [('', 'UI', 'Raster', 'Encode', 'saveLayer', 'QueueSubmit', 'Frame rate'),
-                ('Broken', '13.5 ms', '27.9 ms', '27.1 ms', '64', '2', '35.5 fps'),
-                ('Halfway', '2.7 ms', '13.8 ms', '12.9 ms', '64', '2', '70.4 fps'),
-                ('All fixes', '2.3 ms', '4.8 ms', '3.7 ms', '0', '1', '119.8 fps')], bt_style, 'Budget from the traces')
-    t.click(fx(bt))
-    ans = display(s, M, 498, W, 50, 'Waiting on the GPU? No. Running for 24 of its 28 ms.', T_H3, TEXT)
-    t.click(fx(ans))
-    lesson = display(s, M, 552, W, 50, 'The slowest thread sets the rate.', T_H3, ACC)
+            return dict(size=T_H3, font=HEAD, color=ACC if i < 3 else COOL)
+        if j == 3:
+            return dict(size=T_H3, font=HEAD, color=COOL if i == 3 else TEXT)
+        return dict(size=T_H3, color=SUB)
+    table(s, M, CT, (gw(3) + GUT, gw(3) + GUT, gw(3) + GUT, gw(3)), (40, 84, 84, 84),
+          [('', 'UI', 'Raster', 'Frame rate'),
+           ('Broken', '13.5 ms', '27.9 ms', '35.5 fps'),
+           ('Halfway', '2.7 ms', '13.8 ms', '70.4 fps'),
+           ('All fixes', '2.3 ms', '4.8 ms', '119.8 fps')], bt_style, 'Budget from the traces')
+    lesson = display(s, M, 492, W, 72, 'The slowest thread sets the rate.', T_H1, ACC)
     t.click(fx(lesson))
-    source(s, '100 ms with atrace, tracing on, p50 at 8×. Halfway is Simplify plus Batch. No GPU render stages on this phone.')
+    tag(s, 'Trace medians at 8×, tracing on. Target: about 4 ms UI, 4 ms raster.')
 
-    # ------------------------------------------------------------ 25. Take home
+    # ------------------------------------------------------------ 28. Take home
     s, t = page('Take this home.', 'Finish')
-    for i, (h_, d) in enumerate((('Demystifying\nthe engine', ['Skia: JIT, in the frame.', 'Impeller: AOT, on Vulkan. It tessellates on the CPU and records command buffers.']),
-                                 ('Low-level\nprofiling', ['About 4 ms UI, 4 ms raster.', 'DevTools for the frame, Perfetto for the system. The slowest thread sets the rate.']),
-                                 ('Taming custom\npainters', ['Fewer points, fewer draws, no saveLayer you don’t need.', 'Pre-compile your own effects. Prove every fix.']))):
-        x, w_ = gx(i * 4), gw(4)
-        rule(s, x, CT, x + w_, CT, TEXT)
-        display(s, x, CT + 16, w_ + 12, 124, h_.split('\n'), T_H1, TEXT)
-        text(s, x, 280, w_, 300, d, T_BODY, SUB, spacing=1.12, gap=10)
-    rule(s, M, 590, RIGHT_EDGE, 590)
-    text(s, M, 604, W, 28, 'Honest limits: fix order matters. GPU passes here are a model, not my trace. Skia: 188 → 58 ms with every fix.', T_LABEL, SUB, spacing=1.0)
+    rule(s, M, CT + 12, RIGHT_EDGE, CT + 12, TEXT)
+    for i, (h_, d) in enumerate((('Demystifying the engine', 'Skia: JIT, in the frame. Impeller: AOT, on Vulkan.'),
+                                 ('Low-level profiling', 'About 4 ms UI, 4 ms raster. The slowest thread sets the rate.'),
+                                 ('Taming custom painters', 'Fewer points, fewer draws, no saveLayer you don’t need.'))):
+        y = CT + 12 + i * 148
+        text(s, gx(0), y, gw(6), 148, h_, T_H3, TEXT, HEAD, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0, track=-30)
+        text(s, gx(6), y, gw(6), 148, d, T_BODY, SUB, anchor=MSO_ANCHOR.MIDDLE, spacing=1.16)
+        rule(s, M, y + 148, RIGHT_EDGE, y + 148)
 
-    # ------------------------------------------------------------ 26. Close
+    # ------------------------------------------------------------ 29. Close
     s, t = new(layout=ink)
-    set_title(s, 'Impeller made\nperformance predictable.\nIt didn’t make\nexpensive work free.', T_NUM, M, 64, gw(9), 370, PAPER)
-    text(s, M, 450, gw(8), 40, 'Thread, event, code, fix, measure.', T_BODY, ASH, spacing=1.0)
-    display(s, M, 544, gw(8), 40, 'Collins Munene, Shipht', T_BODY, PAPER)
-    text(s, M, 584, gw(8), 28, 'FlutterCon Kenya, Nairobi, 5–6 Nov 2026', T_LABEL, ASH, spacing=1.0)
-    box(s, gx(9), 84, gw(3), gw(3), WHITE, 'QR background')
-    qr = s.shapes.add_picture(os.path.join(A, 'qr-repo.png'), px(gx(9) + 10), px(94), px(gw(3) - 20), px(gw(3) - 20))
+    set_title(s, 'Impeller made\nperformance predictable.\nIt didn’t make\nexpensive work free.', T_NUM, M, 84, gw(9), 370, PAPER)
+    display(s, M, 522, gw(8), 40, 'Collins Munene, Shipht', T_BODY, PAPER)
+    link = text(s, M, 566, gw(9), 30, 'github.com/cm-collins/fluttercon-demo-app', T_LABEL, ASH, MONO, spacing=1.0)
+    link.click_action.hyperlink.address = REPO
+    box(s, gx(9), 96, gw(3), gw(3), WHITE, 'QR background')
+    qr = s.shapes.add_picture(os.path.join(A, 'qr-repo.png'), px(gx(9) + 10), px(106), px(gw(3) - 20), px(gw(3) - 20))
     qr._element.find('.//' + qn('p:cNvPr')).set('descr', f'QR code linking to {REPO}')
     qr.click_action.hyperlink.address = REPO
-    text(s, gx(9), 362, gw(3), 72, 'Scan it. Run it on your phone.', T_SMALL, PAPER, MID, spacing=1.14)
-    link = text(s, gx(9), 446, gw(3), 92, ['github.com/', 'cm-collins/', 'fluttercon-demo-app'], T_LABEL, ASH, MONO, spacing=1.14)
-    link.click_action.hyperlink.address = REPO
 
     # ------------------------------------------------------------ Backups
     def backup(heading, rows, widths, heights, foot, style, section=None):
         s, t = new(section)
         set_title(s, heading)
-        table(s, M, CT, widths, heights, rows, style, heading)
-        source(s, foot)
+        table(s, M, CT - 12, widths, heights, rows, style, heading)
+        tag(s, foot)
 
     def storm_style(i, j, val):
         if j == 0:

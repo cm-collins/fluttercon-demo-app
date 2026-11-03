@@ -1,0 +1,28 @@
+<!doctype html><meta charset=utf-8><style>html,body{margin:0;background:#0b0b0c;overflow:hidden}canvas{display:block}</style>
+<script src="height.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+const W=1280,H=720,r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});r.setSize(W,H);r.setPixelRatio(2);document.body.append(r.domElement);
+r.toneMapping=THREE.ACESFilmicToneMapping;r.toneMappingExposure=.8;r.shadowMap.enabled=true;r.shadowMap.type=THREE.PCFSoftShadowMap;r.setScissorTest(true);r.autoClear=false;
+const n=HF.n,SX=3.4,SZ=2.4,VY=1.25;
+function geo(step){const m=Math.floor((n-1)/step)+1,p=new Float32Array(m*m*3);let q=0;for(let j=0;j<m;j++)for(let i=0;i<m;i++){const a=i*step,b=j*step;p[q++]=(a/(n-1)-.5)*SX;p[q++]=HF.h[b*n+a]*VY;p[q++]=(.5-b/(n-1))*SZ;}
+ const idx=[];for(let j=0;j<m-1;j++)for(let i=0;i<m-1;i++){const a=j*m+i,b=a+1,c=a+m,d=c+1;idx.push(a,c,b,b,c,d);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));g.setIndex(idx);g.computeVertexNormals();return g;}
+const hi=geo(1);const P=hi.attributes.position,No=hi.attributes.normal,C=new Float32Array(P.count*3);
+const nz=(x,z)=>Math.sin(x*91.3+z*47.1)*.5+Math.sin(x*37.7-z*113.9)*.3+Math.sin((x+z)*211.)*.2;
+for(let i=0;i<P.count;i++){const up=No.getY(i),y=P.getY(i),x=P.getX(i),z=P.getZ(i);let t=Math.min(1,Math.max(0,(up-.27+.055*nz(x,z))/.1));const rock=[.30,.27,.25],snow=[.97,.98,1.0];for(let k=0;k<3;k++)C[i*3+k]=rock[k]+(snow[k]-rock[k])*t;}
+hi.setAttribute('color',new THREE.BufferAttribute(C,3));
+const cam=new THREE.PerspectiveCamera(36,W/H,.01,50);cam.position.set(0,.52,2.72);cam.lookAt(0,.56,0);
+// right: finished pixels
+const a=new THREE.Scene();const sky=document.createElement('canvas');sky.width=4;sky.height=512;{const g=sky.getContext('2d'),gr=g.createLinearGradient(0,0,0,512);gr.addColorStop(0,'#0b1d3f');gr.addColorStop(.55,'#2e6bb0');gr.addColorStop(.86,'#8fbbe0');g.fillStyle=gr;g.fillRect(0,0,4,512);}const st=new THREE.CanvasTexture(sky);st.colorSpace=THREE.SRGBColorSpace;a.background=st;
+
+const mesh=new THREE.Mesh(hi,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.9}));mesh.castShadow=mesh.receiveShadow=true;a.add(mesh);
+a.add(new THREE.HemisphereLight(0xdfe8ff,0x8a8a92,1.15));const sun=new THREE.DirectionalLight(0xfff2e0,3.2);sun.position.set(-2.2,2.6,3.0);sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);Object.assign(sun.shadow.camera,{left:-2.4,right:2.4,top:2,bottom:-2,near:.1,far:9});sun.shadow.bias=-.0006;sun.shadow.normalBias=.004;a.add(sun);
+// left: the same terrain, as triangles
+const b=new THREE.Scene();b.background=new THREE.Color(0x07080a);const lo=geo(8);
+const hide=new THREE.Mesh(lo,new THREE.MeshBasicMaterial({color:0x07080a,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1}));b.add(hide);
+const wire=new THREE.LineSegments(new THREE.WireframeGeometry(lo),new THREE.LineBasicMaterial({color:0xff6a36}));b.add(wire);
+r.setScissor(640,0,640,720);r.setViewport(0,0,1280,720);r.render(a,cam);
+r.setScissor(0,0,640,720);r.setViewport(0,0,1280,720);r.render(b,cam);
+document.title='done';
+</script>

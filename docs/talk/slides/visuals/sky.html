@@ -1,0 +1,11 @@
+<!doctype html><meta charset=utf-8><style>html,body{margin:0;background:#0b0b0c}canvas{display:block}</style><script src="data.js"></script>
+<canvas id=c width=2560 height=1440 style="width:1280px;height:720px"></canvas><script>
+const g=document.getElementById('c').getContext('2d');g.scale(2,2);g.fillStyle='#0b0b0c';g.fillRect(0,0,1280,720);
+const X0=0,X1=1280,SP=5040,k=(X1-X0)/SP,U=3.8;
+function row(base,data,hot,cool){
+  for(const [t,d] of data){if(t>SP)continue;const h=Math.min(d,44)*U,x=X0+t*k,w=Math.max(d*k-.35,.55);
+    const over=d>8.33;const gr=g.createLinearGradient(0,base-h,0,base);gr.addColorStop(0,over?hot:cool);gr.addColorStop(1,over?'rgba(255,92,40,.35)':'rgba(79,195,247,.35)');g.fillStyle=gr;g.fillRect(x,base-h,w,h);
+    g.fillStyle=over?'rgba(255,92,40,.10)':'rgba(79,195,247,.10)';g.fillRect(x,base+2,w,h*.16);}
+  const by=base-8.33*U;g.setLineDash([3,5]);g.strokeStyle='rgba(255,255,255,.75)';g.lineWidth=1;g.beginPath();g.moveTo(X0,by);g.lineTo(X1,by);g.stroke();g.setLineDash([]);
+}
+const q=new URLSearchParams(location.search).get('r');if(q==='none')row(190,T.none,'#ff5c28','#4fc3f7');else row(190,T.all,'#ff5c28','#4fc3f7');document.title='done';</script>

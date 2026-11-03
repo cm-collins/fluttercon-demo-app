@@ -14,7 +14,7 @@ def font(face,sz):
     k=(face,sz)
     if k not in cache: cache[k]=ImageFont.truetype(F+FACE.get(face,'Inter-400.ttf'),int(sz*4))
     return cache[k]
-SCALE={16,20,22,24,28,36,52,72,112,160}
+SCALE={16,20,24,28,36,56,72,112,160}
 G=(1136+32)/12
 GRID={72+k*G for k in range(13)}
 SLACK=1.05   # PowerPoint and LibreOffice measure text slightly differently
@@ -91,7 +91,7 @@ for n,s in enumerate(p.slides,1):
         anchor=tf.vertical_anchor
         if anchor==3 or str(anchor).startswith('MIDDLE'): top=T+(H-total)/2
         bottom=top+total
-        if name!='Source' and bottom>648 and not title: issues.append((n,'below content line',round(bottom),tf.text[:40]))
+        if name!='Tag' and bottom>648 and not title: issues.append((n,'below content line',round(bottom),tf.text[:40]))
         wid=wid/SLACK
         right=L+wid
         # alignment
@@ -101,10 +101,10 @@ for n,s in enumerate(p.slides,1):
         else: rx0,rx1=L,L+wid
         if rx1>1208.5 and n not in (1,) : issues.append((n,'past right margin',round(rx1),tf.text[:40]))
         if rx0<71.5 and n!=1: issues.append((n,'past left margin',round(rx0),tf.text[:40]))
-        if title and first and first==52:
+        if title and first and first==56:
             lines=sum(para_lines(pp,Wd,True)[0] for pp in tf.paragraphs)
             if lines>1: issues.append((n,'title wraps',lines,tf.text[:40]))
-        if name=='Subtitle' or name=='Source':
+        if name=='Tag':
             lines=sum(para_lines(pp,Wd,False)[0] for pp in tf.paragraphs)
             if lines>1: issues.append((n,name+' wraps',lines,tf.text[:50]))
         if x.shape_type!=1: rects.append((rx0,top,rx1,bottom,tf.text[:28],grp))
@@ -115,5 +115,16 @@ for n,s in enumerate(p.slides,1):
             if min(a[2],b[2])-max(a[0],b[0])>2 and min(a[3],b[3])-max(a[1],b[1])>3:
                 issues.append((n,'text collision',a[4],b[4]))
 print('sizes used',sorted(sizes)); print('left edges',len(lefts),sorted(k for k in lefts if not any(abs(k-g)<1 for g in GRID)))
+def words(sl):
+    o=[]
+    def w(shapes):
+        for x in shapes:
+            if x.shape_type==6: w(x.shapes)
+            elif getattr(x,'has_text_frame',False) and x.has_text_frame and x.name not in('Code',): o.append(x.text_frame.text)
+            elif getattr(x,'has_table',False) and x.has_table:
+                o.extend(c.text_frame.text for r in x.table.rows for c in r.cells)
+    w(sl.shapes)
+    return len(' '.join(o).split())
+print('words a slide, without code:',[words(s) for s in p.slides])
 print('ISSUES',len(issues))
 for i in issues: print(i)

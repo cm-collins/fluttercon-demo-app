@@ -1,0 +1,27 @@
+<!doctype html><meta charset=utf-8><style>html,body{margin:0;background:#0b0b0c;overflow:hidden}canvas{display:block}</style>
+<script src="data.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+const COL=['#4fc3f7','#9b6bff','#3ddc97','#ffb547'];
+const cv=document.createElement('canvas');cv.width=2048;cv.height=1280;const g=cv.getContext('2d');g.fillStyle='#0d0e14';g.fillRect(0,0,2048,1280);
+g.strokeStyle='rgba(255,255,255,.07)';g.lineWidth=2;for(let i=1;i<6;i++){g.beginPath();g.moveTo(i*2048/6,0);g.lineTo(i*2048/6,1280);g.stroke();g.beginPath();g.moveTo(0,i*1280/6);g.lineTo(2048,i*1280/6);g.stroke();}
+const Y=(l,v)=>{const band=1280/16;return 80+(l*band*.72)+(1-v)*1280*.28;};
+L.lines.forEach((s,l)=>{g.strokeStyle=COL[l%4];g.lineWidth=2.4;g.beginPath();for(let k=0;k<s.length;k+=2){const x=k/s.length*2048,y=Y(l,s[k]);k?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();});
+const W=1280,H=720,r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});r.setSize(W,H);r.setPixelRatio(2);document.body.append(r.domElement);r.toneMapping=THREE.ACESFilmicToneMapping;
+const s=new THREE.Scene();s.background=new THREE.Color(0x09090b);const c=new THREE.PerspectiveCamera(30,W/H,1,5000);c.position.set(330,760,1120);c.lookAt(-10,170,-40);c.setViewOffset(W,H,-400,-10,W,H);
+const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=16;
+const PW=860,PH=PW*1280/2048;const base=new THREE.Mesh(new THREE.PlaneGeometry(PW,PH),new THREE.MeshBasicMaterial({map:tex}));base.rotation.x=-Math.PI/2;s.add(base);
+const n=8000;const lm=new THREE.LineBasicMaterial({color:0xff5c28,transparent:true,opacity:.34});
+for(let dot=0;dot<64;dot++){const line=dot%16,slot=Math.floor(dot/16),f=((slot+.5)/4+line*.013)%1,kk=Math.floor(f*n)%n,v=L.lines[line][kk];
+  const px=f*2048,py=Y(line,v);const x=px/2048*PW-PW/2,z=py/1280*PH-PH/2,h=70+((dot*37)%64)*5.1;
+  const sz=46;const q=new THREE.Mesh(new THREE.PlaneGeometry(sz,sz),new THREE.MeshBasicMaterial({color:0xff5c28,transparent:true,opacity:.16,side:THREE.DoubleSide}));q.rotation.x=-Math.PI/2;q.position.set(x,h,z);s.add(q);
+  const qe=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(sz,sz)),new THREE.LineBasicMaterial({color:0xffa07a}));qe.rotation.x=-Math.PI/2;qe.position.set(x,h,z);s.add(qe);
+  const dotm=new THREE.Mesh(new THREE.CircleGeometry(7,24),new THREE.MeshBasicMaterial({color:0xffe2d6,side:THREE.DoubleSide}));dotm.rotation.x=-Math.PI/2;dotm.position.set(x,h+.5,z);s.add(dotm);
+  s.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x,1,z),new THREE.Vector3(x,h,z)]),lm));}
+const comp=new EffectComposer(r);comp.setPixelRatio(2);comp.setSize(W,H);comp.addPass(new RenderPass(s,c));comp.addPass(new UnrealBloomPass(new THREE.Vector2(W,H),.55,.6,.2));comp.addPass(new OutputPass());comp.render();document.title='done';
+</script>

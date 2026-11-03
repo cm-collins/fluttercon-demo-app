@@ -50,22 +50,24 @@ on OpenGL ES. The deck follows the source.
 | 3 | Framework in Dart, engine mostly C++, embedder Java and C++ on Android, `dart:ui` between them | [Architectural overview](https://docs.flutter.dev/resources/architectural-overview) |
 | 4 | About 4 + 4 ms at 120 Hz, and each thread can use a whole refresh | [Performance best practices](https://docs.flutter.dev/perf/best-practices): at 60 Hz, 16 ms each for building and rendering, 8 + 8 ms if latency matters; at 120 fps, under 8 ms in total |
 | 5 | Issue quote "requires 0 extra effort from developers"; opened 6 May 2019, closed 11 Aug 2023, then a team comment pointed to Impeller | [flutter/flutter#32170](https://github.com/flutter/flutter/issues/32170). Said in the notes only. The issue body has been edited, so don't say the quote dates from 2019 |
-| 6, 22 | `impellerc` produces SPIR-V for Vulkan, Metal for Apple and GLSL ES for OpenGL ES | `impeller/README.md`; the built `depth_fill.frag` also holds SkSL |
+| 6, 25 | `impellerc` produces SPIR-V for Vulkan, Metal for Apple and GLSL ES for OpenGL ES | `impeller/README.md`; the built `depth_fill.frag` also holds SkSL |
 | 6, 8 | iOS runs Impeller on Metal only; macOS also uses Metal | `shell/platform/darwin/ios/`; [Impeller page](https://docs.flutter.dev/perf/impeller) |
 | 6 | Dart on the main thread since 3.29, on Android and iOS, and not because of Impeller | [3.29 release post](https://flutter.dev/blog/whats-new-in-flutter-3-29); the Skia trace shows the same thread |
 | 7 | Pipelines are built up front by design, and some are still built in the frame | `impeller/README.md`; 40 `PipelineVK::Create` in `impeller-144.txt` |
 | 7 | On Vulkan, the driver still compiles when a pipeline is built | [Vulkan pipeline cache sample](https://docs.vulkan.org/samples/latest/samples/performance/pipeline_cache/README.html). Impeller keeps a disk pipeline cache: `pipeline_cache_vk.cc` |
 | 8 | iOS default in 3.10, May 2023; Android in 3.27, December 2024; desktop in 3.47; Skia removed from iOS in 3.29 | [What's new archive](https://docs.flutter.dev/release/archive-whats-new); [Impeller page](https://docs.flutter.dev/perf/impeller) |
-| 6, 20 | Impeller has no raster cache | `EnableRasterCache()` returns false in the three Impeller surfaces under `shell/gpu/` |
+| 6, 23 | Impeller has no raster cache | `EnableRasterCache()` returns false in the three Impeller surfaces under `shell/gpu/` |
 | 9 | The two log lines | `shell/common/shell.cc`; `android_context_vk_impeller.cc`; `evidence/*.log` |
-| 11 | Stroke: two vertices per point, a join only above a threshold, triangle strip | `impeller/entity/geometry/stroke_path_geometry.cc` |
-| 12 | Submit with a fence | `impeller/renderer/backend/vulkan/command_queue_vk.cc` |
-| 14 | saveLayer and the firehose comparison; ShaderMask and ColorFilter as triggers | [Performance best practices](https://docs.flutter.dev/perf/best-practices) |
-| 24 | Perfetto recommended from Android 10 | [Android system tracing](https://developer.android.com/topic/performance/tracing) |
-| 13 | Overdraw is drawing the same pixel more than once in a frame | [Android: Debug GPU overdraw](https://developer.android.com/tools/performance/debug-gpu-overdraw) |
-| 13 | A solid colour covering the whole render target is merged into the clear colour | `impeller/display_list/canvas.cc:2320` |
-| 13 | Mali can kill hidden pixels before shading, as a fallback, not a replacement for good draw order | [Arm: Forward Pixel Kill](https://developer.arm.com/community/arm-community-blogs/b/mobile-graphics-and-gaming-blog/posts/killing-pixels---a-new-optimization-for-shading-on-arm-mali-gpus) |
-| 19 | Opacity, ShaderMask, ColorFilter and `Clip.antiAliasWithSaveLayer` can trigger a saveLayer; DevTools can highlight offscreen layers | [Performance best practices](https://docs.flutter.dev/perf/best-practices); [Flutter performance profiling](https://docs.flutter.dev/perf/ui-performance) |
+| 12 | Stroke: two vertices per point, a join only above a threshold, triangle strip | `impeller/entity/geometry/stroke_path_geometry.cc` |
+| 12–14 | Tessellation is on the CPU: Impeller has no tessellation shader stage, and no `.tesc` or `.tese` files | `impeller/core/shader_types.h` (vertex, fragment, compute only); `impeller/tessellator/` |
+| 13 | The CPU and GPU lists | `impeller/entity/geometry/`, `impeller/renderer/backend/vulkan/`. Writing the image out is the GPU's rendering work, not something the trace shows on this phone |
+| 13, 14 | Submit with a fence | `impeller/renderer/backend/vulkan/command_queue_vk.cc` |
+| 16 | saveLayer and the firehose comparison; ShaderMask and ColorFilter as triggers | [Performance best practices](https://docs.flutter.dev/perf/best-practices) |
+| 27, 28 | Perfetto recommended from Android 10 | [Android system tracing](https://developer.android.com/topic/performance/tracing) |
+| 15 | Overdraw is drawing the same pixel more than once in a frame | [Android: Debug GPU overdraw](https://developer.android.com/tools/performance/debug-gpu-overdraw) |
+| 15 | A solid colour covering the whole render target is merged into the clear colour | `impeller/display_list/canvas.cc:2320` |
+| 15 | Mali can kill hidden pixels before shading, as a fallback, not a replacement for good draw order | [Arm: Forward Pixel Kill](https://developer.arm.com/community/arm-community-blogs/b/mobile-graphics-and-gaming-blog/posts/killing-pixels---a-new-optimization-for-shading-on-arm-mali-gpus) |
+| 22 | Opacity, ShaderMask, ColorFilter and `Clip.antiAliasWithSaveLayer` can trigger a saveLayer; DevTools can highlight offscreen layers | [Performance best practices](https://docs.flutter.dev/perf/best-practices); [Flutter performance profiling](https://docs.flutter.dev/perf/ui-performance) |
 
 ## Where the demo's numbers come from
 
@@ -93,13 +95,28 @@ CSV files, and the thread state from the raw trace. All match the slides except 
 
 | Slide | Numbers | File |
 |---|---|---|
-| 9, 27 | Worst frames, every engine, tile count and scenario | `bench/storm.csv` |
-| 15–21, 25, 28 | UI and raster p90, every fix combination, both engines | `bench/thrash-*.csv` |
+| 9, 31 | Worst frames, every engine, tile count and scenario | `bench/storm.csv` |
+| 17, 18, 20–24, 29, 32 | UI and raster p90, every fix combination, both engines | `bench/thrash-*.csv` |
 | 5, 10 | 118 programs, 1,714 ms, 1,820 ms frame; 40 pipelines, 87 ms, 2.2 ms each | `traces/perfetto-system/summaries.txt` |
-| 24 | Raster 27.9 → 4.8, Encode 27.1 → 3.7, saveLayer 64 → 0, QueueSubmit 2 → 1, frames 179 → 604 | `summaries.txt` |
-| 24 | Running 24.0 of 27.9 ms on the median frame (70–99% across frames) | Recomputed from `sched_switch` in `thrash-trace-none.txt` |
-| 24 | Frame rates and budget shares | `summaries.txt` |
-| 22 | 503 B → 4,008 B | `depth_fill.frag` and its built asset |
+| 27, 28 | Raster 27.9 → 4.8, Encode 27.1 → 3.7, saveLayer 64 → 0, QueueSubmit 2 → 1, frames 179 → 604 | `summaries.txt` |
+| 27, 28 | Running 24.0 of 27.9 ms on the median frame (70–99% across frames) | Recomputed from `sched_switch` in `thrash-trace-none.txt` |
+| 27, 28 | Frame rates and budget shares | `summaries.txt` |
+| 25 | 503 B → 4,008 B | `depth_fill.frag` and its built asset |
+
+## Where the pictures come from
+
+The sources are in `slides/visuals/` and the output in `slides/local/visuals/`. Nothing comes from another site.
+
+| Slide | Picture | Real | Drawn or approximate |
+|---|---|---|---|
+| 5 | The 1.8 s wall | Start and length of all 118 programs, from `skia-144.txt`; the 8.3 ms bar, to the same scale | The 3D look; bar height has no meaning |
+| 11 | The mountain | Nothing: original artwork for teaching (`make_mountain.py`) | All of it |
+| 12 | Path to triangles | A stretch of the demo's simplified line, from `thrash_scene.dart` | The stroke is widened so the triangles can be seen |
+| 15 | The exploded screen | Nothing: an illustration | All of it |
+| 19 | One pixel column | The points, from `thrash_scene.dart`, and 25 points a column | The vertical scale |
+| 20 | The two charts | Every point of all 16 lines, full and simplified, from `thrash_scene.dart` | The layout of the lines on the chart |
+| 22 | The layers | Dot positions use the demo's own formula and data; 64 layers | The chart layout and the height of each layer |
+| 27 | Five seconds of frames | Every `GPURasterizer::Draw` in `thrash-trace-none.txt` and `thrash-trace-all.txt`: start, length, and the 8.3 ms line, to one scale | Nothing, except bars above 44 ms would be clipped |
 
 ## Why the deck doesn't copy ChatGPT's overdraw examples
 
@@ -112,6 +129,8 @@ Its teaching style is good, and the deck now uses plain examples and real screen
 | Those screenshots themselves | They belong to other sites | Our own drawings and real screens from the demo app |
 
 Overdraw is not measured in the demo, so the deck gives no number for it.
+
+**The mountain.** Slide 11 shows a mountain as triangles beside the finished pixels, because it teaches how a GPU works. The picture is an original render (`slides/make_mountain.py`), since the one in the ChatGPT answer belongs to another site and carries an ATI logo. The slide says only that the GPU sees triangles. It doesn't say the GPU makes them: in Impeller the CPU does, and your notes for that slide say so. A mountain is a 3D example and Flutter draws in 2D, which the notes also say.
 
 ## Everyday comparisons
 

@@ -56,7 +56,7 @@ Numbers on a different phone will differ. Re-run the benches on it, or say the s
 3. Clear both apps' data so the Shader Storm reveals are cold, then run the backend check again. Don't open Shader Storm after this, because any reveal fills the cache:
    `adb shell pm clear dev.fluttercon.kiln.skia && adb shell pm clear dev.fluttercon.kiln`
 4. Deck open on the cover in Slide Show mode, phone mirror beside it, and the clips folder open as the fallback. Practise switching between them.
-5. **Perfetto tabs, for Q&A only.** Slide 24 already draws the real frames, so keep these to the
+5. **Perfetto tabs, for Q&A only.** Slide 27 already draws the real frames, so keep these to the
    tabs you may need; each trace holds memory. Open https://ui.perfetto.dev once while online, then open each file
    below in its own tab (drag the file onto the page). Once loaded, the page keeps working
    without a network.
@@ -84,19 +84,19 @@ Estimated from the [run of show](demo-script.md#run-of-show). Replace them with 
 | 06:45 | 6 | Now: Impeller |
 | 11:45 | 9 | The proof: Shader Storm |
 | 15:30 | 11 | Inside a frame |
-| 20:45 | 15 | What Impeller didn't fix: Canvas Thrash |
-| 28:45 | 22 | Your own shader |
-| 29:45 | 23 | Prove it: DevTools and Perfetto |
-| 33:15 | 25 | Finish |
-| 34:30 | 27 | Q&A |
+| 21:15 | 17 | What Impeller didn't fix: Canvas Thrash |
+| 29:30 | 25 | Your own shader |
+| 30:30 | 26 | Prove it: DevTools and Perfetto |
+| 34:00 | 29 | Finish |
+| 35:15 | 31 | Q&A |
 
 Running late, in this order:
 
-1. Give the answers on slides 20 and 24 without a vote.
-2. Skip the overdraw notes on slide 13 after the first click.
+1. Give the answers on slides 23 and 27 without a vote.
+2. Skip the overdraw notes on slide 15 after the first click.
 3. Shorten Q&A.
 
-Keep slides 8, 19 and 24, because they carry promises from the abstract.
+Keep slides 8, 22 and 28, because they carry promises from the abstract.
 
 ## Failure recovery
 
@@ -106,7 +106,7 @@ Keep slides 8, 19 and 24, because they carry promises from the abstract.
 | The phone or the mirror fails during a demo | Play the clip named in the `>>> DEMO` cue and carry on. Say it's a recording from your test phone |
 | A clip won't play | Stay on the slide and narrate from the segment script; the numbers are on the slide |
 | The video player freezes | Restart it. Keep talking from the script meanwhile |
-| A Perfetto tab is blank or the page won't load | Use slide 24, which draws the real frames |
+| A Perfetto tab is blank or the page won't load | Use slide 27, which draws the real frames |
 | The projector crops the portrait phone mirror | Pause and point at what matters; the lanes and counters are in the lower half |
 | Laptop dies | Second copy on USB: the slides PDF and the videos run on any machine |
 | No phone, and someone asks to see it live | "These are recordings from my test phone. The scripts in the repo reproduce every number on your phone" |

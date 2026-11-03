@@ -1,0 +1,20 @@
+<!doctype html><meta charset=utf-8><style>html,body{margin:0;background:#0b0b0c}canvas{display:block}</style><script src="data.js"></script>
+<canvas id=c width=2560 height=1440 style="width:1280px;height:720px"></canvas><script>
+const g=document.getElementById('c').getContext('2d');g.scale(2,2);g.fillStyle='#08090b';g.fillRect(0,0,1280,720);
+const n=8000,PW=316,PLOT=230,HW=.75,v=L.lines[0];
+let COL=0,best=1e9;for(let c=20;c<296;c++){const a=Math.floor(c/PW*n),b=Math.floor((c+1)/PW*n);let lo=1,hi=0;for(let k=a;k<=b;k++){lo=Math.min(lo,v[k]);hi=Math.max(hi,v[k]);}const sp=(hi-lo)*PLOT,e=Math.abs(sp-4.6);if(e<best){best=e;COL=c;}}
+const a=Math.floor(COL/PW*n),b=Math.floor((COL+1)/PW*n);let lo=1,hi=0;for(let k=a;k<=b;k++){lo=Math.min(lo,v[k]);hi=Math.max(hi,v[k]);}
+const span=(hi-lo)*PLOT,S=Math.min(520/span,120);const CX=900,CY=372,mid=(hi+lo)/2;
+const X=x=>CX+(x-COL-.5)*S,Y=y=>CY+(y-(1-mid)*PLOT)*S;
+// the pixel grid, at the same scale
+for(let i=-40;i<40;i++){const x=CX+(i-.5)*S;g.strokeStyle='rgba(255,255,255,.07)';g.lineWidth=1;g.beginPath();g.moveTo(x,0);g.lineTo(x,720);g.stroke();const y=CY+i*S;g.beginPath();g.moveTo(0,y);g.lineTo(1280,y);g.stroke();}
+g.fillStyle='rgba(79,195,247,.10)';g.fillRect(CX-.5*S,0,S,720);g.strokeStyle='rgba(79,195,247,.9)';g.lineWidth=1.6;g.strokeRect(CX-.5*S,-5,S,730);
+const pts=[];for(let k=Math.max(a-260,0);k<=b+260;k++)pts.push([k/n*PW,(1-v[k])*PLOT,k>=a&&k<=b]);
+g.lineJoin='round';g.lineCap='round';
+// faint neighbours, then the 25 points in the column
+g.strokeStyle='rgba(255,122,76,.20)';g.lineWidth=1.4;g.beginPath();pts.forEach((p,i)=>{i?g.lineTo(X(p[0]),Y(p[1])):g.moveTo(X(p[0]),Y(p[1]))});g.stroke();
+const inside=pts.filter(p=>p[2]);g.shadowColor='#ff5c28';g.shadowBlur=18;g.strokeStyle='#ff7a4c';g.lineWidth=3.2;g.beginPath();inside.forEach((p,i)=>{i?g.lineTo(X(p[0]),Y(p[1])):g.moveTo(X(p[0]),Y(p[1]))});g.stroke();g.shadowBlur=8;g.shadowColor='#fff';
+for(const p of inside){g.fillStyle='#fff';g.beginPath();g.arc(X(p[0]),Y(p[1]),5,0,7);g.fill();}
+document.title='done '+inside.length+' S='+S.toFixed(1)+' span='+span.toFixed(2)+' col='+COL;
+document.body.dataset.info=document.title;
+</script>
