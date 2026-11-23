@@ -4,7 +4,7 @@
   "type": "module",
   "devDependencies": {
     "@mermaid-js/mermaid-cli": "12.0.0",
-    "markdownlint-cli2": "0.24.0",
+    "markdownlint-cli2": "0.24.2",
     "mermaid": "12.2.0"
   },
   "overrides": {
